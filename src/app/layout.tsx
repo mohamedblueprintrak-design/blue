@@ -1,0 +1,59 @@
+import type { Metadata, Viewport } from "next";
+import { IBM_Plex_Sans_Arabic } from "next/font/google";
+import "./globals.css";
+import { Toaster } from "@/components/ui/toaster";
+
+const ibmPlexArabic = IBM_Plex_Sans_Arabic({
+  variable: "--font-ibm-plex-arabic",
+  subsets: ["arabic", "latin"],
+  weight: ["300", "400", "500", "600", "700"],
+  display: "swap",
+});
+
+export const metadata: Metadata = {
+  title: "BluePrint - نظام إدارة مكاتب الاستشارات الهندسية",
+  description: "نظام متكامل لإدارة مكاتب الاستشارات الهندسية في الإمارات | Integrated Engineering Consultancy Management System for UAE",
+  keywords: ["BluePrint", "engineering", "consultancy", "UAE", "management", "إدارة", "هندسة", "استشارات", "الإمارات"],
+  icons: {
+    icon: "/favicon.ico",
+    apple: "/apple-touch-icon.png",
+  },
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "BluePrint",
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#14b8a6",
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+};
+
+export default function RootLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
+  return (
+    <html lang="ar" dir="rtl" suppressHydrationWarning>
+      <head>
+        <link rel="icon" type="image/png" sizes="32x32" href="/favicon.ico" />
+        <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+        <meta name="apple-mobile-web-app-title" content="BluePrint" />
+      </head>
+      <body
+        className={`${ibmPlexArabic.variable} antialiased bg-background text-foreground font-[family-name:var(--font-ibm-plex-arabic)]`}
+      >
+        {children}
+        <Toaster />
+      </body>
+    </html>
+  );
+}
