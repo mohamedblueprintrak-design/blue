@@ -175,8 +175,9 @@ function getInteractionIcon(type: string) {
   }
 }
 
-function formatCurrency(amount: number, ar: boolean) {
-  return `${amount.toLocaleString(ar ? "ar-AE" : "en-US")} ${ar ? "د.إ" : "AED"}`;
+function formatCurrency(amount: number | undefined | null, ar: boolean) {
+  const safeAmount = amount ?? 0;
+  return `${safeAmount.toLocaleString(ar ? "ar-AE" : "en-US")} ${ar ? "د.إ" : "AED"}`;
 }
 
 function getAvatarColor(name: string) {
