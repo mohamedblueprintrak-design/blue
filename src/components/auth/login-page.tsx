@@ -6,17 +6,9 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
   Loader2,
   Eye,
   EyeOff,
-  User,
   Languages,
   FolderKanban,
   ListChecks,
@@ -88,7 +80,6 @@ export default function LoginPage({ language }: LoginPageProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
-  const [selectedRole, setSelectedRole] = useState("");
   const [featureIndex, setFeatureIndex] = useState(0);
   const { login } = useAuthStore();
   const { toast } = useToast();
@@ -152,12 +143,6 @@ export default function LoginPage({ language }: LoginPageProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     await handleLogin(email, password);
-  };
-
-  const handleRoleSelect = (value: string) => {
-    setSelectedRole(value);
-    setEmail(value);
-    setPassword("admin123");
   };
 
   const handleForgotPassword = () => {
@@ -457,35 +442,17 @@ export default function LoginPage({ language }: LoginPageProps) {
                     </div>
                   </div>
 
-                  {/* Remember Me + Role Selector row */}
-                  <div className="flex items-center justify-between gap-3">
-                    <label className="flex items-center gap-2 cursor-pointer">
-                      <Checkbox
-                        checked={rememberMe}
-                        onCheckedChange={(checked) => setRememberMe(checked === true)}
-                        className="data-[state=checked]:bg-teal-500 data-[state=checked]:border-teal-500"
-                      />
-                      <span className="text-sm text-slate-600 dark:text-slate-400">
-                        {isAr ? "تذكرني" : "Remember me"}
-                      </span>
-                    </label>
-
-                    <div className="relative">
-                      <Select value={selectedRole} onValueChange={handleRoleSelect}>
-                        <SelectTrigger className="h-8 w-auto min-w-[120px] text-xs bg-slate-50 dark:bg-slate-800/60 border-slate-200 dark:border-slate-700">
-                          <User className="h-3 w-3 me-1.5 text-slate-400" />
-                          <SelectValue placeholder={isAr ? "اختر الدور" : "Select Role"} />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {ROLES.map((role) => (
-                            <SelectItem key={role.value} value={role.value}>
-                              {isAr ? role.labelAr : role.labelEn}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
+                  {/* Remember Me */}
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <Checkbox
+                      checked={rememberMe}
+                      onCheckedChange={(checked) => setRememberMe(checked === true)}
+                      className="data-[state=checked]:bg-teal-500 data-[state=checked]:border-teal-500"
+                    />
+                    <span className="text-sm text-slate-600 dark:text-slate-400">
+                      {isAr ? "تذكرني" : "Remember me"}
+                    </span>
+                  </label>
 
                   {/* Submit Button */}
                   <Button
