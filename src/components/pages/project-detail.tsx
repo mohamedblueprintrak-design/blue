@@ -53,6 +53,7 @@ import {
   BookOpen,
   Clock,
   TrendingUp,
+  TrendingDown,
   MessageCircle,
   Pencil,
   Trash2,
@@ -66,6 +67,8 @@ import {
   Briefcase,
   Star,
   FolderKanban,
+  CalendarRange,
+  Timer,
 } from "lucide-react";
 
 // Import page components
@@ -269,6 +272,120 @@ function StatCard({ label, value, icon: Icon, color }: { label: string; value: R
   );
 }
 
+// ===== DEPARTMENT PROGRESS =====
+function DepartmentProgress({
+  stages,
+  department,
+  language,
+  label,
+  icon: Icon,
+  accentColor,
+}: {
+  stages: ProjectStage[];
+  department: string;
+  language: "ar" | "en";
+  label: string;
+  icon: React.ElementType;
+  accentColor: string;
+}) {
+  const isAr = language === "ar";
+  const t = (ar: string, en: string) => (isAr ? ar : en);
+  const deptStages = stages.filter((s) => s.department === department);
+  const completed = deptStages.filter((s) => s.status === "APPROVED").length;
+  const total = deptStages.length;
+  const pct = total > 0 ? Math.round((completed / total) * 100) : 0;
+
+  return (
+    <Card 
+      className="border-slate-200 dark:border-slate-700/50 overflow-hidden"
+      style={{ borderInlineStartWidth: "4px", borderInlineStartColor: accentColor }}
+    >
+      <CardContent className="p-4">
+        <div className="flex items-center gap-3 mb-3">
+          <div 
+            className="w-9 h-9 rounded-xl flex items-center justify-center"
+            style={{ backgroundColor: `${accentColor}15`, color: accentColor }}
+          >
+            <Icon className="h-4 w-4" />
+          </div>
+          <div className="flex-1">
+            <h4 className="font-semibold text-slate-900 dark:text-white text-sm">{label}</h4>
+            <p className="text-xs text-slate-500">{completed}/{total} {t("مراحل", "stages")}</p>
+          </div>
+          <div className="text-end">
+            <span className="text-lg font-bold" style={{ color: accentColor }}>{pct}%</span>
+          </div>
+        </div>
+        <Progress value={pct} className="h-2 bg-slate-100 dark:bg-slate-800" />
+      </CardContent>
+    </Card>
+  );
+}
+
+// ===== STAGE STEPPER =====
+function StageStepper({ stages, language }: { stages: ProjectStage[]; language: "ar" | "en" }) {
+  const isAr = language === "ar";
+  const t = (ar: string, en: string) => (isAr ? ar : en);
+  const sortedStages = [...stages].sort((a, b) => a.stageOrder - b.stageOrder);
+
+  return (
+    <div className="overflow-x-auto pb-2">
+      <div className="flex items-center gap-0 min-w-max">
+        {sortedStages.map((stage, idx) => {
+          const isApproved = stage.status === "APPROVED";
+          const isInProgress = stage.status === "IN_PROGRESS";
+          const isRejected = stage.status === "REJECTED";
+          const isSubmitted = stage.status === "SUBMITTED";
+
+          return (
+            <div key={stage.id} className="flex items-center shrink-0">
+              {/* Step Node */}
+              <div className="flex flex-col items-center gap-1.5 w-20">
+                <div className={cn(
+                  "w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold transition-all duration-300 relative",
+                  isApproved
+                    ? "bg-emerald-500 text-white shadow-md shadow-emerald-500/20"
+                    : isInProgress
+                    ? "bg-teal-500 text-white shadow-md shadow-teal-500/20 animate-pulse"
+                    : isRejected
+                    ? "bg-red-500 text-white shadow-md shadow-red-500/20"
+                    : isSubmitted
+                    ? "bg-amber-500 text-white shadow-md shadow-amber-500/20"
+                    : "bg-slate-200 dark:bg-slate-700 text-slate-500 dark:text-slate-400"
+                )}>
+                  {isApproved ? (
+                    <CheckCircle2 className="h-4 w-4" />
+                  ) : isRejected ? (
+                    <XCircle className="h-4 w-4" />
+                  ) : isInProgress ? (
+                    <Clock className="h-4 w-4" />
+                  ) : (
+                    <span>{idx + 1}</span>
+                  )}
+                </div>
+                <span className={cn(
+                  "text-[10px] text-center leading-tight max-w-[80px]",
+                  isInProgress || isApproved ? "text-slate-900 dark:text-white font-medium" : "text-slate-500"
+                )}>
+                  {stage.stageName}
+                </span>
+              </div>
+              
+              {/* Connector Line */}
+              {idx < sortedStages.length - 1 && (
+                <div className={cn(
+                  "w-8 h-1 rounded-full mx-1",
+                  isApproved ? "bg-emerald-400" : "bg-slate-200 dark:bg-slate-700"
+                )} />
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 // ===== TAB CONFIGURATION =====
 const mainTabs = [
   { id: "overview", icon: Eye, labelAr: "نظرة عامة", labelEn: "Overview" },
@@ -375,9 +492,77 @@ function OverviewTab({ project, language }: { project: ProjectData; language: "a
   const totalInvoiced = project?.invoices?.reduce((s, i) => s + i.total, 0) || 0;
   const totalPaid = project?.invoices?.reduce((s, i) => s + i.paidAmount, 0) || 0;
   const totalBudgetActual = project?.budgets?.reduce((s, b) => s + b.actual, 0) || 0;
+  const budgetPct = project.budget > 0 ? Math.round((totalBudgetActual / project.budget) * 100) : 0;
 
   return (
     <div className="space-y-6">
+      {/* Hero Section */}
+      <div className="relative rounded-2xl overflow-hidden bg-gradient-to-br from-teal-600 via-teal-500 to-cyan-500 dark:from-teal-800 dark:via-teal-700 dark:to-cyan-700 p-6 md:p-8 text-white">
+        {/* Decorative pattern */}
+        <div className="absolute inset-0 opacity-10" style={{ 
+          backgroundImage: `url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23fff' fill-opacity='1' fill-rule='evenodd'%3E%3Cpath d='M0 38.59l2.83-2.83 1.41 1.41L1.41 40H0v-1.41zM0 1.4l2.83 2.83 1.41-1.41L1.41 0H0v1.41zM38.59 40l-2.83-2.83 1.41-1.41L40 38.59V40h-1.41zM40 1.41l-2.83 2.83-1.41-1.41L38.59 0H40v1.41zM20 18.6l2.83-2.83 1.41 1.41L21.41 20l2.83 2.83-1.41 1.41L20 21.41l-2.83 2.83-1.41-1.41L18.59 20l-2.83-2.83 1.41-1.41L20 18.59z'/%3E%3C/g%3E%3C/svg%3E")` 
+        }} />
+        
+        <div className="relative z-10">
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+            <div className="flex-1">
+              {/* Key Metrics Pills */}
+              <div className="flex items-center gap-2 flex-wrap mb-4">
+                <div className="flex items-center gap-1.5 bg-white/15 backdrop-blur-sm rounded-full px-3 py-1.5 text-xs">
+                  <CalendarRange className="h-3 w-3" />
+                  <span className="text-white/70">{t("البدء", "Start")}:</span>
+                  <span className="font-semibold">
+                    {project.startDate ? new Date(project.startDate).toLocaleDateString(isAr ? "ar-AE" : "en-US", { month: "short", day: "numeric" }) : "—"}
+                  </span>
+                </div>
+                <div className="flex items-center gap-1.5 bg-white/15 backdrop-blur-sm rounded-full px-3 py-1.5 text-xs">
+                  <Timer className="h-3 w-3" />
+                  <span className="text-white/70">{t("الانتهاء", "End")}:</span>
+                  <span className="font-semibold">
+                    {project.endDate ? new Date(project.endDate).toLocaleDateString(isAr ? "ar-AE" : "en-US", { month: "short", day: "numeric" }) : "—"}
+                  </span>
+                </div>
+                <div className="flex items-center gap-1.5 bg-white/15 backdrop-blur-sm rounded-full px-3 py-1.5 text-xs">
+                  <Wallet className="h-3 w-3" />
+                  <span className="font-mono font-semibold">{project.budget.toLocaleString()} {isAr ? "د.إ" : "AED"}</span>
+                </div>
+              </div>
+
+              {/* Quick Action Buttons */}
+              <div className="flex items-center gap-2">
+                <Button size="sm" className="h-8 gap-1.5 text-xs bg-white text-teal-700 hover:bg-white/90 font-medium shadow-md">
+                  <Pencil className="h-3.5 w-3.5" />
+                  {t("تعديل المشروع", "Edit Project")}
+                </Button>
+                <Button size="sm" variant="outline" className="h-8 gap-1.5 text-xs bg-white/20 text-white border-white/30 hover:bg-white/30 backdrop-blur-sm">
+                  <Plus className="h-3.5 w-3.5" />
+                  {t("إضافة مهمة", "Add Task")}
+                </Button>
+              </div>
+            </div>
+
+            {/* Large Progress Ring */}
+            <div className="flex flex-col items-center gap-2 shrink-0">
+              <div className="relative">
+                <svg width={120} height={120} className="transform -rotate-90">
+                  <circle cx={60} cy={60} r={52} fill="none" stroke="rgba(255,255,255,0.2)" strokeWidth={8} />
+                  <circle
+                    cx={60} cy={60} r={52} fill="none" stroke="#fff" strokeWidth={8}
+                    strokeDasharray={52 * 2 * Math.PI}
+                    strokeDashoffset={52 * 2 * Math.PI - (project.progress / 100) * 52 * 2 * Math.PI}
+                    strokeLinecap="round" className="transition-all duration-1000"
+                  />
+                </svg>
+                <div className="absolute inset-0 flex flex-col items-center justify-center">
+                  <span className="text-3xl font-bold text-white tabular-nums">{Math.round(project.progress)}%</span>
+                  <span className="text-[10px] text-white/60">{t("الإنجاز", "Progress")}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Stats Grid */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <StatCard
@@ -405,6 +590,36 @@ function OverviewTab({ project, language }: { project: ProjectData; language: "a
           color="bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400"
         />
       </div>
+
+      {/* Department Progress */}
+      {project.stages && project.stages.length > 0 && (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <DepartmentProgress
+            stages={project.stages}
+            department="architectural"
+            language={language}
+            label={t("القسم المعماري", "Architectural")}
+            icon={Building2}
+            accentColor="#14b8a6"
+          />
+          <DepartmentProgress
+            stages={project.stages}
+            department="structural"
+            language={language}
+            label={t("القسم الإنشائي", "Structural")}
+            icon={HardHat}
+            accentColor="#f59e0b"
+          />
+          <DepartmentProgress
+            stages={project.stages}
+            department="mep"
+            language={language}
+            label={t("الكهرباء والميكانيك", "MEP")}
+            icon={Zap}
+            accentColor="#3b82f6"
+          />
+        </div>
+      )}
 
       {/* Project Info */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -703,41 +918,215 @@ export default function ProjectDetail({ language }: ProjectDetailProps) {
             onSubTabChange={handleSubTabChange}
             language={language}
           />
-          <div className="border rounded-xl p-4 bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700">
+          <div className="space-y-4">
             {activeSubTab === "architectural" && (
-              <div className="text-center py-8">
-                <Building2 className="h-12 w-12 mx-auto text-slate-300 mb-4" />
-                <h3 className="text-lg font-semibold">{t("التصميم المعماري", "Architectural Design")}</h3>
-                <p className="text-slate-500 mt-2">{t("إدارة مراحل التصميم المعماري للمشروع", "Manage architectural design stages")}</p>
-              </div>
+              <>
+                {/* Stats Grid */}
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                  <StatCard 
+                    label={t("الإنجاز", "Progress")} 
+                    value={`${Math.round(project.stages?.filter((s) => s.department === "architectural" && s.status === "APPROVED").length / Math.max(project.stages?.filter((s) => s.department === "architectural").length, 1) * 100 || 0)}%`} 
+                    icon={TrendingUp} 
+                    color="bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400" 
+                  />
+                  <StatCard 
+                    label={t("مكتمل", "Completed")} 
+                    value={`${project.stages?.filter((s) => s.department === "architectural" && s.status === "APPROVED").length || 0}/${project.stages?.filter((s) => s.department === "architectural").length || 0}`} 
+                    icon={CheckCircle2} 
+                    color="bg-teal-100 dark:bg-teal-900/30 text-teal-600 dark:text-teal-400" 
+                  />
+                  <StatCard 
+                    label={t("قيد التنفيذ", "In Progress")} 
+                    value={project.stages?.filter((s) => s.department === "architectural" && s.status === "IN_PROGRESS").length || 0} 
+                    icon={Clock} 
+                    color="bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400" 
+                  />
+                  <StatCard 
+                    label={t("عدد الرفوض", "Rejections")} 
+                    value={0} 
+                    icon={XCircle} 
+                    color="bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400" 
+                  />
+                </div>
+                {/* Stages */}
+                <Card className="border-slate-200 dark:border-slate-700/50">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-sm font-semibold">{t("مراحل القسم المعماري", "Architectural Stages")}</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    {project.stages?.filter((s) => s.department === "architectural").length > 0 ? (
+                      <StageStepper stages={project.stages.filter((s) => s.department === "architectural")} language={language} />
+                    ) : (
+                      <div className="text-center py-8 text-slate-500">
+                        <Building2 className="h-10 w-10 mx-auto text-slate-300 mb-3" />
+                        <p>{t("لا توجد مراحل", "No stages defined")}</p>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </>
             )}
             {activeSubTab === "structural" && (
-              <div className="text-center py-8">
-                <HardHat className="h-12 w-12 mx-auto text-slate-300 mb-4" />
-                <h3 className="text-lg font-semibold">{t("التصميم الإنشائي", "Structural Design")}</h3>
-                <p className="text-slate-500 mt-2">{t("إدارة مراحل التصميم الإنشائي للمشروع", "Manage structural design stages")}</p>
-              </div>
+              <>
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                  <StatCard 
+                    label={t("الإنجاز", "Progress")} 
+                    value={`${Math.round(project.stages?.filter((s) => s.department === "structural" && s.status === "APPROVED").length / Math.max(project.stages?.filter((s) => s.department === "structural").length, 1) * 100 || 0)}%`} 
+                    icon={TrendingUp} 
+                    color="bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400" 
+                  />
+                  <StatCard 
+                    label={t("مكتمل", "Completed")} 
+                    value={`${project.stages?.filter((s) => s.department === "structural" && s.status === "APPROVED").length || 0}/${project.stages?.filter((s) => s.department === "structural").length || 0}`} 
+                    icon={CheckCircle2} 
+                    color="bg-teal-100 dark:bg-teal-900/30 text-teal-600 dark:text-teal-400" 
+                  />
+                  <StatCard 
+                    label={t("قيد التنفيذ", "In Progress")} 
+                    value={project.stages?.filter((s) => s.department === "structural" && s.status === "IN_PROGRESS").length || 0} 
+                    icon={Clock} 
+                    color="bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400" 
+                  />
+                  <StatCard 
+                    label={t("عدد الرفوض", "Rejections")} 
+                    value={0} 
+                    icon={XCircle} 
+                    color="bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400" 
+                  />
+                </div>
+                <Card className="border-slate-200 dark:border-slate-700/50">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-sm font-semibold">{t("مراحل القسم الإنشائي", "Structural Stages")}</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    {project.stages?.filter((s) => s.department === "structural").length > 0 ? (
+                      <StageStepper stages={project.stages.filter((s) => s.department === "structural")} language={language} />
+                    ) : (
+                      <div className="text-center py-8 text-slate-500">
+                        <HardHat className="h-10 w-10 mx-auto text-slate-300 mb-3" />
+                        <p>{t("لا توجد مراحل", "No stages defined")}</p>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </>
             )}
             {activeSubTab === "electrical" && (
-              <div className="text-center py-8">
-                <Zap className="h-12 w-12 mx-auto text-slate-300 mb-4" />
-                <h3 className="text-lg font-semibold">{t("الكهربائي", "Electrical")}</h3>
-                <p className="text-slate-500 mt-2">{t("إدارة التصميم الكهربائي", "Manage electrical design")}</p>
-              </div>
+              <>
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                  <StatCard 
+                    label={t("الإنجاز", "Progress")} 
+                    value={`${Math.round(project.stages?.filter((s) => s.department === "electrical" && s.status === "APPROVED").length / Math.max(project.stages?.filter((s) => s.department === "electrical").length, 1) * 100 || 0)}%`} 
+                    icon={TrendingUp} 
+                    color="bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400" 
+                  />
+                  <StatCard 
+                    label={t("مكتمل", "Completed")} 
+                    value={`${project.stages?.filter((s) => s.department === "electrical" && s.status === "APPROVED").length || 0}/${project.stages?.filter((s) => s.department === "electrical").length || 0}`} 
+                    icon={CheckCircle2} 
+                    color="bg-teal-100 dark:bg-teal-900/30 text-teal-600 dark:text-teal-400" 
+                  />
+                  <StatCard 
+                    label={t("قيد التنفيذ", "In Progress")} 
+                    value={project.stages?.filter((s) => s.department === "electrical" && s.status === "IN_PROGRESS").length || 0} 
+                    icon={Clock} 
+                    color="bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400" 
+                  />
+                  <StatCard 
+                    label={t("عدد الرفوض", "Rejections")} 
+                    value={0} 
+                    icon={XCircle} 
+                    color="bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400" 
+                  />
+                </div>
+                <Card className="border-slate-200 dark:border-slate-700/50">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-sm font-semibold">{t("مراحل الكهرباء", "Electrical Stages")}</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    {project.stages?.filter((s) => s.department === "electrical").length > 0 ? (
+                      <StageStepper stages={project.stages.filter((s) => s.department === "electrical")} language={language} />
+                    ) : (
+                      <div className="text-center py-8 text-slate-500">
+                        <Zap className="h-10 w-10 mx-auto text-slate-300 mb-3" />
+                        <p>{t("لا توجد مراحل", "No stages defined")}</p>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </>
             )}
             {activeSubTab === "plumbing" && (
-              <div className="text-center py-8">
-                <Droplets className="h-12 w-12 mx-auto text-slate-300 mb-4" />
-                <h3 className="text-lg font-semibold">{t("السباكة", "Plumbing")}</h3>
-                <p className="text-slate-500 mt-2">{t("إدارة تصميم السباكة", "Manage plumbing design")}</p>
-              </div>
+              <>
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                  <StatCard 
+                    label={t("الإنجاز", "Progress")} 
+                    value={`${Math.round(project.stages?.filter((s) => s.department === "plumbing" && s.status === "APPROVED").length / Math.max(project.stages?.filter((s) => s.department === "plumbing").length, 1) * 100 || 0)}%`} 
+                    icon={TrendingUp} 
+                    color="bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400" 
+                  />
+                  <StatCard 
+                    label={t("مكتمل", "Completed")} 
+                    value={`${project.stages?.filter((s) => s.department === "plumbing" && s.status === "APPROVED").length || 0}/${project.stages?.filter((s) => s.department === "plumbing").length || 0}`} 
+                    icon={CheckCircle2} 
+                    color="bg-teal-100 dark:bg-teal-900/30 text-teal-600 dark:text-teal-400" 
+                  />
+                  <StatCard 
+                    label={t("قيد التنفيذ", "In Progress")} 
+                    value={project.stages?.filter((s) => s.department === "plumbing" && s.status === "IN_PROGRESS").length || 0} 
+                    icon={Clock} 
+                    color="bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400" 
+                  />
+                  <StatCard 
+                    label={t("عدد الرفوض", "Rejections")} 
+                    value={0} 
+                    icon={XCircle} 
+                    color="bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400" 
+                  />
+                </div>
+                <Card className="border-slate-200 dark:border-slate-700/50">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-sm font-semibold">{t("مراحل السباكة", "Plumbing Stages")}</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    {project.stages?.filter((s) => s.department === "plumbing").length > 0 ? (
+                      <StageStepper stages={project.stages.filter((s) => s.department === "plumbing")} language={language} />
+                    ) : (
+                      <div className="text-center py-8 text-slate-500">
+                        <Droplets className="h-10 w-10 mx-auto text-slate-300 mb-3" />
+                        <p>{t("لا توجد مراحل", "No stages defined")}</p>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </>
             )}
             {activeSubTab === "gov-approvals" && (
-              <div className="text-center py-8">
-                <Landmark className="h-12 w-12 mx-auto text-slate-300 mb-4" />
-                <h3 className="text-lg font-semibold">{t("الموافقات الحكومية", "Government Approvals")}</h3>
-                <p className="text-slate-500 mt-2">{t("تتبع الموافقات الحكومية", "Track government approvals")}</p>
-              </div>
+              <Card className="border-slate-200 dark:border-slate-700/50">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm font-semibold">{t("الموافقات الحكومية", "Government Approvals")}</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {project.govApprovals && project.govApprovals.length > 0 ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      {project.govApprovals.map((approval) => (
+                        <div key={approval.id} className="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700/50">
+                          <div className="flex items-center gap-2">
+                            <Landmark className="h-4 w-4 text-slate-400" />
+                            <span className="text-sm font-medium">{approval.authority}</span>
+                          </div>
+                          <StatusBadge status={approval.status} language={language} />
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-8 text-slate-500">
+                      <Landmark className="h-10 w-10 mx-auto text-slate-300 mb-3" />
+                      <p>{t("لا توجد موافقات", "No approvals tracked")}</p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
             )}
             {activeSubTab === "boq" && <BOQPage language={language} />}
             {activeSubTab === "change-orders" && <ChangeOrdersPage language={language} />}
