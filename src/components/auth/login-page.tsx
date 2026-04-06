@@ -6,9 +6,17 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   Loader2,
   Eye,
   EyeOff,
+  User,
   Languages,
   FolderKanban,
   ListChecks,
@@ -28,18 +36,18 @@ interface LoginPageProps {
 }
 
 const ROLES = [
-  { value: "admin@blueprint.ae", labelAr: "المدير العام", labelEn: "Admin", descAr: "صاحب المكتب", descEn: "Office Owner" },
-  { value: "pm@blueprint.ae", labelAr: "مدير مشاريع", labelEn: "Manager", descAr: "إدارة المشاريع", descEn: "Project Mgmt" },
-  { value: "arch@blueprint.ae", labelAr: "مهندس معماري", labelEn: "Arch. Eng", descAr: "القسم المعماري", descEn: "Architecture" },
-  { value: "struct@blueprint.ae", labelAr: "مهندس إنشائي", labelEn: "Struct. Eng", descAr: "القسم الإنشائي", descEn: "Structural" },
-  { value: "elec@blueprint.ae", labelAr: "مهندس كهربائي", labelEn: "Elec. Eng", descAr: "القسم الكهربائي", descEn: "Electrical" },
-  { value: "site@blueprint.ae", labelAr: "مهندس موقع", labelEn: "Site Eng", descAr: "إدارة الموقع", descEn: "Site Mgmt" },
-  { value: "mep@blueprint.ae", labelAr: "مهندس ميكانيكا", labelEn: "MEP Eng", descAr: "خدمات متكاملة", descEn: "MEP Services" },
-  { value: "draft@blueprint.ae", labelAr: "رسام", labelEn: "Draftsman", descAr: "الرسم والتصميم", descEn: "Drafting" },
-  { value: "acc@blueprint.ae", labelAr: "محاسب", labelEn: "Accountant", descAr: "المالية والفواتير", descEn: "Finance" },
-  { value: "sec@blueprint.ae", labelAr: "سكرتيرة", labelEn: "Secretary", descAr: "التنسيق والإدخال", descEn: "Coordination" },
-  { value: "hr@blueprint.ae", labelAr: "موارد بشرية", labelEn: "HR", descAr: "إدارة الموظفين", descEn: "HR Mgmt" },
-  { value: "viewer@blueprint.ae", labelAr: "مشاهد", labelEn: "Viewer", descAr: "عرض فقط", descEn: "Read Only" },
+  { value: "admin@blueprint.ae", labelAr: "المدير العام", labelEn: "Admin" },
+  { value: "pm@blueprint.ae", labelAr: "مدير مشاريع", labelEn: "Manager" },
+  { value: "arch@blueprint.ae", labelAr: "مهندس معماري", labelEn: "Arch. Eng" },
+  { value: "struct@blueprint.ae", labelAr: "مهندس إنشائي", labelEn: "Struct. Eng" },
+  { value: "elec@blueprint.ae", labelAr: "مهندس كهربائي", labelEn: "Elec. Eng" },
+  { value: "site@blueprint.ae", labelAr: "مهندس موقع", labelEn: "Site Eng" },
+  { value: "mep@blueprint.ae", labelAr: "مهندس ميكانيكا", labelEn: "MEP Eng" },
+  { value: "draft@blueprint.ae", labelAr: "رسام", labelEn: "Draftsman" },
+  { value: "acc@blueprint.ae", labelAr: "محاسب", labelEn: "Accountant" },
+  { value: "sec@blueprint.ae", labelAr: "سكرتيرة", labelEn: "Secretary" },
+  { value: "hr@blueprint.ae", labelAr: "موارد بشرية", labelEn: "HR" },
+  { value: "viewer@blueprint.ae", labelAr: "مشاهد", labelEn: "Viewer" },
 ];
 
 const FEATURES = [
@@ -80,6 +88,7 @@ export default function LoginPage({ language }: LoginPageProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
+  const [selectedRole, setSelectedRole] = useState("");
   const [featureIndex, setFeatureIndex] = useState(0);
   const { login } = useAuthStore();
   const { toast } = useToast();
@@ -143,6 +152,12 @@ export default function LoginPage({ language }: LoginPageProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     await handleLogin(email, password);
+  };
+
+  const handleRoleSelect = (value: string) => {
+    setSelectedRole(value);
+    setEmail(value);
+    setPassword("admin123");
   };
 
   const handleForgotPassword = () => {
@@ -338,7 +353,7 @@ export default function LoginPage({ language }: LoginPageProps) {
       {/* ===== Login Form Side ===== */}
       <div className="flex-1 flex flex-col min-h-screen bg-gradient-to-br from-slate-50 to-white dark:from-slate-950 dark:to-slate-900">
         <div className="flex-1 flex flex-col items-center justify-center px-4 sm:px-6 py-6">
-          <div className="w-full max-w-sm space-y-6 animate-fade-in">
+          <div className="w-full max-w-sm animate-fade-in">
             {/* ===== Login Card with Animated Gradient Border + Frosted Glass ===== */}
             <div className="login-gradient-border rounded-2xl">
               <div className="rounded-2xl bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl p-6 sm:p-8 space-y-5 shadow-xl shadow-slate-900/5 dark:shadow-black/20">
@@ -442,17 +457,33 @@ export default function LoginPage({ language }: LoginPageProps) {
                     </div>
                   </div>
 
-                  {/* Remember Me */}
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <Checkbox
-                      checked={rememberMe}
-                      onCheckedChange={(checked) => setRememberMe(checked === true)}
-                      className="data-[state=checked]:bg-teal-500 data-[state=checked]:border-teal-500"
-                    />
-                    <span className="text-sm text-slate-600 dark:text-slate-400">
-                      {isAr ? "تذكرني" : "Remember me"}
-                    </span>
-                  </label>
+                  {/* Remember Me + Role Selector row */}
+                  <div className="flex items-center justify-between gap-3">
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <Checkbox
+                        checked={rememberMe}
+                        onCheckedChange={(checked) => setRememberMe(checked === true)}
+                        className="data-[state=checked]:bg-teal-500 data-[state=checked]:border-teal-500"
+                      />
+                      <span className="text-sm text-slate-600 dark:text-slate-400">
+                        {isAr ? "تذكرني" : "Remember me"}
+                      </span>
+                    </label>
+
+                    <Select value={selectedRole} onValueChange={handleRoleSelect}>
+                      <SelectTrigger className="h-8 w-auto min-w-[120px] text-xs bg-slate-50 dark:bg-slate-800/60 border-slate-200 dark:border-slate-700">
+                        <User className="h-3 w-3 me-1.5 text-slate-400" />
+                        <SelectValue placeholder={isAr ? "اختر الدور" : "Select Role"} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {ROLES.map((role) => (
+                          <SelectItem key={role.value} value={role.value}>
+                            {isAr ? role.labelAr : role.labelEn}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
 
                   {/* Submit Button */}
                   <Button
@@ -486,43 +517,6 @@ export default function LoginPage({ language }: LoginPageProps) {
                 <p className="text-center text-[10px] text-slate-400 dark:text-slate-500 pt-1">
                   © 2025 BluePrint - {isAr ? "نظام إدارة الاستشارات الهندسية" : "Engineering Consultancy Management"}
                 </p>
-              </div>
-            </div>
-
-            {/* ===== Try BluePrint - Role Grid ===== */}
-            <div className="w-full max-w-2xl">
-              <div className="text-center mb-4">
-                <h3 className="text-base font-bold text-slate-800 dark:text-slate-200">
-                  {isAr ? "جرّب BluePrint - اختر دور للاستكشاف" : "Try BluePrint - Pick a role to explore"}
-                </h3>
-                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                  {isAr ? "اضغط على أي دور لتسجيل الدخول تلقائياً واستكشاف النظام" : "Click any role to auto-login and explore the system"}
-                </p>
-              </div>
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2.5">
-                {ROLES.map((role) => (
-                  <button
-                    key={role.value}
-                    type="button"
-                    disabled={isLoading}
-                    onClick={() => handleLogin(role.value, "admin123")}
-                    className={cn(
-                      "group relative flex flex-col items-center gap-1.5 rounded-xl p-3 border transition-all duration-200 cursor-pointer",
-                      "bg-gradient-to-br from-teal-500/10 to-cyan-500/5 border-teal-500/20 hover:border-teal-400",
-                      "hover:shadow-md hover:shadow-teal-500/10 hover:scale-[1.03] active:scale-[0.98]",
-                      "disabled:opacity-50 disabled:cursor-not-allowed"
-                    )}
-                  >
-                    <div className="text-center">
-                      <p className="text-xs font-semibold text-slate-800 dark:text-slate-200 leading-tight">
-                        {isAr ? role.labelAr : role.labelEn}
-                      </p>
-                      <p className="text-[10px] text-slate-500 dark:text-slate-400 leading-tight mt-0.5">
-                        {isAr ? role.descAr : role.descEn}
-                      </p>
-                    </div>
-                  </button>
-                ))}
               </div>
             </div>
           </div>
