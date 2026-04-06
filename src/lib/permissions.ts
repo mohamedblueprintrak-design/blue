@@ -59,9 +59,11 @@ const managementRoles: Role[] = [
   "manager",
   "project_manager",
 ];
+
 const fullRoles: Role[] = ["admin", "manager"];
 
-// ===== ALL NAVIGATION ITEMS DEFINITION =====
+// ===== SIMPLIFIED NAVIGATION ITEMS =====
+// الشريط الجانبي المبسط
 const allNavItems: NavItem[] = [
   // ───── Dashboard ─────
   {
@@ -72,461 +74,91 @@ const allNavItems: NavItem[] = [
     roles: allRoles,
   },
 
-  // ───── Projects ─────
+  // ───── Projects (مبسط - بدون children) ─────
   {
     id: "projects",
     icon: "FolderKanban",
     labelAr: "المشاريع",
     labelEn: "Projects",
     roles: allRoles,
-    children: [
-      {
-        id: "projects-overview",
-        icon: "List",
-        labelAr: "نظرة عامة",
-        labelEn: "Overview",
-        roles: allRoles,
-      },
-      {
-        id: "projects-architectural",
-        icon: "Building2",
-        labelAr: "المعماري",
-        labelEn: "Architectural",
-        roles: ["admin", "manager", "project_manager", "engineer", "draftsman"],
-      },
-      {
-        id: "projects-structural",
-        icon: "HardHat",
-        labelAr: "الإنشائي",
-        labelEn: "Structural",
-        roles: ["admin", "manager", "project_manager", "engineer", "draftsman"],
-      },
-      {
-        id: "projects-mep-electrical",
-        icon: "Zap",
-        labelAr: "الكهربائي",
-        labelEn: "MEP - Electrical",
-        roles: ["admin", "manager", "project_manager", "engineer"],
-      },
-      {
-        id: "projects-mep-plumbing",
-        icon: "Droplets",
-        labelAr: "السباكة",
-        labelEn: "MEP - Plumbing",
-        roles: ["admin", "manager", "project_manager", "engineer"],
-      },
-      {
-        id: "projects-gov-approvals",
-        icon: "Landmark",
-        labelAr: "الموافقات الحكومية",
-        labelEn: "Government Approvals",
-        roles: managementRoles,
-      },
-      {
-        id: "projects-schedule",
-        icon: "CalendarRange",
-        labelAr: "الجدول الزمني",
-        labelEn: "Schedule",
-        roles: managementRoles,
-      },
-      {
-        id: "projects-boq",
-        icon: "Calculator",
-        labelAr: "جدول الكميات",
-        labelEn: "Bill of Quantities",
-        roles: managementRoles,
-      },
-      {
-        id: "projects-change-orders",
-        icon: "FileEdit",
-        labelAr: "أوامر التغيير",
-        labelEn: "Change Orders",
-        roles: managementRoles,
-      },
-      {
-        id: "projects-risks",
-        icon: "ShieldAlert",
-        labelAr: "المخاطر",
-        labelEn: "Risks",
-        roles: managementRoles,
-      },
-    ],
   },
 
-  // ───── Tasks ─────
+  // ───── Contractors (جديد - للمقاولين والمشتريات) ─────
   {
-    id: "tasks",
-    icon: "CheckSquare",
-    labelAr: "المهام",
-    labelEn: "Tasks",
-    roles: ["admin", "manager", "project_manager", "engineer", "draftsman"],
-  },
-
-  // ───── Clients ─────
-  {
-    id: "clients",
-    icon: "Users",
-    labelAr: "العملاء",
-    labelEn: "Clients",
-    roles: ["admin", "manager", "project_manager", "accountant"],
-  },
-
-  // ───── Contracts ─────
-  {
-    id: "contracts",
-    icon: "FileSignature",
-    labelAr: "العقود",
-    labelEn: "Contracts",
-    roles: fullRoles,
-  },
-
-  // ───── Documents ─────
-  {
-    id: "documents",
-    icon: "FileText",
-    labelAr: "المستندات",
-    labelEn: "Documents",
-    roles: [
-      "admin",
-      "manager",
-      "project_manager",
-      "engineer",
-      "draftsman",
-      "secretary",
-      "viewer",
-    ],
-  },
-
-  // ───── Site Management ─────
-  {
-    id: "site",
-    icon: "MapPin",
-    labelAr: "إدارة الموقع",
-    labelEn: "Site Management",
-    roles: ["admin", "manager", "project_manager", "engineer"],
-    children: [
-      {
-        id: "site-visits",
-        icon: "Eye",
-        labelAr: "زيارات الموقع",
-        labelEn: "Site Visits",
-        roles: ["admin", "manager", "project_manager", "engineer"],
-      },
-      {
-        id: "site-diary",
-        icon: "BookOpen",
-        labelAr: "يومية الموقع",
-        labelEn: "Site Diary",
-        roles: ["admin", "manager", "project_manager", "engineer"],
-      },
-      {
-        id: "site-rfi",
-        icon: "MessageSquareQuote",
-        labelAr: "طلبات المعلومات",
-        labelEn: "RFI",
-        roles: ["admin", "manager", "project_manager", "engineer"],
-      },
-      {
-        id: "site-defects",
-        icon: "AlertTriangle",
-        labelAr: "العيوب",
-        labelEn: "Defects",
-        roles: ["admin", "manager", "project_manager", "engineer"],
-      },
-      {
-        id: "municipality",
-        icon: "Landmark",
-        labelAr: "المراسلات البلدية",
-        labelEn: "Municipality Correspondence",
-        roles: ["admin", "manager", "project_manager", "engineer"],
-      },
-    ],
-  },
-
-  // ───── Financial ─────
-  {
-    id: "financial",
-    icon: "Wallet",
-    labelAr: "المالية",
-    labelEn: "Financial",
-    roles: ["admin", "manager", "accountant"],
-    children: [
-      {
-        id: "financial-invoices",
-        icon: "Receipt",
-        labelAr: "الفواتير",
-        labelEn: "Invoices",
-        roles: ["admin", "manager", "accountant"],
-      },
-      {
-        id: "financial-payments",
-        icon: "CreditCard",
-        labelAr: "المدفوعات",
-        labelEn: "Payments",
-        roles: ["admin", "manager", "accountant"],
-      },
-      {
-        id: "financial-proposals",
-        icon: "FileSpreadsheet",
-        labelAr: "العروض",
-        labelEn: "Proposals",
-        roles: ["admin", "manager", "accountant"],
-      },
-      {
-        id: "financial-bids",
-        icon: "Gavel",
-        labelAr: "العطاءات",
-        labelEn: "Bids",
-        roles: ["admin", "manager", "accountant"],
-      },
-      {
-        id: "financial-budgets",
-        icon: "PiggyBank",
-        labelAr: "الميزانيات",
-        labelEn: "Budgets",
-        roles: ["admin", "manager", "accountant"],
-      },
-    ],
-  },
-
-  // ───── Procurement ─────
-  {
-    id: "procurement",
-    icon: "ShoppingCart",
-    labelAr: "المشتريات",
-    labelEn: "Procurement",
+    id: "contractors",
+    icon: "HardHat",
+    labelAr: "المقاولون",
+    labelEn: "Contractors",
     roles: ["admin", "manager", "project_manager"],
     children: [
       {
-        id: "procurement-suppliers",
+        id: "contractors-suppliers",
         icon: "Truck",
         labelAr: "الموردون",
         labelEn: "Suppliers",
         roles: ["admin", "manager", "project_manager"],
       },
       {
-        id: "procurement-orders",
+        id: "contractors-inventory",
+        icon: "Warehouse",
+        labelAr: "المخزون",
+        labelEn: "Inventory",
+        roles: ["admin", "manager", "project_manager"],
+      },
+      {
+        id: "contractors-purchase-orders",
         icon: "Package",
         labelAr: "أوامر الشراء",
         labelEn: "Purchase Orders",
         roles: ["admin", "manager", "project_manager"],
       },
       {
-        id: "procurement-inventory",
-        icon: "Warehouse",
-        labelAr: "المخزون",
-        labelEn: "Inventory",
+        id: "contractors-equipment",
+        icon: "Settings",
+        labelAr: "المعدات",
+        labelEn: "Equipment",
         roles: ["admin", "manager", "project_manager"],
       },
     ],
   },
 
-  // ───── HR ─────
+  // ───── Employees ─────
   {
-    id: "hr",
-    icon: "UserCog",
-    labelAr: "الموارد البشرية",
-    labelEn: "Human Resources",
+    id: "employees",
+    icon: "UsersRound",
+    labelAr: "الموظفين",
+    labelEn: "Employees",
     roles: ["admin", "manager", "hr"],
     children: [
       {
-        id: "hr-employees",
+        id: "employees-list",
         icon: "UsersRound",
-        labelAr: "الموظفون",
-        labelEn: "Employees",
+        labelAr: "قائمة الموظفين",
+        labelEn: "Employees List",
         roles: ["admin", "manager", "hr"],
       },
       {
-        id: "hr-attendance",
+        id: "employees-attendance",
         icon: "Clock",
-        labelAr: "الحضور",
+        labelAr: "الحضور والانصراف",
         labelEn: "Attendance",
         roles: ["admin", "manager", "hr"],
       },
       {
-        id: "hr-leave",
+        id: "employees-leave",
         icon: "CalendarOff",
         labelAr: "الإجازات",
         labelEn: "Leave Management",
         roles: ["admin", "manager", "hr"],
       },
       {
-        id: "hr-workload",
+        id: "employees-workload",
         icon: "BarChart3",
         labelAr: "أعباء العمل",
         labelEn: "Workload",
         roles: ["admin", "manager", "hr"],
       },
     ],
-  },
-
-  // ───── Transmittals ─────
-  {
-    id: "transmittals",
-    icon: "Send",
-    labelAr: "الإحالات",
-    labelEn: "Transmittals",
-    roles: ["admin", "manager", "project_manager", "secretary"],
-  },
-
-  // ───── Risks ─────
-  {
-    id: "risks",
-    icon: "ShieldAlert",
-    labelAr: "إدارة المخاطر",
-    labelEn: "Risk Management",
-    roles: ["admin", "manager", "project_manager", "engineer"],
-  },
-
-  // ───── Meetings ─────
-  {
-    id: "meetings",
-    icon: "Video",
-    labelAr: "الاجتماعات",
-    labelEn: "Meetings",
-    roles: ["admin", "manager", "project_manager", "secretary"],
-  },
-
-  // ───── Calendar ─────
-  {
-    id: "calendar",
-    icon: "Calendar",
-    labelAr: "التقويم",
-    labelEn: "Calendar",
-    roles: [
-      "admin",
-      "manager",
-      "project_manager",
-      "engineer",
-      "draftsman",
-      "secretary",
-    ],
-  },
-
-  // ───── Gantt Chart ─────
-  {
-    id: "gantt",
-    icon: "BarChart3",
-    labelAr: "مخطط جانت",
-    labelEn: "Gantt Chart",
-    roles: ["admin", "manager", "project_manager"],
-  },
-
-  // ───── BOQ ─────
-  {
-    id: "boq",
-    icon: "Calculator",
-    labelAr: "جدول الكميات",
-    labelEn: "Bill of Quantities",
-    roles: ["admin", "manager", "project_manager"],
-  },
-
-  // ───── Knowledge Base ─────
-  {
-    id: "knowledge",
-    icon: "BookMarked",
-    labelAr: "قاعدة المعرفة",
-    labelEn: "Knowledge Base",
-    roles: ["admin", "manager", "project_manager", "engineer"],
-  },
-
-  // ───── Reports ─────
-  {
-    id: "reports",
-    icon: "BarChart2",
-    labelAr: "التقارير",
-    labelEn: "Reports",
-    roles: [
-      "admin",
-      "manager",
-      "accountant",
-      "hr",
-      "viewer",
-    ],
-  },
-
-  // ───── Approvals ─────
-  {
-    id: "approvals",
-    icon: "ClipboardCheck",
-    labelAr: "الموافقات",
-    labelEn: "Approvals",
-    roles: ["admin", "manager", "project_manager", "accountant"],
-  },
-
-  // ───── Notifications ─────
-  {
-    id: "notifications",
-    icon: "Bell",
-    labelAr: "الإشعارات",
-    labelEn: "Notifications",
-    roles: [
-      "admin",
-      "manager",
-      "project_manager",
-      "engineer",
-      "secretary",
-    ],
-  },
-
-  // ───── Activity Log ─────
-  {
-    id: "activity-log",
-    icon: "Activity",
-    labelAr: "سجل النشاط",
-    labelEn: "Activity Log",
-    roles: [
-      "admin",
-      "manager",
-      "project_manager",
-      "engineer",
-      "accountant",
-      "hr",
-      "secretary",
-    ],
-  },
-
-  // ───── Search ─────
-  {
-    id: "search",
-    icon: "Search",
-    labelAr: "البحث",
-    labelEn: "Search",
-    roles: [
-      "admin",
-      "manager",
-      "project_manager",
-      "engineer",
-      "draftsman",
-      "secretary",
-    ],
-  },
-
-  // ───── AI Assistant ─────
-  {
-    id: "ai-assistant",
-    icon: "Sparkles",
-    labelAr: "المساعد الذكي",
-    labelEn: "AI Assistant",
-    roles: allRoles,
-  },
-
-  // ───── Automations ─────
-  {
-    id: "automations",
-    icon: "Zap",
-    labelAr: "الأتمتة",
-    labelEn: "Automations",
-    roles: ["admin", "manager"],
-  },
-
-  // ───── Help ─────
-  {
-    id: "help",
-    icon: "BookOpen",
-    labelAr: "المساعدة",
-    labelEn: "Help",
-    roles: allRoles,
   },
 
   // ───── Settings ─────
@@ -584,3 +216,69 @@ function checkItemAccess(items: NavItem[], pageId: string): boolean {
   }
   return false;
 }
+
+// ===== PROJECT TAB ITEMS (للاستخدام داخل المشروع) =====
+export const projectTabItems = [
+  { id: "overview", icon: "Eye", labelAr: "نظرة عامة", labelEn: "Overview" },
+  { id: "technical", icon: "Building2", labelAr: "فني", labelEn: "Technical" },
+  { id: "tasks", icon: "CheckSquare", labelAr: "المهام", labelEn: "Tasks" },
+  { id: "documents", icon: "FileText", labelAr: "المستندات", labelEn: "Documents" },
+  { id: "financial", icon: "Wallet", labelAr: "المالية", labelEn: "Financial" },
+  { id: "site", icon: "MapPin", labelAr: "الموقع", labelEn: "Site" },
+  { id: "team", icon: "Users", labelAr: "الفريق", labelEn: "Team" },
+  { id: "help", icon: "Sparkles", labelAr: "مساعدة", labelEn: "Help" },
+];
+
+// Technical Sub-tabs
+export const technicalSubTabs = [
+  { id: "architectural", icon: "Building2", labelAr: "المعماري", labelEn: "Architectural" },
+  { id: "structural", icon: "HardHat", labelAr: "الإنشائي", labelEn: "Structural" },
+  { id: "electrical", icon: "Zap", labelAr: "الكهربائي", labelEn: "Electrical" },
+  { id: "plumbing", icon: "Droplets", labelAr: "السباكة", labelEn: "Plumbing" },
+  { id: "gov-approvals", icon: "Landmark", labelAr: "الموافقات الحكومية", labelEn: "Gov Approvals" },
+  { id: "boq", icon: "Calculator", labelAr: "جدول الكميات", labelEn: "BOQ" },
+  { id: "change-orders", icon: "FileEdit", labelAr: "أوامر التغيير", labelEn: "Change Orders" },
+  { id: "risks", icon: "ShieldAlert", labelAr: "المخاطر", labelEn: "Risks" },
+];
+
+// Documents Sub-tabs
+export const documentsSubTabs = [
+  { id: "contract", icon: "FileSignature", labelAr: "العقد", labelEn: "Contract" },
+  { id: "documents", icon: "FileText", labelAr: "المستندات", labelEn: "Documents" },
+  { id: "municipality", icon: "Landmark", labelAr: "المراسلات البلدية", labelEn: "Municipality" },
+];
+
+// Financial Sub-tabs
+export const financialSubTabs = [
+  { id: "invoices", icon: "Receipt", labelAr: "الفواتير", labelEn: "Invoices" },
+  { id: "payments", icon: "CreditCard", labelAr: "المدفوعات", labelEn: "Payments" },
+  { id: "budgets", icon: "PiggyBank", labelAr: "الميزانية", labelEn: "Budget" },
+  { id: "proposals", icon: "FileSpreadsheet", labelAr: "العروض", labelEn: "Proposals" },
+  { id: "bids", icon: "Gavel", labelAr: "العطاءات", labelEn: "Bids" },
+];
+
+// Site Sub-tabs
+export const siteSubTabs = [
+  { id: "clients", icon: "Users", labelAr: "العملاء", labelEn: "Clients" },
+  { id: "site-visits", icon: "Eye", labelAr: "زيارات الموقع", labelEn: "Site Visits" },
+  { id: "site-diary", icon: "BookOpen", labelAr: "يومية الموقع", labelEn: "Site Diary" },
+  { id: "rfi", icon: "MessageSquareQuote", labelAr: "طلبات المعلومات", labelEn: "RFI" },
+  { id: "defects", icon: "AlertTriangle", labelAr: "العيوب", labelEn: "Defects" },
+];
+
+// Team Sub-tabs
+export const teamSubTabs = [
+  { id: "team-members", icon: "UsersRound", labelAr: "الفريق", labelEn: "Team" },
+  { id: "meetings", icon: "Video", labelAr: "الاجتماعات", labelEn: "Meetings" },
+  { id: "approvals", icon: "ClipboardCheck", labelAr: "الموافقات", labelEn: "Approvals" },
+  { id: "notifications", icon: "Bell", labelAr: "الإشعارات", labelEn: "Notifications" },
+  { id: "activity-log", icon: "Activity", labelAr: "سجل النشاط", labelEn: "Activity Log" },
+];
+
+// Help Sub-tabs
+export const helpSubTabs = [
+  { id: "ai-assistant", icon: "Sparkles", labelAr: "المساعد الذكي", labelEn: "AI Assistant" },
+  { id: "knowledge", icon: "BookMarked", labelAr: "قاعدة المعرفة", labelEn: "Knowledge" },
+  { id: "calendar", icon: "Calendar", labelAr: "التقويم", labelEn: "Calendar" },
+  { id: "search", icon: "Search", labelAr: "البحث", labelEn: "Search" },
+];
