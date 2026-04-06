@@ -36,18 +36,18 @@ interface LoginPageProps {
 }
 
 const ROLES = [
-  { value: "admin@blueprint.ae", labelAr: "المدير العام", labelEn: "Admin", emoji: "👑", descAr: "صاحب المكتب", descEn: "Office Owner", gradient: "from-red-500/20 to-red-600/10 border-red-500/30 hover:border-red-400" },
-  { value: "pm@blueprint.ae", labelAr: "مدير مشاريع", labelEn: "Manager", emoji: "📋", descAr: "إدارة المشاريع", descEn: "Project Mgmt", gradient: "from-amber-500/20 to-amber-600/10 border-amber-500/30 hover:border-amber-400" },
-  { value: "arch@blueprint.ae", labelAr: "مهندس معماري", labelEn: "Arch. Eng", emoji: "🏗️", descAr: "القسم المعماري", descEn: "Architecture", gradient: "from-blue-500/20 to-blue-600/10 border-blue-500/30 hover:border-blue-400" },
-  { value: "struct@blueprint.ae", labelAr: "مهندس إنشائي", labelEn: "Struct. Eng", emoji: "🧱", descAr: "القسم الإنشائي", descEn: "Structural", gradient: "from-orange-500/20 to-orange-600/10 border-orange-500/30 hover:border-orange-400" },
-  { value: "elec@blueprint.ae", labelAr: "مهندس كهربائي", labelEn: "Elec. Eng", emoji: "⚡", descAr: "القسم الكهربائي", descEn: "Electrical", gradient: "from-yellow-500/20 to-yellow-600/10 border-yellow-500/30 hover:border-yellow-400" },
-  { value: "site@blueprint.ae", labelAr: "مهندس موقع", labelEn: "Site Eng", emoji: "📍", descAr: "إدارة الموقع", descEn: "Site Mgmt", gradient: "from-teal-500/20 to-teal-600/10 border-teal-500/30 hover:border-teal-400" },
-  { value: "mep@blueprint.ae", labelAr: "مهندس ميكانيكا", labelEn: "MEP Eng", emoji: "🔧", descAr: "خدمات متكاملة", descEn: "MEP Services", gradient: "from-cyan-500/20 to-cyan-600/10 border-cyan-500/30 hover:border-cyan-400" },
-  { value: "draft@blueprint.ae", labelAr: "رسام", labelEn: "Draftsman", emoji: "✏️", descAr: "الرسم والتصميم", descEn: "Drafting", gradient: "from-purple-500/20 to-purple-600/10 border-purple-500/30 hover:border-purple-400" },
-  { value: "acc@blueprint.ae", labelAr: "محاسب", labelEn: "Accountant", emoji: "💰", descAr: "المالية والفواتير", descEn: "Finance", gradient: "from-emerald-500/20 to-emerald-600/10 border-emerald-500/30 hover:border-emerald-400" },
-  { value: "sec@blueprint.ae", labelAr: "سكرتيرة", labelEn: "Secretary", emoji: "📝", descAr: "التنسيق والإدخال", descEn: "Coordination", gradient: "from-pink-500/20 to-pink-600/10 border-pink-500/30 hover:border-pink-400" },
-  { value: "hr@blueprint.ae", labelAr: "موارد بشرية", labelEn: "HR", emoji: "👥", descAr: "إدارة الموظفين", descEn: "HR Mgmt", gradient: "from-rose-500/20 to-rose-600/10 border-rose-500/30 hover:border-rose-400" },
-  { value: "viewer@blueprint.ae", labelAr: "مشاهد", labelEn: "Viewer", emoji: "👁️", descAr: "عرض فقط", descEn: "Read Only", gradient: "from-slate-500/20 to-slate-600/10 border-border/30 hover:border-border" },
+  { value: "admin@blueprint.ae", labelAr: "المدير العام", labelEn: "Admin", descAr: "صاحب المكتب", descEn: "Office Owner" },
+  { value: "pm@blueprint.ae", labelAr: "مدير مشاريع", labelEn: "Manager", descAr: "إدارة المشاريع", descEn: "Project Mgmt" },
+  { value: "arch@blueprint.ae", labelAr: "مهندس معماري", labelEn: "Arch. Eng", descAr: "القسم المعماري", descEn: "Architecture" },
+  { value: "struct@blueprint.ae", labelAr: "مهندس إنشائي", labelEn: "Struct. Eng", descAr: "القسم الإنشائي", descEn: "Structural" },
+  { value: "elec@blueprint.ae", labelAr: "مهندس كهربائي", labelEn: "Elec. Eng", descAr: "القسم الكهربائي", descEn: "Electrical" },
+  { value: "site@blueprint.ae", labelAr: "مهندس موقع", labelEn: "Site Eng", descAr: "إدارة الموقع", descEn: "Site Mgmt" },
+  { value: "mep@blueprint.ae", labelAr: "مهندس ميكانيكا", labelEn: "MEP Eng", descAr: "خدمات متكاملة", descEn: "MEP Services" },
+  { value: "draft@blueprint.ae", labelAr: "رسام", labelEn: "Draftsman", descAr: "الرسم والتصميم", descEn: "Drafting" },
+  { value: "acc@blueprint.ae", labelAr: "محاسب", labelEn: "Accountant", descAr: "المالية والفواتير", descEn: "Finance" },
+  { value: "sec@blueprint.ae", labelAr: "سكرتيرة", labelEn: "Secretary", descAr: "التنسيق والإدخال", descEn: "Coordination" },
+  { value: "hr@blueprint.ae", labelAr: "موارد بشرية", labelEn: "HR", descAr: "إدارة الموظفين", descEn: "HR Mgmt" },
+  { value: "viewer@blueprint.ae", labelAr: "مشاهد", labelEn: "Viewer", descAr: "عرض فقط", descEn: "Read Only" },
 ];
 
 const FEATURES = [
@@ -526,7 +526,7 @@ export default function LoginPage({ language }: LoginPageProps) {
             <div className="w-full max-w-2xl">
               <div className="text-center mb-4">
                 <h3 className="text-base font-bold text-slate-800 dark:text-slate-200">
-                  🚀 {isAr ? "جرّب BluePrint - اختر دور للاستكشاف" : "Try BluePrint - Pick a role to explore"}
+                  {isAr ? "جرّب BluePrint - اختر دور للاستكشاف" : "Try BluePrint - Pick a role to explore"}
                 </h3>
                 <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
                   {isAr ? "اضغط على أي دور لتسجيل الدخول تلقائياً واستكشاف النظام" : "Click any role to auto-login and explore the system"}
@@ -541,13 +541,11 @@ export default function LoginPage({ language }: LoginPageProps) {
                     onClick={() => handleLogin(role.value, "admin123")}
                     className={cn(
                       "group relative flex flex-col items-center gap-1.5 rounded-xl p-3 border transition-all duration-200 cursor-pointer",
-                      "bg-gradient-to-br",
-                      role.gradient,
-                      "hover:shadow-md hover:scale-[1.03] active:scale-[0.98]",
+                      "bg-gradient-to-br from-teal-500/10 to-cyan-500/5 border-teal-500/20 hover:border-teal-400",
+                      "hover:shadow-md hover:shadow-teal-500/10 hover:scale-[1.03] active:scale-[0.98]",
                       "disabled:opacity-50 disabled:cursor-not-allowed"
                     )}
                   >
-                    <span className="text-xl">{role.emoji}</span>
                     <div className="text-center">
                       <p className="text-xs font-semibold text-slate-800 dark:text-slate-200 leading-tight">
                         {isAr ? role.labelAr : role.labelEn}
