@@ -1007,3 +1007,21 @@ model Approval {
 
   project     Project? @relation(fields: [projectId], references: [id])
 }
+
+// ==================== PUBLIC QUOTE REQUESTS ====================
+
+model QuoteRequest {
+  id            String   @id @default(cuid())
+  name          String   @default("")
+  phone         String   @default("")
+  email         String   @default("")
+  serviceType   String   @default("")
+  buildingType  String   @default("")
+  area          String   @default("")
+  floors        Int      @default(1)
+  location      String   @default("")
+  message       String   @default("")
+  status        String   @default("new") // new, contacted, quoted, converted, lost
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
