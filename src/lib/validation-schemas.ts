@@ -10,6 +10,7 @@ export const projectSchema = z.object({
   name: z.string().min(1, "Name is required"),
   nameEn: optionalString,
   clientId: z.string().min(1, "Client is required"),
+  contractorId: z.string().optional().default(""),
   location: optionalString,
   plotNumber: z.string().optional().default(""),
   type: z.string().min(1, "Type is required"),

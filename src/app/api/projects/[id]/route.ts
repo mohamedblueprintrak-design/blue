@@ -14,6 +14,9 @@ export async function GET(
         client: {
           select: { id: true, name: true, company: true, email: true, phone: true },
         },
+        contractor: {
+          select: { id: true, name: true, nameEn: true, companyName: true, companyEn: true, contactPerson: true, phone: true, email: true, category: true, rating: true, crNumber: true, licenseNumber: true },
+        },
         createdBy: {
           select: { id: true, name: true },
         },
@@ -115,6 +118,7 @@ export async function PUT(
       data: body,
       include: {
         client: { select: { id: true, name: true, company: true } },
+        contractor: { select: { id: true, name: true, companyName: true } },
       },
     });
 

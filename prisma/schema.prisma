@@ -72,6 +72,7 @@ model Project {
   name          String   @default("")
   nameEn        String   @default("")
   clientId      String
+  contractorId  String?
   location      String   @default("")
   plotNumber    String   @default("")
   type          String   @default("villa") // villa, building, commercial, industrial
@@ -85,7 +86,8 @@ model Project {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
-  client        Client   @relation(fields: [clientId], references: [id])
+  client        Client     @relation(fields: [clientId], references: [id])
+  contractor    Contractor? @relation("ProjectContractor", fields: [contractorId], references: [id])
   createdBy     User     @relation("CreatedProjects", fields: [createdById], references: [id])
   assignments   ProjectAssignment[]
   tasks         Task[]
@@ -454,6 +456,7 @@ model Contractor {
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
+  projects        Project[] @relation("ProjectContractor")
   bids            Bid[]
   evaluations    ContractorEvaluation[]
 }

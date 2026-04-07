@@ -37,6 +37,9 @@ export async function GET(request: NextRequest) {
           client: {
             select: { id: true, name: true, company: true },
           },
+          contractor: {
+            select: { id: true, name: true, companyName: true, category: true },
+          },
           assignments: {
             select: { userId: true, role: true },
           },
@@ -77,6 +80,7 @@ export async function POST(request: NextRequest) {
       name,
       nameEn,
       clientId,
+      contractorId,
       location,
       plotNumber,
       type,
@@ -100,6 +104,7 @@ export async function POST(request: NextRequest) {
         name,
         nameEn: nameEn || "",
         clientId,
+        contractorId: contractorId || null,
         location: location || "",
         plotNumber: plotNumber || "",
         type: type || "villa",
@@ -112,6 +117,9 @@ export async function POST(request: NextRequest) {
       include: {
         client: {
           select: { id: true, name: true, company: true },
+        },
+        contractor: {
+          select: { id: true, name: true, companyName: true, category: true },
         },
       },
     });

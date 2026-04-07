@@ -64,6 +64,7 @@ import {
   ChevronLeft,
   ChevronRight,
   AlertCircle,
+  HardHat,
 } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { exportToCSV } from "@/lib/export-utils";
@@ -89,6 +90,7 @@ interface ProjectRow {
   progress: number;
   budget: number;
   client: ClientBrief;
+  contractor: { id: string; name: string; companyName: string; category: string } | null;
   createdAt: string;
   _count: { tasks: number; stages: number; invoices: number };
 }
@@ -143,6 +145,7 @@ export default function ProjectsList({ language }: ProjectsListProps) {
       name: "",
       nameEn: "",
       clientId: "",
+      contractorId: "",
       location: "",
       plotNumber: "",
       type: "villa",
@@ -174,6 +177,16 @@ export default function ProjectsList({ language }: ProjectsListProps) {
     queryKey: ["clients-dropdown"],
     queryFn: async () => {
       const res = await fetch("/api/clients");
+      if (!res.ok) return [];
+      return res.json();
+    },
+  });
+
+  // Fetch contractors for dropdown
+  const { data: contractorsData } = useQuery({
+    queryKey: ["contractors-dropdown"],
+    queryFn: async () => {
+      const res = await fetch("/api/contractors");
       if (!res.ok) return [];
       return res.json();
     },
@@ -303,6 +316,7 @@ export default function ProjectsList({ language }: ProjectsListProps) {
                   [t("الرقم", "No.")]: p.number,
                   [t("اسم المشروع", "Project Name")]: isAr ? p.name : p.nameEn || p.name,
                   [t("العميل", "Client")]: p.client?.name || "",
+                  [t("المقاول", "Contractor")]: p.contractor?.companyName || p.contractor?.name || "",
                   [t("الموقع", "Location")]: p.location,
                   [t("النوع", "Type")]: typeLabels[p.type] || p.type,
                   [t("الحالة", "Status")]: statusLabels[p.status] || p.status,
@@ -516,8 +530,14 @@ export default function ProjectsList({ language }: ProjectsListProps) {
                       </div>
                     </TableCell>
                     <TableCell>
-                      <div className="text-sm text-slate-600 dark:text-slate-400">
-                        {project.client?.name || "—"}
+                      <div className="text-sm">
+                        <span className="text-slate-600 dark:text-slate-400">{project.client?.name || "—"}</span>
+                        {project.contractor && (
+                          <div className="flex items-center gap-1 mt-0.5">
+                            <HardHat className="h-2.5 w-2.5 text-amber-500" />
+                            <span className="text-[11px] text-amber-600 dark:text-amber-400">{project.contractor.companyName || project.contractor.name}</span>
+                          </div>
+                        )}
                       </div>
                     </TableCell>
                     <TableCell className="hidden lg:table-cell">
@@ -851,6 +871,24 @@ export default function ProjectsList({ language }: ProjectsListProps) {
                 </SelectContent>
               </Select>
               {errors.clientId && <p className="text-red-500 text-xs mt-1 flex items-center gap-1"><AlertCircle className="h-3 w-3 shrink-0" />{getErrorMessage(errors.clientId.message || "", isAr)}</p>}
+            </div>
+            <div className="space-y-2">
+              <Label className="flex items-center gap-2">
+                <HardHat className="h-3.5 w-3.5 text-amber-500" />
+                {t("المقاول (اختياري)", "Contractor (Optional)")}
+              </Label>
+              <Select value={form.watch("contractorId") || ""} onValueChange={(v) => form.setValue("contractorId", v)}>
+                <SelectTrigger>
+                  <SelectValue placeholder={t("اختر المقاول المنفذ", "Select executing contractor")} />
+                </SelectTrigger>
+                <SelectContent>
+                  {(Array.isArray(contractorsData) ? contractorsData : []).map((c: { id: string; name: string; companyName: string; category: string }) => (
+                    <SelectItem key={c.id} value={c.id}>
+                      {c.companyName || c.name} {c.category ? `— ${c.category}` : ""}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <div className="space-y-2">
               <Label>{t("الموقع", "Location")}</Label>

@@ -173,6 +173,7 @@ interface ProjectData {
   endDate: string | null;
   description: string;
   client: { id: string; name: string; company: string; email: string; phone: string };
+  contractor: { id: string; name: string; nameEn: string; companyName: string; companyEn: string; contactPerson: string; phone: string; email: string; category: string; rating: number; crNumber: string; licenseNumber: string } | null;
   createdBy: { id: string; name: string };
   assignments: Assignment[];
   stages: ProjectStage[];
@@ -489,6 +490,20 @@ function SubTabsNav({
   );
 }
 
+// ===== HELPERS =====
+function getContractorCategoryLabel(category: string, isAr: boolean) {
+  if (!category) return isAr ? "غير محدد" : "Not specified";
+  const labels: Record<string, { ar: string; en: string }> = {
+    civil: { ar: "أشغال مدنية", en: "Civil Works" },
+    electrical: { ar: "أشغال كهربائية", en: "Electrical" },
+    mep: { ar: "كهرباء وميكانيك", en: "MEP" },
+    finishing: { ar: "تشطيبات", en: "Finishing" },
+    plumbing: { ar: "سباكة", en: "Plumbing" },
+    hvac: { ar: "تكييف وتبريد", en: "HVAC" },
+  };
+  return labels[category]?.[isAr ? "ar" : "en"] || category;
+}
+
 // ===== OVERVIEW TAB CONTENT =====
 function OverviewTab({ project, language }: { project: ProjectData; language: "ar" | "en" }) {
   const isAr = language === "ar";
@@ -626,63 +641,132 @@ function OverviewTab({ project, language }: { project: ProjectData; language: "a
         </div>
       )}
 
-      {/* Project Info */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Card className="border-slate-200 dark:border-slate-700/50">
+      {/* ===== Client & Contractor & Project Info ===== */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {/* Client Card — Owner */}
+        <Card className="border-slate-200 dark:border-slate-700/50" style={{ borderInlineStartWidth: "4px", borderInlineStartColor: "#14b8a6" }}>
           <CardHeader className="pb-3">
             <CardTitle className="text-base flex items-center gap-2">
-              <Building2 className="h-4 w-4 text-teal-500" />
+              <div className="w-8 h-8 rounded-lg bg-teal-100 dark:bg-teal-900/30 flex items-center justify-center">
+                <Users className="h-4 w-4 text-teal-600 dark:text-teal-400" />
+              </div>
+              <div>
+                <span className="text-slate-900 dark:text-white">{t("العميل", "Client")}</span>
+                <p className="text-[10px] text-slate-400 font-normal">{t("مالك المشروع", "Project Owner")}</p>
+              </div>
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3 text-sm">
+            <div className="flex justify-between">
+              <span className="text-slate-500">{t("الاسم", "Name")}</span>
+              <span className="font-medium text-slate-900 dark:text-white">{project.client?.name || "—"}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-slate-500">{t("الشركة", "Company")}</span>
+              <span className="font-medium text-slate-900 dark:text-white">{project.client?.company || "—"}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-slate-500">{t("البريد", "Email")}</span>
+              <span className="font-medium text-teal-600 dark:text-teal-400">{project.client?.email || "—"}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-slate-500">{t("الهاتف", "Phone")}</span>
+              <span className="font-medium text-slate-900 dark:text-white" dir="ltr">{project.client?.phone || "—"}</span>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Contractor Card — Executor */}
+        <Card className="border-slate-200 dark:border-slate-700/50" style={{ borderInlineStartWidth: "4px", borderInlineStartColor: "#f59e0b" }}>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base flex items-center gap-2">
+              <div className="w-8 h-8 rounded-lg bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center">
+                <HardHat className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+              </div>
+              <div>
+                <span className="text-slate-900 dark:text-white">{t("المقاول", "Contractor")}</span>
+                <p className="text-[10px] text-slate-400 font-normal">{t("المنفذ للمشروع", "Project Executor")}</p>
+              </div>
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3 text-sm">
+            {project.contractor ? (
+              <>
+                <div className="flex justify-between">
+                  <span className="text-slate-500">{t("الشركة", "Company")}</span>
+                  <span className="font-medium text-slate-900 dark:text-white">{project.contractor.companyName || project.contractor.name || "—"}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-500">{t("جهة الاتصال", "Contact")}</span>
+                  <span className="font-medium text-slate-900 dark:text-white">{project.contractor.contactPerson || "—"}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-500">{t("التخصص", "Category")}</span>
+                  <span className="font-medium text-amber-600 dark:text-amber-400">{getContractorCategoryLabel(project.contractor.category, isAr)}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-slate-500">{t("التقييم", "Rating")}</span>
+                  <div className="flex items-center gap-1">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <Star
+                        key={star}
+                        className={cn("h-3 w-3", star <= (project.contractor?.rating || 0) ? "text-amber-400 fill-amber-400" : "text-slate-300 dark:text-slate-600")}
+                      />
+                    ))}
+                  </div>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-500">{t("السجل التجاري", "CR Number")}</span>
+                  <span className="font-medium text-slate-900 dark:text-white" dir="ltr">{project.contractor.crNumber || "—"}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-500">{t("الهاتف", "Phone")}</span>
+                  <span className="font-medium text-slate-900 dark:text-white" dir="ltr">{project.contractor.phone || "—"}</span>
+                </div>
+              </>
+            ) : (
+              <div className="flex flex-col items-center justify-center py-4 text-center">
+                <div className="w-10 h-10 rounded-full bg-amber-50 dark:bg-amber-900/20 flex items-center justify-center mb-2">
+                  <HardHat className="h-5 w-5 text-amber-300 dark:text-amber-600" />
+                </div>
+                <p className="text-xs text-slate-400">{t("لم يتم تحديد مقاول", "No contractor assigned")}</p>
+                <p className="text-[10px] text-slate-300 dark:text-slate-600 mt-0.5">{t("يمكنك تعيين مقاول من صفحة العطاءات", "Assign a contractor from the Bids page")}</p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Project Info Card */}
+        <Card className="border-slate-200 dark:border-slate-700/50" style={{ borderInlineStartWidth: "4px", borderInlineStartColor: "#3b82f6" }}>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base flex items-center gap-2">
+              <div className="w-8 h-8 rounded-lg bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
+                <Building2 className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+              </div>
               {t("معلومات المشروع", "Project Info")}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3 text-sm">
             <div className="flex justify-between">
               <span className="text-slate-500">{t("رقم المشروع", "Project No.")}</span>
-              <span className="font-medium">#{project.number}</span>
+              <span className="font-medium text-slate-900 dark:text-white">#{project.number}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-slate-500">{t("الموقع", "Location")}</span>
-              <span className="font-medium">{project.location || "—"}</span>
+              <span className="font-medium text-slate-900 dark:text-white">{project.location || "—"}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-slate-500">{t("رقم القطعة", "Plot No.")}</span>
-              <span className="font-medium">{project.plotNumber || "—"}</span>
+              <span className="font-medium text-slate-900 dark:text-white">{project.plotNumber || "—"}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-slate-500">{t("النوع", "Type")}</span>
-              <span className="font-medium">
+              <span className="font-medium text-blue-600 dark:text-blue-400">
                 {project.type === "villa" ? t("فيلا", "Villa") :
                  project.type === "building" ? t("مبنى", "Building") :
                  project.type === "commercial" ? t("تجاري", "Commercial") :
                  t("صناعي", "Industrial")}
               </span>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="border-slate-200 dark:border-slate-700/50">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base flex items-center gap-2">
-              <Users className="h-4 w-4 text-teal-500" />
-              {t("العميل", "Client")}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3 text-sm">
-            <div className="flex justify-between">
-              <span className="text-slate-500">{t("الاسم", "Name")}</span>
-              <span className="font-medium">{project.client?.name || "—"}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-slate-500">{t("الشركة", "Company")}</span>
-              <span className="font-medium">{project.client?.company || "—"}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-slate-500">{t("البريد", "Email")}</span>
-              <span className="font-medium">{project.client?.email || "—"}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-slate-500">{t("الهاتف", "Phone")}</span>
-              <span className="font-medium">{project.client?.phone || "—"}</span>
             </div>
           </CardContent>
         </Card>
@@ -861,7 +945,10 @@ export default function ProjectDetail({ language }: ProjectDetailProps) {
                   {isAr ? project.name : project.nameEn || project.name}
                 </h2>
                 <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">
-                  {project.client?.name} {project.client?.company ? `— ${project.client.company}` : ""}
+                  {t("العميل", "Client")}: {project.client?.name}{project.client?.company ? ` — ${project.client.company}` : ""}
+                  {project.contractor ? (
+                    <span className="ms-3">| {t("المقاول", "Contractor")}: {project.contractor.companyName || project.contractor.name}</span>
+                  ) : null}
                 </p>
               </div>
             </div>
