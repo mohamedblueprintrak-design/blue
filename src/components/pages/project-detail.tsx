@@ -101,6 +101,7 @@ import MunicipalityCorrespondencePage from "@/components/pages/municipality-corr
 import SubmittalsPage from "@/components/pages/submittals";
 import TransmittalsPage from "@/components/pages/transmittals";
 import EmployeesPage from "@/components/pages/employees";
+import TeamMembers from "@/components/pages/team-members";
 
 // ===== TYPES =====
 interface ProjectDetailProps {
@@ -1203,13 +1204,7 @@ export default function ProjectDetail({ language }: ProjectDetailProps) {
             language={language}
           />
           <div className="border rounded-xl p-4 bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700">
-            {activeSubTab === "team-members" && (
-              <div className="text-center py-8">
-                <UsersRound className="h-12 w-12 mx-auto text-slate-300 mb-4" />
-                <h3 className="text-lg font-semibold">{t("فريق المشروع", "Project Team")}</h3>
-                <p className="text-slate-500 mt-2">{t("أعضاء الفريق العاملين على المشروع", "Team members working on this project")}</p>
-              </div>
-            )}
+            {activeSubTab === "team-members" && <TeamMembers language={language} projectId={currentProjectId || ""} />}
             {activeSubTab === "meetings" && <MeetingsPage language={language} projectId={currentProjectId || undefined} />}
             {activeSubTab === "approvals" && <ApprovalsPage language={language} projectId={currentProjectId || undefined} />}
             {activeSubTab === "notifications" && <NotificationsPage language={language} projectId={currentProjectId || undefined} />}

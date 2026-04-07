@@ -1,10 +1,13 @@
 "use client";
 
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { useNavStore } from "@/store/nav-store";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Accordion,
   AccordionContent,
@@ -27,6 +30,7 @@ import {
   Lightbulb,
   ChevronRight,
   Headphones,
+  BookMarked,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -140,9 +144,52 @@ const keyboardShortcuts = [
   { keys: ["6"], descAr: "التقويم", descEn: "Calendar" },
 ];
 
-export default function HelpPage({ language }: { language: "ar" | "en" }) {
+// ===== Knowledge Article Interface =====
+interface KnowledgeArticle {
+  id: string;
+  title: string;
+  content: string;
+  category: string;
+  tags: string;
+  views: number;
+  createdAt: string;
+  updatedAt: string;
+  author: { id: string; name: string; avatar: string } | null;
+}
+
+function getCategoryConfig(cat: string) {
+  const configs: Record<string, { ar: string; en: string; color: string; icon: string }> = {
+    guide: { ar: "دليل", en: "Guide", color: "bg-teal-100 text-teal-700 dark:bg-teal-900/50 dark:text-teal-300", icon: "📘" },
+    faq: { ar: "أسئلة شائعة", en: "FAQ", color: "bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300", icon: "❓" },
+    policy: { ar: "سياسة", en: "Policy", color: "bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-300", icon: "📋" },
+    template: { ar: "قالب", en: "Template", color: "bg-purple-100 text-purple-700 dark:bg-purple-900/50 dark:text-purple-300", icon: "📄" },
+  };
+  return configs[cat] || configs.guide;
+}
+
+export default function HelpPage({ language, projectId }: { language: "ar" | "en"; projectId?: string }) {
   const isAr = language === "ar";
   const [searchQuery, setSearchQuery] = useState("");
+  const { setCurrentProjectTab, setCurrentProjectSubTab } = useNavStore();
+
+  // Fetch knowledge base articles
+  const { data: kbArticles = [], isLoading: kbLoading } = useQuery<KnowledgeArticle[]>({
+    queryKey: ["help-kb-articles", projectId],
+    queryFn: async () => {
+      const params = new URLSearchParams();
+      if (projectId) params.set("projectId", projectId);
+      params.set("limit", "5");
+      const res = await fetch(`/api/knowledge?${params.toString()}`);
+      if (!res.ok) return [];
+      return res.json();
+    },
+  });
+
+  // Navigate to Knowledge page
+  const navigateToKnowledge = () => {
+    setCurrentProjectTab("help");
+    setCurrentProjectSubTab("knowledge");
+  };
 
   // Filter FAQs based on search
   const filteredFaqs = faqs.filter((faq) => {
@@ -208,14 +255,15 @@ export default function HelpPage({ language }: { language: "ar" | "en" }) {
       {/* Quick Links */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {[
-          { icon: Book, titleAr: "الدليل الشامل", titleEn: "User Guide", descAr: "تعلم جميع الميزات", descEn: "Learn all features", color: "text-teal-500", bg: "bg-teal-50 dark:bg-teal-500/10" },
-          { icon: Video, titleAr: "فيديوهات تعليمية", titleEn: "Video Tutorials", descAr: "شروحات مصورة", descEn: "Visual guides", color: "text-emerald-500", bg: "bg-emerald-50 dark:bg-emerald-500/10" },
-          { icon: MessageCircle, titleAr: "المجتمع", titleEn: "Community", descAr: "اطرح سؤالك", descEn: "Ask your question", color: "text-violet-500", bg: "bg-violet-50 dark:bg-violet-500/10" },
-          { icon: Mail, titleAr: "تواصل معنا", titleEn: "Contact Us", descAr: "دعم مباشر", descEn: "Direct support", color: "text-amber-500", bg: "bg-amber-50 dark:bg-amber-500/10" },
+          { icon: BookMarked, titleAr: "قاعدة المعرفة", titleEn: "Knowledge Base", descAr: "مقالات ودليل شامل", descEn: "Articles & comprehensive guide", color: "text-teal-500", bg: "bg-teal-50 dark:bg-teal-500/10", onClick: navigateToKnowledge },
+          { icon: Book, titleAr: "الدليل الشامل", titleEn: "User Guide", descAr: "تعلم جميع الميزات", descEn: "Learn all features", color: "text-emerald-500", bg: "bg-emerald-50 dark:bg-emerald-500/10", onClick: undefined },
+          { icon: MessageCircle, titleAr: "المجتمع", titleEn: "Community", descAr: "اطرح سؤالك", descEn: "Ask your question", color: "text-violet-500", bg: "bg-violet-50 dark:bg-violet-500/10", onClick: undefined },
+          { icon: Mail, titleAr: "تواصل معنا", titleEn: "Contact Us", descAr: "دعم مباشر", descEn: "Direct support", color: "text-amber-500", bg: "bg-amber-50 dark:bg-amber-500/10", onClick: undefined },
         ].map((item) => (
           <Card
             key={item.titleEn}
             className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 hover:shadow-md transition-all duration-200 cursor-pointer hover:-translate-y-0.5"
+            onClick={item.onClick}
           >
             <CardContent className="p-4 text-center">
               <div className={cn("w-12 h-12 rounded-xl flex items-center justify-center mx-auto mb-3", item.bg)}>
@@ -228,7 +276,81 @@ export default function HelpPage({ language }: { language: "ar" | "en" }) {
         ))}
       </div>
 
-      {/* Help Categories */}
+      {/* Knowledge Base Articles Section */}
+      {kbArticles.length > 0 && (
+        <Card className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700">
+          <CardHeader className="pb-3">
+            <div className="flex items-center justify-between">
+              <CardTitle className="flex items-center gap-2 text-slate-900 dark:text-white">
+                <div className="w-8 h-8 rounded-lg bg-teal-50 dark:bg-teal-500/10 flex items-center justify-center">
+                  <BookMarked className="w-4 h-4 text-teal-500" />
+                </div>
+                {isAr ? "مقالات قاعدة المعرفة" : "Knowledge Base Articles"}
+                <Badge variant="secondary" className="text-[10px]">{kbArticles.length}</Badge>
+              </CardTitle>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-xs text-teal-600 dark:text-teal-400 hover:bg-teal-50 dark:hover:bg-teal-900/20 gap-1"
+                onClick={navigateToKnowledge}
+              >
+                {isAr ? "عرض الكل" : "View All"}
+                <ChevronRight className={cn("h-3.5 w-3.5", isAr ? "rotate-180" : "")} />
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {kbArticles.slice(0, 5).map((article) => {
+                const catCfg = getCategoryConfig(article.category);
+                return (
+                  <button
+                    key={article.id}
+                    onClick={navigateToKnowledge}
+                    className="flex items-start gap-3 p-3 rounded-xl border border-slate-100 dark:border-slate-800 hover:border-teal-200 dark:hover:border-teal-800/50 hover:bg-teal-50/50 dark:hover:bg-teal-900/10 transition-all text-start group"
+                  >
+                    <div className="w-8 h-8 rounded-lg bg-teal-50 dark:bg-teal-900/20 flex items-center justify-center shrink-0">
+                      <span className="text-sm">{catCfg.icon}</span>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h4 className="text-sm font-medium text-slate-900 dark:text-white group-hover:text-teal-600 dark:group-hover:text-teal-400 transition-colors truncate">{article.title}</h4>
+                      <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-2 mt-0.5">{article.content.slice(0, 100)}...</p>
+                      <div className="flex items-center gap-2 mt-1.5">
+                        <Badge variant="secondary" className={cn("text-[10px] h-5", catCfg.color)}>{isAr ? catCfg.ar : catCfg.en}</Badge>
+                        <span className="text-[10px] text-slate-400">{isAr ? `${article.views} مشاهدة` : `${article.views} views`}</span>
+                      </div>
+                    </div>
+                    <ChevronRight className={cn("h-4 w-4 text-slate-300 group-hover:text-teal-500 transition-colors shrink-0 mt-0.5", isAr ? "rotate-180" : "")} />
+                  </button>
+                );
+              })}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* KB Loading Skeleton */}
+      {kbLoading && kbArticles.length === 0 && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          {[1, 2, 3, 4].map((i) => (
+            <Skeleton key={i} className="h-24 rounded-xl" />
+          ))}
+        </div>
+      )}
+
+      {/* KB Empty State (not loading, no articles) */}
+      {!kbLoading && kbArticles.length === 0 && (
+        <Card className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700">
+          <CardContent className="p-8 text-center">
+            <BookMarked className="w-10 h-10 text-slate-300 dark:text-slate-600 mx-auto mb-3" />
+            <p className="text-sm text-slate-500 dark:text-slate-400">
+              {isAr ? "لا توجد مقالات بعد" : "No articles yet"}
+            </p>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Help Categories - linked to Knowledge page */}
       {filteredCategories.length > 0 && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {filteredCategories.map((category) => {
@@ -247,14 +369,13 @@ export default function HelpPage({ language }: { language: "ar" | "en" }) {
                   <ul className="space-y-1">
                     {category.articles.map((article, i) => (
                       <li key={i}>
-                        <a
-                          href="#"
-                          onClick={(e) => e.preventDefault()}
-                          className="flex items-center justify-between text-slate-600 dark:text-slate-400 hover:text-teal-500 dark:hover:text-teal-400 transition-colors py-1.5 px-2 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800"
+                        <button
+                          onClick={navigateToKnowledge}
+                          className="flex items-center justify-between w-full text-start text-slate-600 dark:text-slate-400 hover:text-teal-500 dark:hover:text-teal-400 transition-colors py-1.5 px-2 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 group"
                         >
                           <span className="text-sm">{isAr ? article.titleAr : article.titleEn}</span>
-                          <ExternalLink className="w-3.5 h-3.5 shrink-0 opacity-0 group-hover:opacity-100" />
-                        </a>
+                          <ExternalLink className="w-3.5 h-3.5 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" />
+                        </button>
                       </li>
                     ))}
                   </ul>

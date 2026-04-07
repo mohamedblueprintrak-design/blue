@@ -58,8 +58,17 @@ import {
   Check,
   SkipForward,
   Ban,
+  ExternalLink,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+
+// ===== Entity item interface for picker =====
+interface EntityItem {
+  id: string;
+  title: string;
+  amount?: number;
+  status?: string;
+}
 
 // ===== Types =====
 interface Approval {
@@ -272,6 +281,80 @@ export default function ApprovalsPage({ language, projectId }: ApprovalsPageProp
     priority: "normal",
   });
 
+  // ===== Entity Picker: fetch invoices / payments / change-orders =====
+  const { data: entityInvoices = [] } = useQuery<EntityItem[]>({
+    queryKey: ["approval-entity-invoices", projectId],
+    queryFn: async () => {
+      const params = new URLSearchParams();
+      if (projectId) params.set("projectId", projectId);
+      const res = await fetch(`/api/invoices?${params.toString()}`);
+      if (!res.ok) return [];
+      const data = await res.json();
+      return (data || []).map((inv: { id: string; number: string; total: number; status: string; client: { name: string } }) => ({
+        id: inv.id,
+        title: `${inv.number || inv.id}${inv.client?.name ? ` - ${inv.client.name}` : ""}`,
+        amount: inv.total,
+        status: inv.status,
+      }));
+    },
+    enabled: createForm.entityType === "invoice" && showCreateDialog,
+  });
+
+  const { data: entityPayments = [] } = useQuery<EntityItem[]>({
+    queryKey: ["approval-entity-payments", projectId],
+    queryFn: async () => {
+      const params = new URLSearchParams();
+      if (projectId) params.set("projectId", projectId);
+      const res = await fetch(`/api/payments?${params.toString()}`);
+      if (!res.ok) return [];
+      const data = await res.json();
+      return (data || []).map((pay: { id: string; referenceNumber: string; amount: number; status: string; description: string }) => ({
+        id: pay.id,
+        title: pay.referenceNumber || pay.description || pay.id,
+        amount: pay.amount,
+        status: pay.status,
+      }));
+    },
+    enabled: createForm.entityType === "payment" && showCreateDialog,
+  });
+
+  const { data: entityChangeOrders = [] } = useQuery<EntityItem[]>({
+    queryKey: ["approval-entity-change-orders", projectId],
+    queryFn: async () => {
+      const params = new URLSearchParams();
+      if (projectId) params.set("projectId", projectId);
+      const res = await fetch(`/api/change-orders?${params.toString()}`);
+      if (!res.ok) return [];
+      const data = await res.json();
+      return (data || []).map((co: { id: string; title: string; amount: number; status: string }) => ({
+        id: co.id,
+        title: co.title || co.id,
+        amount: co.amount,
+        status: co.status,
+      }));
+    },
+    enabled: createForm.entityType === "change_order" && showCreateDialog,
+  });
+
+  // Pick the right entity list based on entity type
+  const entityList: EntityItem[] = createForm.entityType === "invoice"
+    ? entityInvoices
+    : createForm.entityType === "payment"
+      ? entityPayments
+      : createForm.entityType === "change_order"
+        ? entityChangeOrders
+        : [];
+
+  const handleEntitySelect = (entityId: string) => {
+    const entity = entityList.find((e) => e.id === entityId);
+    setCreateForm((prev) => ({
+      ...prev,
+      entityId: entityId,
+      title: entity?.title || prev.title,
+      amount: entity?.amount ? String(entity.amount) : prev.amount,
+    }));
+  };
+
   // Fetch pending count
   const { data: pendingData } = useQuery({
     queryKey: ["approvals-pending-count"],
@@ -306,6 +389,26 @@ export default function ApprovalsPage({ language, projectId }: ApprovalsPageProp
       return res.json();
     },
     enabled: !!selectedApprovalId,
+  });
+
+  // Fetch linked entity details for the selected approval
+  const { data: linkedEntity } = useQuery({
+    queryKey: ["approval-entity", selectedApproval?.entityType, selectedApproval?.entityId],
+    queryFn: async () => {
+      if (!selectedApproval?.entityId || !selectedApproval?.entityType) return null;
+      const type = selectedApproval.entityType;
+      let url = "";
+      if (type === "invoice") url = `/api/invoices/${selectedApproval.entityId}`;
+      else if (type === "payment") url = `/api/payments/${selectedApproval.entityId}`;
+      else if (type === "change_order") url = `/api/change-orders/${selectedApproval.entityId}`;
+      else return null;
+      try {
+        const res = await fetch(url);
+        if (!res.ok) return null;
+        return res.json();
+      } catch { return null; }
+    },
+    enabled: !!selectedApproval?.entityId && !!selectedApproval?.entityType,
   });
 
   // Approve mutation
@@ -1154,8 +1257,43 @@ export default function ApprovalsPage({ language, projectId }: ApprovalsPageProp
                   );
                 })}
               </div>
+                {/* Entity Picker - shown when an entity type with real entities is selected */}
+                {(createForm.entityType === "invoice" || createForm.entityType === "payment" || createForm.entityType === "change_order") && (
+                  <div className="space-y-1.5">
+                    <Label className="text-xs font-medium text-slate-700 dark:text-slate-300">
+                      {ar ? "اختر الكيان" : "Select Entity"}
+                    </Label>
+                    <Select
+                      value={createForm.entityId}
+                      onValueChange={handleEntitySelect}
+                    >
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder={ar ? "اختر عنصراً..." : "Select an item..."} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {entityList.map((e) => (
+                          <SelectItem key={e.id} value={e.id}>
+                            <div className="flex items-center justify-between gap-4 w-full">
+                              <span className="truncate max-w-[200px]">{e.title}</span>
+                              {e.amount != null && e.amount > 0 && (
+                                <span className="text-[10px] text-slate-400 font-mono tabular-nums shrink-0">
+                                  {formatCurrency(e.amount, ar)}
+                                </span>
+                              )}
+                            </div>
+                          </SelectItem>
+                        ))}
+                        {entityList.length === 0 && (
+                          <div className="py-4 text-center text-xs text-slate-400">
+                            {ar ? "لا توجد عناصر" : "No items found"}
+                          </div>
+                        )}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
 
           <DialogFooter>
             <Button
@@ -1216,6 +1354,63 @@ export default function ApprovalsPage({ language, projectId }: ApprovalsPageProp
 
               <ScrollArea className="h-[calc(100vh-220px)]">
                 <div className="p-4 space-y-5">
+                  {/* View Entity Info (if entityId is not "new") */}
+                  {selectedApproval.entityId && selectedApproval.entityId !== "new" && (
+                    <div className="bg-gradient-to-r from-teal-50 to-cyan-50 dark:from-teal-900/10 dark:to-cyan-900/10 rounded-xl p-4 border border-teal-200 dark:border-teal-800/30">
+                      <div className="flex items-center justify-between mb-2">
+                        <h4 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                          {(() => {
+                            const Icon = getEntityTypeIcon(selectedApproval.entityType);
+                            return Icon ? <Icon className="h-4 w-4 text-teal-600 dark:text-teal-400" /> : null;
+                          })()}
+                          {ar ? "الكيان المرتبط" : "Linked Entity"}
+                        </h4>
+                        <Badge variant="secondary" className={cn("text-[10px]", getEntityTypeBadgeColor(selectedApproval.entityType))}>
+                          {getEntityTypeLabel(selectedApproval.entityType, ar)}
+                        </Badge>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-xs text-slate-500 dark:text-slate-400">{ar ? "رقم التعريف" : "Entity ID"}</p>
+                          <p className="text-sm font-mono text-slate-900 dark:text-white mt-0.5">{selectedApproval.entityId}</p>
+                        </div>
+                        <a
+                          href={
+                            selectedApproval.entityType === "invoice"
+                              ? `/api/invoices/${selectedApproval.entityId}`
+                              : selectedApproval.entityType === "payment"
+                                ? `/api/payments/${selectedApproval.entityId}`
+                                : selectedApproval.entityType === "change_order"
+                                  ? `/api/change-orders/${selectedApproval.entityId}`
+                                  : "#"
+                          }
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          onClick={(e) => e.stopPropagation()}
+                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-teal-600 dark:text-teal-400 bg-teal-100 dark:bg-teal-900/30 hover:bg-teal-200 dark:hover:bg-teal-900/50 transition-colors"
+                        >
+                          <Eye className="h-3.5 w-3.5" />
+                          {ar ? "عرض الكيان" : "View Entity"}
+                          <ExternalLink className="h-3 w-3" />
+                        </a>
+                      </div>
+                      {linkedEntity && (
+                        <div className="mt-3 p-3 bg-slate-50 dark:bg-slate-800/50 rounded-lg border border-slate-100 dark:border-slate-700">
+                          <span className="text-[10px] text-slate-400 mb-1 block">{ar ? "تفاصيل الكيان" : "Entity Details"}</span>
+                          <p className="text-xs font-medium text-slate-700 dark:text-slate-300">
+                            {linkedEntity.number ? `#${linkedEntity.number} — ` : ""}
+                            {linkedEntity.title || linkedEntity.description || linkedEntity.subject || ""}
+                          </p>
+                          {linkedEntity.amount > 0 && (
+                            <p className="text-xs text-teal-600 dark:text-teal-400 font-mono mt-1">
+                              {formatCurrency(linkedEntity.amount, ar)}
+                            </p>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  )}
+
                   {/* Key Info */}
                   <div className="grid grid-cols-2 gap-3">
                     <div className="bg-slate-50 dark:bg-slate-800/50 rounded-lg p-3">

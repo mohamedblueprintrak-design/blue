@@ -2,6 +2,8 @@
 
 import { useState, useRef, useEffect, useMemo, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -40,6 +42,7 @@ import {
   PanelLeftOpen,
   History,
   Clock,
+  Clipboard,
 } from "lucide-react";
 import {
   Select,
@@ -191,19 +194,188 @@ const aiModels = [
   { value: "claude-3", label: "Claude 3", desc: "Balanced" },
 ];
 
-function formatMessage(content: string): string {
-  return content
-    .replace(/```(\w*)\n([\s\S]*?)```/g, (_, lang, code) => {
-      return `\n${lang ? `[${lang} Code]` : "[Code]"}\n${code.trimEnd()}\n`;
-    })
-    .replace(/\*\*(.*?)\*\*/g, "$1")
-    .replace(/### (.*?)(\n|$)/g, "$1\n")
-    .replace(/## (.*?)(\n|$)/g, "$1\n")
-    .replace(/# (.*?)(\n|$)/g, "$1\n")
-    .replace(/- (.*?)(\n|$)/g, "  • $1\n")
-    .replace(/\* (.*?)(\n|$)/g, "  • $1\n")
-    .replace(/(\d+)\. (.*?)(\n|$)/g, "  $1. $2\n")
-    .replace(/\n{3,}/g, "\n\n");
+// Code block with copy button component
+function CodeBlock({ className, children }: { className?: string; children?: React.ReactNode }) {
+  const [copied, setCopied] = useState(false);
+  const codeRef = useRef<HTMLPreElement>(null);
+
+  const match = /language-(\w+)/.exec(className || "");
+  const language = match ? match[1] : "";
+  const codeString = String(children).replace(/\n$/, "");
+
+  const handleCopy = async () => {
+    await navigator.clipboard.writeText(codeString);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  return (
+    <div className="relative my-3 rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700 bg-slate-900 dark:bg-slate-950 group">
+      {/* Header bar */}
+      <div className="flex items-center justify-between px-4 py-2 bg-slate-800 dark:bg-slate-900 border-b border-slate-700 dark:border-slate-800">
+        <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5">
+            <span className="w-2.5 h-2.5 rounded-full bg-red-400/80" />
+            <span className="w-2.5 h-2.5 rounded-full bg-amber-400/80" />
+            <span className="w-2.5 h-2.5 rounded-full bg-emerald-400/80" />
+          </div>
+          {language && (
+            <span className="text-[10px] font-medium text-slate-400 uppercase tracking-wider">
+              {language}
+            </span>
+          )}
+        </div>
+        <button
+          onClick={handleCopy}
+          className="flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-medium text-slate-400 hover:text-white bg-slate-700/50 hover:bg-slate-700 transition-colors"
+        >
+          {copied ? (
+            <>
+              <Check className="h-3 w-3 text-emerald-400" />
+              <span className="text-emerald-400">Copied!</span>
+            </>
+          ) : (
+            <>
+              <Clipboard className="h-3 w-3" />
+              <span>Copy</span>
+            </>
+          )}
+        </button>
+      </div>
+      {/* Code content */}
+      <pre ref={codeRef} className="p-4 overflow-x-auto text-sm leading-relaxed">
+        <code className="text-slate-200 font-mono">{children}</code>
+      </pre>
+    </div>
+  );
+}
+
+// Inline code component
+function InlineCode({ children }: { children?: React.ReactNode }) {
+  return (
+    <code className="px-1.5 py-0.5 rounded-md bg-slate-200 dark:bg-slate-700 text-rose-600 dark:text-rose-400 text-[13px] font-mono font-medium">
+      {children}
+    </code>
+  );
+}
+
+// Markdown renderer for AI messages with full styling
+function MarkdownRenderer({ content }: { content: string }) {
+  return (
+    <ReactMarkdown
+      remarkPlugins={[remarkGfm]}
+      components={{
+        // Headings
+        h1: ({ children }) => (
+          <h1 className="text-lg font-bold text-slate-900 dark:text-white mt-4 mb-2 pb-1 border-b border-slate-200 dark:border-slate-700">
+            {children}
+          </h1>
+        ),
+        h2: ({ children }) => (
+          <h2 className="text-base font-bold text-slate-900 dark:text-white mt-3 mb-2 pb-0.5 border-b border-slate-200/60 dark:border-slate-700/60">
+            {children}
+          </h2>
+        ),
+        h3: ({ children }) => (
+          <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200 mt-2.5 mb-1">
+            {children}
+          </h3>
+        ),
+        h4: ({ children }) => (
+          <h4 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mt-2 mb-1">
+            {children}
+          </h4>
+        ),
+        // Bold
+        strong: ({ children }) => (
+          <strong className="font-bold text-slate-900 dark:text-white">{children}</strong>
+        ),
+        // Italic
+        em: ({ children }) => (
+          <em className="italic text-slate-700 dark:text-slate-300">{children}</em>
+        ),
+        // Paragraph
+        p: ({ children }) => (
+          <p className="text-sm leading-relaxed text-slate-800 dark:text-slate-200 mb-1.5 last:mb-0">
+            {children}
+          </p>
+        ),
+        // Unordered list
+        ul: ({ children }) => (
+          <ul className="my-2 space-y-1 text-sm text-slate-800 dark:text-slate-200 list-disc list-inside marker:text-teal-500 dark:marker:text-teal-400">
+            {children}
+          </ul>
+        ),
+        // Ordered list
+        ol: ({ children }) => (
+          <ol className="my-2 space-y-1 text-sm text-slate-800 dark:text-slate-200 list-decimal list-inside marker:text-teal-500 dark:marker:text-teal-400">
+            {children}
+          </ol>
+        ),
+        // List item
+        li: ({ children }) => (
+          <li className="text-sm leading-relaxed text-slate-800 dark:text-slate-200 pl-1">
+            {children}
+          </li>
+        ),
+        // Code blocks
+        pre: ({ children }) => {
+          // Extract className from the code child
+          const codeChild = children as React.ReactElement;
+          const className = codeChild?.props?.className || "";
+          return <CodeBlock className={className}>{codeChild?.props?.children}</CodeBlock>;
+        },
+        // Inline code (but not inside pre)
+        code: ({ children, className }) => {
+          // If inside a pre block, let the pre handler deal with it
+          if (className) return <code className={className}>{children}</code>;
+          return <InlineCode>{children}</InlineCode>;
+        },
+        // Blockquote
+        blockquote: ({ children }) => (
+          <blockquote className="my-3 px-4 py-3 border-s-2 border-s-teal-400 dark:border-s-teal-600 bg-teal-50/50 dark:bg-teal-950/20 rounded-r-xl text-sm text-slate-700 dark:text-slate-300">
+            {children}
+          </blockquote>
+        ),
+        // Table
+        table: ({ children }) => (
+          <div className="my-3 overflow-x-auto rounded-lg border border-slate-200 dark:border-slate-700">
+            <table className="w-full text-sm">{children}</table>
+          </div>
+        ),
+        thead: ({ children }) => (
+          <thead className="bg-slate-100 dark:bg-slate-800">{children}</thead>
+        ),
+        th: ({ children }) => (
+          <th className="px-3 py-2 text-start text-xs font-semibold text-slate-700 dark:text-slate-300 border-b border-slate-200 dark:border-slate-700">
+            {children}
+          </th>
+        ),
+        td: ({ children }) => (
+          <td className="px-3 py-2 text-sm text-slate-600 dark:text-slate-400 border-b border-slate-100 dark:border-slate-800">
+            {children}
+          </td>
+        ),
+        // Horizontal rule
+        hr: () => (
+          <hr className="my-3 border-slate-200 dark:border-slate-700" />
+        ),
+        // Links
+        a: ({ children, href }) => (
+          <a
+            href={href}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-teal-600 dark:text-teal-400 underline underline-offset-2 hover:text-teal-700 dark:hover:text-teal-300 transition-colors font-medium"
+          >
+            {children}
+          </a>
+        ),
+      }}
+    >
+      {content}
+    </ReactMarkdown>
+  );
 }
 
 // Generate suggested follow-up replies based on AI response content
@@ -406,6 +578,69 @@ export default function AIAssistant({ language: lang, projectId }: Props) {
       return sum + Math.ceil(msg.content.length / 4);
     }, 0);
   }, [messages]);
+
+  // Auto-generate project summary welcome message when projectId is provided
+  useEffect(() => {
+    if (!projectId || messages.length > 0) return;
+
+    let cancelled = false;
+
+    const fetchProjectSummary = async () => {
+      try {
+        const res = await fetch(`/api/projects/${projectId}`);
+        if (!res.ok || cancelled) return;
+        const project = await res.json();
+        if (cancelled) return;
+
+        const statusLabels: Record<string, { ar: string; en: string }> = {
+          active: { ar: "نشط", en: "Active" },
+          completed: { ar: "مكتمل", en: "Completed" },
+          delayed: { ar: "متأخر", en: "Delayed" },
+          on_hold: { ar: "معلق", en: "On Hold" },
+          cancelled: { ar: "ملغي", en: "Cancelled" },
+        };
+        const statusLabel = statusLabels[project.status] || { ar: project.status, en: project.status };
+        const clientName = project.client?.name || project.client?.company || "N/A";
+        const budgetFormatted = project.budget
+          ? `${project.budget.toLocaleString("en-AE")} AED`
+          : isAr
+            ? "غير محدد"
+            : "Not set";
+        const endDateFormatted = project.endDate
+          ? new Date(project.endDate).toLocaleDateString(isAr ? "ar-AE" : "en-US", {
+              year: "numeric",
+              month: "long",
+              day: "numeric",
+            })
+          : isAr
+            ? "غير محدد"
+            : "Not set";
+
+        const taskStats = project.taskStats || {};
+        const totalTasks = taskStats.total || 0;
+        const doneTasks = taskStats.done || 0;
+
+        const welcomeMsg: Message = {
+          id: `msg-welcome-${projectId}`,
+          role: "assistant",
+          content: isAr
+            ? `## 📊 ملخص المشروع: ${project.name}\n\n| البيان | التفاصيل |\n|--------|---------|\n| **الحالة** | ${statusLabel.ar} |\n| **نسبة الإنجاز** | ${project.progress}% |\n| **الميزانية** | ${budgetFormatted} |\n| **العميل** | ${clientName} |\n| **الموقع** | ${project.location || "غير محدد"} |\n| **تاريخ الانتهاء** | ${endDateFormatted} |\n\n**المهام:** ${doneTasks} من ${totalTasks} مكتملة\n\nيمكنني مساعدتك في متابعة هذا المشروع. اسألني عن المهام، الفواتير، فريق العمل، أو أي تفاصيل أخرى!`
+            : `## 📊 Project Summary: ${project.nameEn || project.name}\n\n| Detail | Value |\n|--------|-------|\n| **Status** | ${statusLabel.en} |\n| **Progress** | ${project.progress}% |\n| **Budget** | ${budgetFormatted} |\n| **Client** | ${clientName} |\n| **Location** | ${project.location || "Not set"} |\n| **Deadline** | ${endDateFormatted} |\n\n**Tasks:** ${doneTasks} of ${totalTasks} completed\n\nI can help you track this project. Ask me about tasks, invoices, team, or any other details!`,
+          timestamp: new Date(),
+        };
+
+        setMessages([welcomeMsg]);
+      } catch {
+        // Silently fail - the user can still use the chat normally
+      }
+    };
+
+    fetchProjectSummary();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [projectId, messages.length, isAr]);
 
   // Load conversations from localStorage on mount
   useEffect(() => {
@@ -1140,14 +1375,8 @@ export default function AIAssistant({ language: lang, projectId }: Props) {
                           ) : (
                             <div className="inline-block text-start">
                               <div className="rounded-2xl rounded-tl-sm bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-100 px-4 py-3 border-s-2 border-s-0 border-s-teal-500 dark:border-s-teal-600">
-                                <div className="text-sm leading-relaxed whitespace-pre-wrap">
-                                  {formatMessage(msg.content)
-                                    .split("\n")
-                                    .map((line, i) => (
-                                      <p key={i} className={line.trim() === "" ? "h-2" : ""}>
-                                        {line.startsWith("  ") ? line : line}
-                                      </p>
-                                    ))}
+                                <div className="text-sm leading-relaxed">
+                                  <MarkdownRenderer content={msg.content} />
                                 </div>
                                 <div className="flex items-center justify-between mt-2 pt-1.5 border-t border-slate-200/50 dark:border-slate-700/50">
                                   <div className="flex items-center gap-2">

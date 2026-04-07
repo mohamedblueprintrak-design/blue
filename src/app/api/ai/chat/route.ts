@@ -28,6 +28,12 @@ function detectTopics(message: string): string[] {
   if (/contract|عقد|عقود/.test(lower)) topics.push('contracts');
   // Alert/notification
   if (/alert|notification|تنبيه|إشعار|warning|خطر/.test(lower)) topics.push('alerts');
+  // Contractors / bids / tenders / evaluation
+  if (/contractor|مقاول|عطاء|مناقص|تقييم مقاول|bid|tender|عرض سعر/.test(lower)) topics.push('contractors');
+  // Team / members / assignments
+  if (/team|فريق|أعضاء|assignment|توزيع|کار|staff/.test(lower)) topics.push('team');
+  // Reports / statistics
+  if (/report|تقرير|تقارير|إحصائ/.test(lower)) topics.push('reports');
 
   return topics;
 }
@@ -387,12 +393,302 @@ async function fetchContextData(topics: string[], userId?: string, projectId?: s
         },
       };
     }
+
+    // Contractors / Bids / Tenders
+    if (topics.includes('contractors')) {
+      const [contractors, bids] = await Promise.all([
+        db.contractor.findMany({
+          take: 10,
+          orderBy: { rating: 'desc' },
+        }),
+        db.bid.findMany({
+          where: Object.keys(projectWhere).length > 0 ? projectWhere : undefined,
+          orderBy: { createdAt: 'desc' },
+          take: 8,
+          include: {
+            contractor: { select: { id: true, name: true, companyName: true, rating: true, category: true } },
+            project: { select: { number: true, name: true } },
+            evaluations: {
+              select: { criteria: true, score: true, maxScore: true, weight: true, notes: true },
+            },
+          },
+        }),
+      ]);
+
+      // Compute average evaluation scores for each bid
+      const bidsWithEval = bids.map(b => {
+        const evals = b.evaluations;
+        const totalWeight = evals.reduce((sum, e) => sum + e.weight, 0);
+        const weightedScore = evals.reduce((sum, e) => sum + (e.score / e.maxScore) * e.weight, 0);
+        const avgScore = totalWeight > 0 ? Math.round((weightedScore / totalWeight) * 100) : null;
+        return {
+          id: b.id,
+          contractorName: b.contractorName || b.contractor?.name || '',
+          contractorCompany: b.contractor?.companyName || '',
+          contractorRating: b.contractor?.rating || 0,
+          contractorCategory: b.contractor?.category || '',
+          projectName: b.project.name,
+          projectNumber: b.project.number,
+          amount: b.amount,
+          technicalScore: b.technicalScore,
+          financialScore: b.financialScore,
+          totalScore: b.totalScore,
+          evaluationAverageScore: avgScore,
+          status: b.status,
+          deadline: b.deadline?.toISOString(),
+          evaluationCriteria: evals.map(e => ({
+            criteria: e.criteria,
+            score: e.score,
+            maxScore: e.maxScore,
+            weight: e.weight,
+          })),
+          notes: b.evaluationNotes,
+        };
+      });
+
+      context.contractors = {
+        list: contractors.map(c => ({
+          id: c.id,
+          name: c.name,
+          nameEn: c.nameEn,
+          companyName: c.companyName,
+          companyEn: c.companyEn,
+          contactPerson: c.contactPerson,
+          phone: c.phone,
+          email: c.email,
+          category: c.category,
+          rating: c.rating,
+          specialties: c.specialties,
+          crNumber: c.crNumber,
+          licenseNumber: c.licenseNumber,
+          licenseExpiry: c.licenseExpiry?.toISOString(),
+        })),
+        totalContractors: contractors.length,
+      };
+
+      context.bids = {
+        list: bidsWithEval,
+        totalCount: bids.length,
+        submitted: bids.filter(b => b.status === 'submitted').length,
+        underReview: bids.filter(b => b.status === 'under_review').length,
+        accepted: bids.filter(b => b.status === 'accepted').length,
+        rejected: bids.filter(b => b.status === 'rejected').length,
+      };
+    }
+
+    // Team / Project Members
+    if (topics.includes('team')) {
+      // Get project assignments if projectId is provided, otherwise get recent team activity
+      if (projectId) {
+        const assignments = await db.projectAssignment.findMany({
+          where: { projectId },
+          include: {
+            user: {
+              select: {
+                id: true,
+                name: true,
+                email: true,
+                avatar: true,
+                department: true,
+                position: true,
+                isActive: true,
+              },
+            },
+          },
+        });
+
+        // Get task counts per team member for this project
+        const teamTaskStats = await Promise.all(
+          assignments.map(async (a) => {
+            const taskCounts = await db.task.groupBy({
+              by: ['status'],
+              where: { projectId, assigneeId: a.userId },
+              _count: true,
+            });
+            const counts: Record<string, number> = {};
+            taskCounts.forEach(tc => { counts[tc.status] = tc._count; });
+            return {
+              userId: a.userId,
+              userName: a.user.name,
+              userRole: a.role,
+              department: a.user.department,
+              position: a.user.position,
+              isActive: a.user.isActive,
+              taskCounts: counts,
+            };
+          })
+        );
+
+        context.team = {
+          projectId,
+          members: assignments.map(a => ({
+            userId: a.user.id,
+            name: a.user.name,
+            email: a.user.email,
+            department: a.user.department,
+            position: a.user.position,
+            role: a.role,
+            isActive: a.user.isActive,
+          })),
+          memberCount: assignments.length,
+          taskStats: teamTaskStats,
+        };
+      } else {
+        // Show overall team distribution across projects
+        const activeProjectsWithTeam = await db.project.findMany({
+          where: { status: { in: ['active', 'delayed'] } },
+          take: 5,
+          include: {
+            assignments: {
+              include: {
+                user: { select: { id: true, name: true, department: true, position: true } },
+              },
+            },
+          },
+        });
+
+        context.team = {
+          projectTeams: activeProjectsWithTeam.map(p => ({
+            projectName: p.name,
+            projectNumber: p.number,
+            status: p.status,
+            members: p.assignments.map(a => ({
+              name: a.user.name,
+              department: a.user.department,
+              position: a.user.position,
+              role: a.role,
+            })),
+          })),
+        };
+      }
+    }
+
+    // Reports / Statistics summary
+    if (topics.includes('reports')) {
+      const now = new Date();
+      const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+      const startOfYear = new Date(now.getFullYear(), 0, 1);
+
+      const [
+        projectCount,
+        activeProjects,
+        completedThisMonth,
+        taskStats,
+        financialSummary,
+        siteVisitCount,
+        openDefectCount,
+        contractorCount,
+        pendingBidsCount,
+        teamMemberCount,
+      ] = await Promise.all([
+        db.project.count(Object.keys(projectWhere).length > 0 ? { where: projectWhere } : undefined),
+        db.project.count({ where: { ...Object.keys(projectWhere).length > 0 ? projectWhere : {}, status: 'active' } }),
+        db.project.count({
+          where: { ...Object.keys(projectWhere).length > 0 ? projectWhere : {}, status: 'completed', updatedAt: { gte: startOfMonth } },
+        }),
+        db.task.groupBy({
+          by: ['status'],
+          where: Object.keys(projectWhere).length > 0 ? projectWhere : undefined,
+          _count: true,
+        }),
+        db.invoice.aggregate({
+          where: Object.keys(projectWhere).length > 0 ? projectWhere : undefined,
+          _sum: { total: true, paidAmount: true, remaining: true },
+          _count: true,
+        }),
+        db.siteVisit.count({
+          where: Object.keys(projectWhere).length > 0 ? { ...projectWhere, date: { gte: startOfMonth } } : { date: { gte: startOfMonth } },
+        }),
+        db.defect.count({
+          where: { ...Object.keys(projectWhere).length > 0 ? projectWhere : {}, status: { in: ['open', 'in_progress'] } },
+        }),
+        db.contractor.count(),
+        db.bid.count({
+          where: { ...Object.keys(projectWhere).length > 0 ? projectWhere : {}, status: { in: ['submitted', 'under_review'] } },
+        }),
+        db.projectAssignment.groupBy({
+          by: ['projectId'],
+          _count: true,
+        }),
+      ]);
+
+      const taskBreakdown: Record<string, number> = {};
+      taskStats.forEach(ts => { taskBreakdown[ts.status] = ts._count; });
+
+      context.reports = {
+        projectStats: {
+          total: projectCount,
+          active: activeProjects,
+          completedThisMonth,
+        },
+        taskBreakdown,
+        totalTasks: taskStats.reduce((sum, ts) => sum + ts._count, 0),
+        financial: {
+          totalInvoiced: financialSummary._sum.total || 0,
+          totalCollected: financialSummary._sum.paidAmount || 0,
+          totalOutstanding: financialSummary._sum.remaining || 0,
+          invoiceCount: financialSummary._count,
+        },
+        siteStats: {
+          visitsThisMonth: siteVisitCount,
+          openDefects: openDefectCount,
+        },
+        contractorStats: {
+          totalContractors: contractorCount,
+          pendingBids: pendingBidsCount,
+        },
+        teamStats: {
+          totalAssignments: teamMemberCount.reduce((sum, tm) => sum + tm._count, 0),
+          projectsWithTeam: teamMemberCount.length,
+        },
+        period: 'current',
+      };
+    }
   } catch (error) {
     console.error('Error fetching context data:', error);
     // Continue without context data if there's an error
   }
 
   return context;
+}
+
+// Fetch project context for system prompt when projectId is provided
+async function fetchProjectContext(projectId: string): Promise<string | null> {
+  try {
+    const project = await db.project.findUnique({
+      where: { id: projectId },
+      include: {
+        client: { select: { name: true, company: true } },
+      },
+    });
+
+    if (!project) return null;
+
+    const statusMap: Record<string, { ar: string; en: string }> = {
+      active: { ar: 'نشط', en: 'Active' },
+      completed: { ar: 'مكتمل', en: 'Completed' },
+      delayed: { ar: 'متأخر', en: 'Delayed' },
+      on_hold: { ar: 'معلق', en: 'On Hold' },
+      cancelled: { ar: 'ملغي', en: 'Cancelled' },
+    };
+    const statusInfo = statusMap[project.status] || { ar: project.status, en: project.status };
+    const clientName = project.client?.name || project.client?.company || 'N/A';
+
+    return `Current project context:
+- Project Number: ${project.number}
+- Project Name: ${project.name} (${project.nameEn || ''})
+- Status: ${statusInfo.en} / ${statusInfo.ar}
+- Progress: ${project.progress}%
+- Budget: ${project.budget.toLocaleString()} AED
+- Client: ${clientName}
+- Location: ${project.location || 'N/A'}
+- Type: ${project.type || 'N/A'}
+- Start Date: ${project.startDate?.toISOString().split('T')[0] || 'N/A'}
+- End Date: ${project.endDate?.toISOString().split('T')[0] || 'N/A'}`;
+  } catch {
+    return null;
+  }
 }
 
 export async function POST(request: NextRequest) {
@@ -452,6 +748,15 @@ export async function POST(request: NextRequest) {
     const topics = detectTopics(message);
     const contextData = await fetchContextData(topics, userId, projectId);
 
+    // Fetch project context if projectId is provided
+    let projectContextSection = '';
+    if (projectId) {
+      const projectContext = await fetchProjectContext(projectId);
+      if (projectContext) {
+        projectContextSection = `\n\n${projectContext}\nThe user is currently viewing this specific project. Provide answers focused on this project's data. When answering, always reference this project context and use its specific data when available.`;
+      }
+    }
+
     // Build system prompt with context
     let contextSection = '';
     if (Object.keys(contextData).length > 0) {
@@ -469,6 +774,9 @@ You help with:
 - Site visit procedures and reporting
 - Contract management and amendment guidance
 - Team workload and resource allocation
+- Contractor evaluation and bid comparison analysis
+- Project team assignments and workload balancing
+- Comprehensive reporting and KPI tracking
 
 Key information about BluePrint system:
 - Engineering consultancy management platform in the UAE
@@ -478,15 +786,23 @@ Key information about BluePrint system:
 - Site management (visits, defects, site diary, RFI, submittals)
 - Government approvals (Municipality, FEWA, Etisalat, Civil Defense)
 - HR modules (employees, attendance, leave)
+- Contractor management with evaluation system (technical, financial scoring)
+- Bid/tender management with weighted criteria evaluation
+- Project team assignments and task distribution
 - Currency is AED (درهم إماراتي)
 
-${userInfo ? `Current user: ${userInfo}\n` : ''}Guidelines:
+${userInfo ? `Current user: ${userInfo}\n` : ''}${projectContextSection}
+
+Guidelines:
 - ALWAYS respond in the same language as the user's message (Arabic or English)
 - Be concise, professional, and helpful
 - When system data is provided in the context, USE IT to give accurate answers with real numbers and names
-- Format data in a structured way using bullet points, numbered lists, or tables when appropriate
+- Format data in a structured way using **bold text**, bullet points, numbered lists, tables (Markdown), and headings when appropriate
+- Use Markdown formatting to make responses more readable: **bold** for emphasis, \`inline code\` for technical terms, and proper headings
 - When discussing projects, mention their status, progress percentage, and client
-- For financial data, always show amounts in AED
+- For financial data, always show amounts in AED with proper number formatting
+- For contractor evaluation, present comparison tables with scores and recommendations
+- For team topics, show workload distribution and suggest balancing if needed
 - If no relevant data is found, say so honestly and suggest alternatives
 - Provide actionable insights and recommendations when relevant
 - Keep responses focused on the engineering consultancy domain${contextSection}`;

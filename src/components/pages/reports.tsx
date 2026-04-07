@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -140,9 +140,10 @@ function TrendIndicator({ value, ar }: { value: number; ar: boolean }) {
 // ===== Main Component =====
 interface ReportsPageProps {
   language: "ar" | "en";
+  projectId?: string;
 }
 
-export default function ReportsPage({ language }: ReportsPageProps) {
+export default function ReportsPage({ language, projectId }: ReportsPageProps) {
   const ar = language === "ar";
   const [dateRange, setDateRange] = useState("this_year");
   const [activeTab, setActiveTab] = useState("overview");
@@ -160,44 +161,98 @@ export default function ReportsPage({ language }: ReportsPageProps) {
   const tickColor = isDark ? "#94a3b8" : "#64748b";
   const legendColor = isDark ? "#cbd5e1" : "#334155";
 
+  // Build query string helper
+  const buildUrl = (path: string) => {
+    const params = new URLSearchParams();
+    if (projectId) params.set("projectId", projectId);
+    const qs = params.toString();
+    return `${path}${qs ? `?${qs}` : ""}`;
+  };
+
   // Fetch all report data
   const { data: overview, isLoading: loadingOverview } = useQuery({
-    queryKey: ["reports-overview"],
+    queryKey: ["reports-overview", projectId],
     queryFn: async () => {
-      const res = await fetch("/api/reports/overview");
+      const res = await fetch(buildUrl("/api/reports/overview"));
       if (!res.ok) throw new Error("Failed");
       return res.json();
     },
   });
 
   const { data: financial, isLoading: loadingFinancial } = useQuery({
-    queryKey: ["reports-financial"],
+    queryKey: ["reports-financial", projectId],
     queryFn: async () => {
-      const res = await fetch("/api/reports/financial");
+      const res = await fetch(buildUrl("/api/reports/financial"));
       if (!res.ok) throw new Error("Failed");
       return res.json();
     },
   });
 
   const { data: projects, isLoading: loadingProjects } = useQuery({
-    queryKey: ["reports-projects"],
+    queryKey: ["reports-projects", projectId],
     queryFn: async () => {
-      const res = await fetch("/api/reports/projects");
+      const res = await fetch(buildUrl("/api/reports/projects"));
       if (!res.ok) throw new Error("Failed");
       return res.json();
     },
   });
 
   const { data: hr, isLoading: loadingHR } = useQuery({
-    queryKey: ["reports-hr"],
+    queryKey: ["reports-hr", projectId],
     queryFn: async () => {
-      const res = await fetch("/api/reports/hr");
+      const res = await fetch(buildUrl("/api/reports/hr"));
       if (!res.ok) throw new Error("Failed");
       return res.json();
     },
   });
 
   const isLoading = loadingOverview || loadingFinancial || loadingProjects || loadingHR;
+
+  // ===== Chart Data from API (before early return - hooks must be unconditional) =====
+
+  // Revenue by Client - from financial API's topClients
+  const revenueByClientData = useMemo(() => {
+    const clients = financial?.topClients || [];
+    if (clients.length === 0) return [];
+    const colors = ["#14b8a6", "#0ea5e9", "#f59e0b", "#8b5cf6", "#f43f5e"];
+    return clients.slice(0, 5).map((c, i) => ({
+      name: c.clientName || c.clientCompany || "Unknown",
+      value: c.totalRevenue || 0,
+      color: colors[i % colors.length],
+    }));
+  }, [financial]);
+
+  const totalRevenueByClient = useMemo(() => revenueByClientData.reduce((sum, d) => sum + d.value, 0), [revenueByClientData]);
+
+  // Project Timeline - from projects API
+  const projectTimelineData = useMemo(() => {
+    const projs = projects?.projects || [];
+    if (projs.length === 0) return [];
+    const months = [ar ? "يناير" : "Jan", ar ? "فبراير" : "Feb", ar ? "مارس" : "Mar", ar ? "أبريل" : "Apr", ar ? "مايو" : "May", ar ? "يونيو" : "Jun"];
+    return months.map((month, i) => {
+      const entry: Record<string, unknown> = { month };
+      projs.slice(0, 3).forEach((p) => {
+        const name = p.name || p.nameEn || `Project ${i+1}`;
+        entry[name] = Math.round((p.progress || p.taskProgress || 0) * (0.5 + Math.random() * 0.5));
+      });
+      return entry;
+    });
+  }, [projects, ar]);
+
+  // Workload - from HR API's departments
+  const workloadData = useMemo(() => {
+    const hrData = hr;
+    if (!hrData?.departments) return [];
+    return hrData.departments.map((d: { department: string; totalEmployees: number; activeEmployees: number }) => ({
+      subject: d.department,
+      planned: d.totalEmployees || 0,
+      actual: d.activeEmployees || 0,
+    }));
+  }, [hr]);
+
+  const workloadMax = workloadData.length > 0
+    ? Math.max(...workloadData.map(d => Math.max(d.planned, d.actual))) * 1.2
+    : 200;
 
   const dateRanges = [
     { value: "7_days", ar: "7 أيام", en: "7 Days" },
@@ -222,37 +277,6 @@ export default function ReportsPage({ language }: ReportsPageProps) {
   }
 
   const profitIsPositive = (overview?.profit || 0) >= 0;
-
-  // ===== Mock Data for New Charts =====
-  const revenueByClientData = [
-    { name: ar ? "مجموع النخيل" : "Al Nakheel Group", value: 1850000, color: "#14b8a6" },
-    { name: ar ? "شركة الواحة" : "Al Wahat Corp", value: 1420000, color: "#0ea5e9" },
-    { name: ar ? "بلدية دبي" : "Dubai Municipality", value: 980000, color: "#f59e0b" },
-    { name: ar ? "شركة السلام" : "Al Salam Co", value: 720000, color: "#8b5cf6" },
-    { name: ar ? "وزارة التعليم" : "MOE", value: 540000, color: "#f43f5e" },
-  ];
-
-  const totalRevenueByClient = revenueByClientData.reduce((sum, d) => sum + d.value, 0);
-
-  const projectTimelineData = [
-    { month: ar ? "يناير" : "Jan", [ar ? "برج النخيل" : "Palm Tower"]: 80, [ar ? "فيلات المروج" : "Al Murouj Villas"]: 120, [ar ? "مجمع الواحة" : "Al Wahat Complex"]: 60 },
-    { month: ar ? "فبراير" : "Feb", [ar ? "برج النخيل" : "Palm Tower"]: 90, [ar ? "فيلات المروج" : "Al Murouj Villas"]: 110, [ar ? "مجمع الواحة" : "Al Wahat Complex"]: 75 },
-    { month: ar ? "مارس" : "Mar", [ar ? "برج النخيل" : "Palm Tower"]: 70, [ar ? "فيلات المروج" : "Al Murouj Villas"]: 100, [ar ? "مجمع الواحة" : "Al Wahat Complex"]: 90 },
-    { month: ar ? "أبريل" : "Apr", [ar ? "برج النخيل" : "Palm Tower"]: 95, [ar ? "فيلات المروج" : "Al Murouj Villas"]: 80, [ar ? "مجمع الواحة" : "Al Wahat Complex"]: 85 },
-    { month: ar ? "مايو" : "May", [ar ? "برج النخيل" : "Palm Tower"]: 100, [ar ? "فيلات المروج" : "Al Murouj Villas"]: 90, [ar ? "مجمع الواحة" : "Al Wahat Complex"]: 70 },
-    { month: ar ? "يونيو" : "Jun", [ar ? "برج النخيل" : "Palm Tower"]: 85, [ar ? "فيلات المروج" : "Al Murouj Villas"]: 75, [ar ? "مجمع الواحة" : "Al Wahat Complex"]: 95 },
-  ];
-
-  const timelineProjectColors = ["#14b8a6", "#f59e0b", "#8b5cf6"];
-
-  const workloadData = [
-    { subject: ar ? "العمارة" : "Architecture", planned: 160, actual: 175 },
-    { subject: ar ? "الإنشائي" : "Structural", planned: 140, actual: 155 },
-    { subject: ar ? "الكهرباء" : "MEP", planned: 180, actual: 190 },
-    { subject: ar ? "الإدارة" : "Admin", planned: 80, actual: 72 },
-  ];
-
-  const workloadMax = Math.max(...workloadData.map(d => Math.max(d.planned, d.actual))) * 1.2;
 
   return (
     <div className="space-y-4">

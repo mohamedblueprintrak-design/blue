@@ -427,20 +427,79 @@ model ProposalItem {
   proposal        Proposal @relation(fields: [proposalId], references: [id], onDelete: Cascade)
 }
 
-// ==================== BIDS ====================
+// ==================== CONTRACTORS ====================
 
-model Bid {
+model Contractor {
   id              String   @id @default(cuid())
-  projectId       String
-  contractorName  String   @default("")
-  contractorContact String @default("")
-  amount          Float    @default(0)
-  status          String   @default("submitted") // submitted, under_review, accepted, rejected
+  name            String   @default("")
+  nameEn          String   @default("")
+  companyName     String   @default("")
+  companyEn       String   @default("")
+  contactPerson   String   @default("")
+  phone           String   @default("")
+  email           String   @default("")
+  address         String   @default("")
+  crNumber        String   @default("") // Commercial Registration
+  licenseNumber   String   @default("")
+  licenseExpiry   DateTime?
+  category        String   @default("") // civil, electrical, mep, finishing, plumbing, hvac
+   rating          Int      @default(0) // 1-5 stars
+  specialties     String   @default("") // comma-separated specialties
+  experience      String   @default("") // years of experience description
+  bankName        String   @default("")
+  bankAccount     String   @default("")
+  iban            String   @default("")
+  isActive        Boolean  @default(true)
   notes           String   @default("")
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
-  project         Project  @relation(fields: [projectId], references: [id])
+  bids            Bid[]
+  evaluations    ContractorEvaluation[]
+}
+
+// ==================== CONTRACTOR EVALUATION ====================
+
+model ContractorEvaluation {
+  id              String   @id @default(cuid())
+  contractorId   String
+  projectId       String
+  criteria        String   @default("") // experience, financial, technical, past_performance, resources
+  score           Int      @default(0) // 0-100
+  maxScore        Int      @default(100)
+  weight          Float    @default(1) // percentage weight for this criteria
+  notes           String   @default("")
+  evaluatedBy     String   @default("")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  contractor      Contractor @relation(fields: [contractorId], references: [id], onDelete: Cascade)
+  bid             Bid?      @relation(fields: [bidId], references: [id])
+  bidId           String?
+}
+
+// ==================== BIDS ====================
+
+model Bid {
+  id                String   @id @default(cuid())
+  projectId         String
+  contractorId      String?
+  contractorName    String   @default("")
+  contractorContact String   @default("")
+  amount            Float    @default(0)
+  technicalScore    Int      @default(0)
+  financialScore    Int      @default(0)
+  totalScore        Float    @default(0)
+  status            String   @default("submitted") // submitted, under_review, accepted, rejected
+  deadline          DateTime?
+  notes             String   @default("")
+  evaluationNotes   String   @default("")
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  project           Project    @relation(fields: [projectId], references: [id])
+  contractor        Contractor? @relation(fields: [contractorId], references: [id])
+  evaluations       ContractorEvaluation[]
 }
 
 // ==================== BUDGETS ====================
