@@ -43,6 +43,7 @@ model User {
   uploadedDocuments Document[] @relation("DocumentUploader")
   projectComments ProjectComment[]
   comments        TaskComment[]
+  tenders         Tender[]  @relation("TenderAssignee")
 }
 
 // ==================== COMPANY SETTINGS ====================
@@ -121,6 +122,10 @@ model Project {
   notifications  Notification[]
   activityLogs   ActivityLog[]
   knowledgeArticles KnowledgeArticle[]
+  designPhases   DesignPhase[]
+  buildingInspections BuildingInspection[]
+  supervisionChecklists SupervisionChecklist[]
+  violations           Violation[]
 }
 
 // ==================== MUNICIPALITY CORRESPONDENCE ====================
@@ -241,6 +246,7 @@ model Client {
   contracts       Contract[]
   proposals       Proposal[]
   interactions    ClientInteraction[]
+  buildingInspections BuildingInspection[]
 }
 
 model ClientInteraction {
@@ -1008,6 +1014,60 @@ model Approval {
   project     Project? @relation(fields: [projectId], references: [id])
 }
 
+// ==================== BUILDING INSPECTION ====================
+
+model BuildingInspection {
+  id              String   @id @default(cuid())
+  inspectionNumber String  @default("")
+  projectId       String?
+  clientId        String?
+  buildingName    String   @default("")
+  buildingAddress String   @default("")
+  inspectionType  String   @default("")
+  riskLevel       String   @default("green")
+  inspectionDate  DateTime
+  nextInspectionDate DateTime?
+  inspectorName   String   @default("")
+  summary         String   @default("")
+  recommendations String   @default("")
+  repairEstimate  Float    @default(0)
+  status          String   @default("draft")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  client          Client?  @relation(fields: [clientId], references: [id])
+  project         Project? @relation(fields: [projectId], references: [id])
+  findings        InspectionFinding[]
+  photos          InspectionPhoto[]
+}
+
+model InspectionFinding {
+  id              String   @id @default(cuid())
+  inspectionId    String
+  location        String   @default("")
+  description     String   @default("")
+  severity        String   @default("low")
+  category        String   @default("")
+  photos          String   @default("")
+  remediation     String   @default("")
+  estimatedCost   Float    @default(0)
+  status          String   @default("open")
+  createdAt       DateTime @default(now())
+
+  inspection      BuildingInspection @relation(fields: [inspectionId], references: [id], onDelete: Cascade)
+}
+
+model InspectionPhoto {
+  id              String   @id @default(cuid())
+  inspectionId    String
+  url             String   @default("")
+  caption         String   @default("")
+  findingId       String?
+  createdAt       DateTime @default(now())
+
+  inspection      BuildingInspection @relation(fields: [inspectionId], references: [id], onDelete: Cascade)
+}
+
 // ==================== PUBLIC QUOTE REQUESTS ====================
 
 model QuoteRequest {
@@ -1024,4 +1084,163 @@ model QuoteRequest {
   status        String   @default("new") // new, contacted, quoted, converted, lost
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
+}
+
+// ==================== DESIGN MANAGEMENT ====================
+
+model DesignPhase {
+  id              String   @id @default(cuid())
+  projectId       String
+  phase           String   @default("concept") // concept, schematic, development, construction_docs, as_built
+  phaseNameAr     String   @default("")
+  phaseNameEn     String   @default("")
+  status          String   @default("not_started") // not_started, in_progress, under_review, approved, revision
+  designerId      String?
+  startDate       DateTime?
+  dueDate         DateTime?
+  completedDate   DateTime?
+  revisionCount   Int      @default(0)
+  notes           String   @default("")
+  clientApproval  Boolean  @default(false)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  project         Project  @relation(fields: [projectId], references: [id])
+  drawings        DesignDrawing[]
+}
+
+model DesignDrawing {
+  id              String   @id @default(cuid())
+  designPhaseId   String
+  title           String   @default("")
+  drawingNumber   String   @default("")
+  discipline      String   @default("") // architectural, structural, electrical, plumbing, hvac, fire
+  version         Int      @default(1)
+  filePath        String   @default("")
+  fileSize        Float    @default(0)
+  status          String   @default("draft") // draft, under_review, approved, rejected, superseded
+  reviewedBy      String?
+  reviewNotes     String   @default("")
+  reviewedAt      DateTime?
+  clashDetected   Boolean  @default(false)
+  clashNotes      String   @default("")
+  uploadedById    String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  designPhase     DesignPhase @relation(fields: [designPhaseId], references: [id], onDelete: Cascade)
+  revisions       DesignRevision[]
+}
+
+model DesignRevision {
+  id              String   @id @default(cuid())
+  drawingId       String
+  version         Int      @default(1)
+  filePath        String   @default("")
+  changeNotes     String   @default("")
+  uploadedById    String?
+  createdAt       DateTime @default(now())
+
+  drawing         DesignDrawing @relation(fields: [drawingId], references: [id], onDelete: Cascade)
+}
+
+// ==================== TENDER MANAGEMENT ====================
+
+model Tender {
+  id              String   @id @default(cuid())
+  tenderNumber    String   @default("")
+  title           String   @default("")
+  authority       String   @default("") // RAK Municipality, RAK Properties, Al Hamra, Marjan, RAKEZ, Private
+  projectType     String   @default("") // villa, building, infrastructure, road, landscape
+  description     String   @default("")
+  estimatedBudget Float    @default(0)
+  currency        String   @default("AED")
+  closingDate     DateTime?
+  submissionDate  DateTime?
+  qualifications  String   @default("") // comma-separated required qualifications
+  requiredDocs    String   @default("") // comma-separated required documents
+  status          String   @default("identified") // identified, preparing, submitted, qualified, won, lost
+  winnerName      String   @default("")
+  lostReason      String   @default("")
+  competitorAnalysis String @default("") // JSON or text
+  notes           String   @default("")
+  source          String   @default("") // website, referral, direct
+  sourceUrl       String   @default("")
+  assignedTo      String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  assignedUser    User?    @relation("TenderAssignee", fields: [assignedTo], references: [id])
+  documents       TenderDocument[]
+}
+
+model TenderDocument {
+  id          String   @id @default(cuid())
+  tenderId    String
+  name        String   @default("")
+  fileType    String   @default("")
+  filePath    String   @default("")
+  uploadedAt  DateTime @default(now())
+
+  tender      Tender   @relation(fields: [tenderId], references: [id], onDelete: Cascade)
+}
+
+// ==================== SITE SUPERVISION ====================
+
+model SupervisionChecklist {
+  id              String   @id @default(cuid())
+  projectId       String
+  stage           String   @default("")
+  title           String   @default("")
+  visitDate       DateTime
+  engineerId      String?
+  weather         String   @default("")
+  temperature     String   @default("")
+  workerCount     Int      @default(0)
+  contractorName  String   @default("")
+  progressOverall Float    @default(0)
+  notes           String   @default("")
+  status          String   @default("draft")
+  approvedById    String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  project         Project  @relation(fields: [projectId], references: [id])
+  items           ChecklistItem[]
+  violations      Violation[]
+}
+
+model ChecklistItem {
+  id                String   @id @default(cuid())
+  checklistId       String
+  category          String   @default("")
+  description       String   @default("")
+  specification     String   @default("")
+  isChecked         Boolean  @default(false)
+  compliant         Boolean  @default(true)
+  notes             String   @default("")
+  photoUrl          String   @default("")
+  createdAt         DateTime @default(now())
+
+  checklist         SupervisionChecklist @relation(fields: [checklistId], references: [id], onDelete: Cascade)
+}
+
+model Violation {
+  id              String   @id @default(cuid())
+  checklistId     String
+  projectId       String
+  type            String   @default("")
+  severity        String   @default("low")
+  description     String   @default("")
+  contractorName  String   @default("")
+  deadline        DateTime?
+  status          String   @default("open")
+  photoBefore     String   @default("")
+  photoAfter      String   @default("")
+  resolutionNotes String   @default("")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  checklist       SupervisionChecklist @relation(fields: [checklistId], references: [id], onDelete: Cascade)
+  project         Project  @relation(fields: [projectId], references: [id])
 }

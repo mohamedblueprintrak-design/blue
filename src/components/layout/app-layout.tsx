@@ -66,6 +66,11 @@ import {
   Sparkles,
   AlertTriangle,
   Shield,
+  PenTool,
+  Gavel,
+  SearchCheck,
+  ClipboardCheck,
+  Gift,
   type LucideIcon,
 } from "lucide-react";
 import Dashboard from "@/components/pages/dashboard";
@@ -81,6 +86,8 @@ import LeavePage from "@/components/pages/leave";
 import WorkloadPage from "@/components/pages/workload";
 import SettingsPage from "@/components/pages/settings";
 import AdminPanel from "@/components/pages/admin";
+import TendersPage from "@/components/pages/tenders";
+import InspectionsPage from "@/components/pages/inspections";
 import { useKeyboardShortcuts } from "@/hooks/use-keyboard-shortcuts";
 import Breadcrumbs from "@/components/layout/breadcrumbs";
 import QuickActions from "@/components/layout/quick-actions";
@@ -88,6 +95,9 @@ import WelcomeModal from "@/components/layout/welcome-modal";
 import ShortcutsOverlay from "@/components/layout/shortcuts-overlay";
 import SidebarStats from "@/components/layout/sidebar-stats";
 import MobileBottomNav from "@/components/layout/mobile-bottom-nav";
+import DesignManagement from "@/components/pages/design-management";
+import SupervisionPage from "@/components/pages/supervision";
+import CommissionsPage from "@/components/pages/commissions";
 import { cn } from "@/lib/utils";
 import { AnimatePresence, motion } from "framer-motion";
 import LogoImage from "@/components/ui/logo-image";
@@ -109,7 +119,12 @@ const iconMap: Record<string, LucideIcon> = {
   Activity,
   Sparkles,
   AlertTriangle,
+  Gavel,
+  PenTool,
   Search,
+  SearchCheck,
+  ClipboardCheck,
+  Gift,
   Bell,
   User,
 };
@@ -512,6 +527,21 @@ export default function AppLayout({ language }: AppLayoutProps) {
                 )
               )}
 
+              {/* Design Management */}
+              {currentPage === "design-management" && <DesignManagement language={language} />}
+
+              {/* Tenders */}
+              {currentPage === "tenders" && <TendersPage language={language} />}
+
+              {/* Building Inspections */}
+              {currentPage === "inspections" && <InspectionsPage language={language} />}
+
+              {/* Site Supervision */}
+              {currentPage === "supervision" && <SupervisionPage language={language} />}
+
+              {/* Commissions & Referrals */}
+              {currentPage === "commissions" && <CommissionsPage language={language} />}
+
               {/* Contractors Section */}
               {(currentPage === "contractors" || currentPage === "contractors-suppliers") && (
                 <SuppliersPage language={language} />
@@ -535,8 +565,8 @@ export default function AppLayout({ language }: AppLayoutProps) {
               {currentPage === "admin" && <AdminPanel language={language} />}
 
               {/* Placeholder for undefined pages */}
-              {!["dashboard", "projects", "contractors", "contractors-suppliers", "contractors-inventory", 
-                 "contractors-purchase-orders", "contractors-equipment", "employees", "employees-list", 
+              {!["dashboard", "projects", "tenders", "design-management", "inspections", "supervision", "commissions", "contractors", "contractors-suppliers", "contractors-inventory",
+                 "contractors-purchase-orders", "contractors-equipment", "employees", "employees-list",
                  "employees-attendance", "employees-leave", "employees-workload", "settings", "admin"].includes(currentPage) && (
                 <div className="flex flex-col items-center justify-center min-h-[60vh] text-center">
                   <LogoImage size={64} className="mb-4 bg-slate-100 dark:bg-slate-800 [&>div]:opacity-40" />

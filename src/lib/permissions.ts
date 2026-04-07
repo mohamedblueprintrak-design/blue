@@ -83,6 +83,24 @@ const allNavItems: NavItem[] = [
     roles: allRoles,
   },
 
+  // ───── Tenders (المناقصات) ─────
+  {
+    id: "tenders",
+    icon: "Gavel",
+    labelAr: "المناقصات",
+    labelEn: "Tenders",
+    roles: ["admin", "manager", "project_manager"],
+  },
+
+  // ───── Design Management ─────
+  {
+    id: "design-management",
+    icon: "PenTool",
+    labelAr: "إدارة التصاميم",
+    labelEn: "Design Management",
+    roles: ["admin", "manager", "project_manager", "engineer", "draftsman"],
+  },
+
   // ───── Contractors (جديد - للمقاولين والمشتريات) ─────
   {
     id: "contractors",
@@ -120,6 +138,33 @@ const allNavItems: NavItem[] = [
         roles: ["admin", "manager", "project_manager"],
       },
     ],
+  },
+
+  // ───── Building Inspections ─────
+  {
+    id: "inspections",
+    icon: "SearchCheck",
+    labelAr: "فحص المباني",
+    labelEn: "Building Inspections",
+    roles: ["admin", "manager", "project_manager", "engineer"],
+  },
+
+  // ───── Site Supervision ─────
+  {
+    id: "supervision",
+    icon: "ClipboardCheck",
+    labelAr: "الإشراف على التنفيذ",
+    labelEn: "Site Supervision",
+    roles: ["admin", "manager", "project_manager", "engineer"],
+  },
+
+  // ───── Commissions & Referrals ─────
+  {
+    id: "commissions",
+    icon: "Gift",
+    labelAr: "العمولات",
+    labelEn: "Commissions",
+    roles: ["admin", "manager", "accountant"],
   },
 
   // ───── Employees ─────
