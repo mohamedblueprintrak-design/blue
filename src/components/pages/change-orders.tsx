@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToastFeedback } from "@/hooks/use-toast-feedback";
 import { useForm } from "react-hook-form";
@@ -100,9 +100,9 @@ function formatCurrency(amount: number, ar: boolean) {
 }
 
 // ===== Main Component =====
-interface ChangeOrdersProps { language: "ar" | "en"; }
+interface ChangeOrdersProps { language: "ar" | "en"; projectId?: string; }
 
-export default function ChangeOrders({ language }: ChangeOrdersProps) {
+export default function ChangeOrders({ language, projectId }: ChangeOrdersProps) {
   const ar = language === "ar";
   const queryClient = useQueryClient();
   const [showAddDialog, setShowAddDialog] = useState(false);
@@ -154,13 +154,21 @@ export default function ChangeOrders({ language }: ChangeOrdersProps) {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["change-orders"] }),
   });
 
-  const defaultCOForm = { projectId: "", number: "", type: "change", costImpact: "0", timeImpact: "", description: "", status: "pending" };
+  const defaultCOForm = { projectId: projectId || "", number: "", type: "change", costImpact: "0", timeImpact: "", description: "", status: "pending" };
   const [formData, setFormData] = useState(defaultCOForm);
 
   const form = useForm<ChangeOrderFormData>({ resolver: zodResolver(changeOrderSchema), defaultValues: defaultCOForm });
   const { register, handleSubmit: rhfHandleSubmit, formState: { errors }, reset, setValue, watch } = form;
 
-  const resetForm = () => { setFormData(defaultCOForm); reset(defaultCOForm); };
+  // Auto-set project filter from props
+  useEffect(() => {
+    if (projectId) {
+      setFilterProject(projectId);
+      setValue("projectId", projectId);
+    }
+  }, [projectId, setValue]);
+
+  const resetForm = () => { const f = { ...defaultCOForm, projectId: projectId || (filterProject !== "all" ? filterProject : "") }; setFormData(f); reset(f); };
 
   // Summary calculations
   const totalCount = changeOrders.length;
@@ -188,6 +196,7 @@ export default function ChangeOrders({ language }: ChangeOrdersProps) {
           </div>
         </div>
         <div className="flex items-center gap-2 w-full sm:w-auto sm:ms-auto">
+          {!projectId && (
           <Select value={filterProject} onValueChange={setFilterProject}>
             <SelectTrigger className="w-[160px] h-8 text-xs rounded-lg">
               <Filter className="h-3 w-3 me-1 text-slate-400" />
@@ -198,6 +207,7 @@ export default function ChangeOrders({ language }: ChangeOrdersProps) {
               {projects.map((p) => (<SelectItem key={p.id} value={p.id}>{ar ? p.name : p.nameEn || p.name}</SelectItem>))}
             </SelectContent>
           </Select>
+          )}
           <Select value={filterStatus} onValueChange={setFilterStatus}>
             <SelectTrigger className="w-[130px] h-8 text-xs rounded-lg">
               <SelectValue placeholder={ar ? "الحالة" : "Status"} />

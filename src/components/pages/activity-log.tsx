@@ -43,6 +43,7 @@ import {
 
 interface Props {
   language: "ar" | "en";
+  projectId?: string;
 }
 
 type ActionType = "create" | "update" | "delete" | "view" | "status_change" | "comment" | "upload";
@@ -360,7 +361,7 @@ const loadMoreVariants = {
 };
 
 // ===== Main Component =====
-export default function ActivityLog({ language: lang }: Props) {
+export default function ActivityLog({ language: lang, projectId }: Props) {
   const isAr = lang === "ar";
   const [entityFilter, setEntityFilter] = useState<string>("all");
   const [periodFilter, setPeriodFilter] = useState<string>("all");
@@ -370,7 +371,7 @@ export default function ActivityLog({ language: lang }: Props) {
 
   // Fetch real activities from API with auto-refresh every 60 seconds
   const { data: apiActivities, isLoading, dataUpdatedAt } = useQuery<ActivityItem[]>({
-    queryKey: ["activity-log", entityFilter, periodFilter],
+    queryKey: ["activity-log", projectId, entityFilter, periodFilter],
     queryFn: async () => {
       const params = new URLSearchParams();
       if (entityFilter !== "all") params.set("entityType", entityFilter);
@@ -388,6 +389,7 @@ export default function ActivityLog({ language: lang }: Props) {
         params.set("dateFrom", monthAgo.toISOString());
       }
       params.set("limit", "100");
+      if (projectId) params.set("projectId", projectId);
 
       const res = await fetch(`/api/activity-log?${params.toString()}`);
       if (!res.ok) return [];

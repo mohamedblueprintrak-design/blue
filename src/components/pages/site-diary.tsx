@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -109,9 +109,9 @@ function getEntryTypeIcon(hasWork: boolean, hasIssues: boolean, hasSafety: boole
 }
 
 // ===== Main Component =====
-interface SiteDiaryProps { language: "ar" | "en"; }
+interface SiteDiaryProps { language: "ar" | "en"; projectId?: string; }
 
-export default function SiteDiary({ language }: SiteDiaryProps) {
+export default function SiteDiary({ language, projectId }: SiteDiaryProps) {
   const ar = language === "ar";
   const queryClient = useQueryClient();
   const [showAddDialog, setShowAddDialog] = useState(false);
@@ -161,8 +161,13 @@ export default function SiteDiary({ language }: SiteDiaryProps) {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["site-diary"] }),
   });
 
+  // Auto-set project filter from props
+  useEffect(() => {
+    if (projectId) setFilterProject(projectId);
+  }, [projectId]);
+
   const [formData, setFormData] = useState({
-    projectId: "",
+    projectId: projectId || "",
     date: new Date().toISOString().split("T")[0],
     weather: "",
     workerCount: "",
@@ -174,7 +179,7 @@ export default function SiteDiary({ language }: SiteDiaryProps) {
   });
 
   const resetForm = () => setFormData({
-    projectId: "",
+    projectId: projectId || (filterProject !== "all" ? filterProject : ""),
     date: new Date().toISOString().split("T")[0],
     weather: "",
     workerCount: "",
@@ -204,6 +209,7 @@ export default function SiteDiary({ language }: SiteDiaryProps) {
           </div>
         </div>
         <div className="flex items-center gap-2 w-full sm:w-auto sm:ms-auto">
+          {!projectId && (
           <Select value={filterProject} onValueChange={setFilterProject}>
             <SelectTrigger className="w-[160px] h-8 text-xs rounded-lg">
               <Filter className="h-3 w-3 me-1 text-slate-400" />
@@ -216,6 +222,7 @@ export default function SiteDiary({ language }: SiteDiaryProps) {
               ))}
             </SelectContent>
           </Select>
+          )}
           <Button size="sm" className="h-8 bg-teal-600 hover:bg-teal-700 text-white rounded-lg shadow-sm shadow-teal-600/20" onClick={() => setShowAddDialog(true)}>
             <Plus className="h-3.5 w-3.5 me-1" />{ar ? "إدخال جديد" : "New Entry"}
           </Button>

@@ -5,7 +5,7 @@
  * صفحة جدول الكميات
  */
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToastFeedback } from "@/hooks/use-toast-feedback";
 import { Button } from "@/components/ui/button";
@@ -119,16 +119,22 @@ function getCategoryColor(category: string) {
 // ===== Main Component =====
 interface BOQPageProps {
   language: "ar" | "en";
+  projectId?: string;
 }
 
-export default function BOQPage({ language }: BOQPageProps) {
+export default function BOQPage({ language, projectId }: BOQPageProps) {
   const ar = language === "ar";
   const queryClient = useQueryClient();
   const toast = useToastFeedback({ ar });
 
+  // Auto-set project filter from props
+  useEffect(() => {
+    if (projectId) setProjectFilter(projectId);
+  }, [projectId]);
+
   // Filter states
   const [searchQuery, setSearchQuery] = useState("");
-  const [projectFilter, setProjectFilter] = useState("all");
+  const [projectFilter, setProjectFilter] = useState(projectId || "all");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [activeCategoryTab, setActiveCategoryTab] = useState("all");
 
@@ -280,7 +286,7 @@ export default function BOQPage({ language }: BOQPageProps) {
   };
 
   const resetFormData = () => {
-    setFormData({ code: "", description: "", unit: "", quantity: 0, unitPrice: 0, category: "civil", projectId: projectFilter !== "all" ? projectFilter : "" });
+    setFormData({ code: "", description: "", unit: "", quantity: 0, unitPrice: 0, category: "civil", projectId: projectId || (projectFilter !== "all" ? projectFilter : "") });
   };
 
   const openEditDialog = (item: BOQItem) => {
@@ -397,6 +403,7 @@ export default function BOQPage({ language }: BOQPageProps) {
               className="ps-9 bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 h-9 text-sm"
             />
           </div>
+          {!projectId && (
           <Select value={projectFilter} onValueChange={setProjectFilter}>
             <SelectTrigger className="w-[180px] bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 h-9 text-sm">
               <SelectValue placeholder={ar ? "المشروع" : "Project"} />
@@ -410,6 +417,7 @@ export default function BOQPage({ language }: BOQPageProps) {
               ))}
             </SelectContent>
           </Select>
+          )}
         </div>
       </div>
 

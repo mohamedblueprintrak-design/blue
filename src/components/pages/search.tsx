@@ -27,6 +27,7 @@ import {
 
 interface Props {
   language: "ar" | "en";
+  projectId?: string;
 }
 
 interface SearchResult {
@@ -156,7 +157,7 @@ function clearRecentSearches() {
   }
 }
 
-export default function GlobalSearch({ language: lang }: Props) {
+export default function GlobalSearch({ language: lang, projectId }: Props) {
   const isAr = lang === "ar";
   const { setCurrentPage, setCurrentProjectId } = useNavStore();
   const inputRef = useRef<HTMLInputElement>(null);
@@ -191,11 +192,15 @@ export default function GlobalSearch({ language: lang }: Props) {
     results: GroupedResults;
     total: number;
   }>({
-    queryKey: ["global-search", debouncedQuery],
-    queryFn: () =>
-      fetch(`/api/search?q=${encodeURIComponent(debouncedQuery)}`).then((r) =>
+    queryKey: ["global-search", projectId, debouncedQuery],
+    queryFn: () => {
+      const params = new URLSearchParams();
+      params.set("q", debouncedQuery);
+      if (projectId) params.set("projectId", projectId);
+      return fetch(`/api/search?${params.toString()}`).then((r) =>
         r.json()
-      ),
+      );
+    },
     enabled: debouncedQuery.length >= 2,
   });
 

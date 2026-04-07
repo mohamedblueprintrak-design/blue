@@ -127,9 +127,10 @@ function getEmptyLineItem(): InvoiceItem {
 // ===== Main Component =====
 interface InvoicesPageProps {
   language: "ar" | "en";
+  projectId?: string;
 }
 
-export default function InvoicesPage({ language }: InvoicesPageProps) {
+export default function InvoicesPage({ language, projectId }: InvoicesPageProps) {
   const ar = language === "ar";
   const queryClient = useQueryClient();
   const toast = useToastFeedback({ ar });
@@ -142,7 +143,7 @@ export default function InvoicesPage({ language }: InvoicesPageProps) {
   const PAGE_SIZE = 10;
 
   const emptyForm = {
-    number: "", clientId: "", projectId: "",
+    number: "", clientId: "", projectId: projectId || "",
     issueDate: new Date().toISOString().split("T")[0],
     dueDate: new Date(Date.now() + 30 * 86400000).toISOString().split("T")[0],
     status: "draft" as string,
@@ -154,7 +155,7 @@ export default function InvoicesPage({ language }: InvoicesPageProps) {
     defaultValues: {
       number: "",
       clientId: "",
-      projectId: "",
+      projectId: projectId || "",
       issueDate: new Date().toISOString().split("T")[0],
       dueDate: new Date(Date.now() + 30 * 86400000).toISOString().split("T")[0],
       status: "draft",
@@ -165,9 +166,9 @@ export default function InvoicesPage({ language }: InvoicesPageProps) {
 
   // Fetch invoices
   const { data: invoices = [], isLoading } = useQuery<Invoice[]>({
-    queryKey: ["invoices"],
+    queryKey: ["invoices", projectId],
     queryFn: async () => {
-      const res = await fetch("/api/invoices");
+      const res = await fetch(`/api/invoices${projectId ? `?projectId=${projectId}` : ''}`);
       if (!res.ok) throw new Error("Failed to fetch");
       return res.json();
     },
@@ -209,7 +210,7 @@ export default function InvoicesPage({ language }: InvoicesPageProps) {
       return res.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["invoices"] });
+      queryClient.invalidateQueries({ queryKey: ["invoices", projectId] });
       setShowDialog(false);
       setFormData(emptyForm);
       toast.created(ar ? "الفاتورة" : "Invoice");
@@ -235,7 +236,7 @@ export default function InvoicesPage({ language }: InvoicesPageProps) {
       return res.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["invoices"] });
+      queryClient.invalidateQueries({ queryKey: ["invoices", projectId] });
       setEditInvoice(null);
       setFormData(emptyForm);
       toast.updated(ar ? "الفاتورة" : "Invoice");
@@ -251,7 +252,7 @@ export default function InvoicesPage({ language }: InvoicesPageProps) {
       await fetch(`/api/invoices/${id}`, { method: "DELETE" });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["invoices"] });
+      queryClient.invalidateQueries({ queryKey: ["invoices", projectId] });
       toast.deleted(ar ? "الفاتورة" : "Invoice");
     },
     onError: () => {

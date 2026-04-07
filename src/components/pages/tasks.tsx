@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToastFeedback } from "@/hooks/use-toast-feedback";
 import { useForm } from "react-hook-form";
@@ -539,9 +539,10 @@ function TaskActionsDropdown({ taskId, taskTitle, ar, onOpenComments }: { taskId
 // ===== Main Tasks Component =====
 interface TasksKanbanProps {
   language: "ar" | "en";
+  projectId?: string;
 }
 
-export default function TasksKanban({ language }: TasksKanbanProps) {
+export default function TasksKanban({ language, projectId }: TasksKanbanProps) {
   const ar = language === "ar";
   const queryClient = useQueryClient();
   const toast = useToastFeedback({ ar });
@@ -549,7 +550,10 @@ export default function TasksKanban({ language }: TasksKanbanProps) {
   const [commentTask, setCommentTask] = useState<TaskItem | null>(null);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [activeTask, setActiveTask] = useState<TaskItem | null>(null);
-  const [filterProject, setFilterProject] = useState<string>("all");
+  const [filterProject, setFilterProject] = useState<string>(projectId || "all");
+  useEffect(() => {
+    if (projectId) setFilterProject(projectId);
+  }, [projectId]);
   const [bulkMode, setBulkMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [filterAssignee, setFilterAssignee] = useState<string>("all");
@@ -562,7 +566,7 @@ export default function TasksKanban({ language }: TasksKanbanProps) {
 
   // Fetch tasks
   const { data: tasks = [], isLoading } = useQuery<TaskItem[]>({
-    queryKey: ["tasks", filterProject, filterAssignee],
+    queryKey: ["tasks", projectId, filterProject, filterAssignee],
     queryFn: async () => {
       const params = new URLSearchParams();
       if (filterProject !== "all") params.set("projectId", filterProject);
@@ -739,7 +743,7 @@ export default function TasksKanban({ language }: TasksKanbanProps) {
     defaultValues: {
       title: "",
       description: "",
-      projectId: "",
+      projectId: projectId || "",
       assigneeId: "",
       priority: "normal",
       status: "todo",
@@ -793,7 +797,7 @@ export default function TasksKanban({ language }: TasksKanbanProps) {
 
   const handleAddTask = (status: string) => {
     setDefaultStatus(status);
-    reset({ title: "", description: "", projectId: "", assigneeId: "", priority: "normal", status, startDate: "", dueDate: "", isGovernmental: false, slaDays: "" });
+    reset({ title: "", description: "", projectId: projectId || "", assigneeId: "", priority: "normal", status, startDate: "", dueDate: "", isGovernmental: false, slaDays: "" });
     setShowAddDialog(true);
   };
 
@@ -904,6 +908,7 @@ export default function TasksKanban({ language }: TasksKanbanProps) {
 
             {/* Dropdown filters */}
             <div className="flex items-center gap-2 ms-auto">
+              {!projectId && (
               <Select value={filterProject} onValueChange={setFilterProject}>
                 <SelectTrigger className="w-[140px] h-7 text-[11px] border-slate-200 dark:border-slate-700 rounded-lg">
                   <SelectValue placeholder={ar ? "المشروع" : "Project"} />
@@ -917,6 +922,7 @@ export default function TasksKanban({ language }: TasksKanbanProps) {
                   ))}
                 </SelectContent>
               </Select>
+              )}
               <Select value={filterAssignee} onValueChange={setFilterAssignee}>
                 <SelectTrigger className="w-[140px] h-7 text-[11px] border-slate-200 dark:border-slate-700 rounded-lg">
                   <SelectValue placeholder={ar ? "المسؤول" : "Assignee"} />

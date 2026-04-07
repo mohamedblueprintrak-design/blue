@@ -5,9 +5,11 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const status = searchParams.get("status");
+    const projectId = searchParams.get("projectId");
 
     const where: Record<string, unknown> = {};
     if (status) where.status = status;
+    if (projectId) where.projectId = projectId;
 
     const proposals = await db.proposal.findMany({
       where: Object.keys(where).length > 0 ? where : undefined,

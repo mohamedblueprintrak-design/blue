@@ -66,6 +66,7 @@ import { useAuthStore } from "@/store/auth-store";
 
 interface Props {
   language: "ar" | "en";
+  projectId?: string;
 }
 
 interface Message {
@@ -379,7 +380,7 @@ function saveConversations(conversations: ConversationMeta[]) {
   }
 }
 
-export default function AIAssistant({ language: lang }: Props) {
+export default function AIAssistant({ language: lang, projectId }: Props) {
   const isAr = lang === "ar";
   const { user } = useAuthStore();
   const [messages, setMessages] = useState<Message[]>([]);
@@ -524,6 +525,7 @@ export default function AIAssistant({ language: lang }: Props) {
           conversationId,
           userId: user?.id,
           language: lang,
+          projectId,
         }),
       });
 
@@ -665,6 +667,7 @@ export default function AIAssistant({ language: lang }: Props) {
           conversationId,
           userId: user?.id,
           language: lang,
+          projectId,
         }),
       });
 

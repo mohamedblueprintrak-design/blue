@@ -33,19 +33,22 @@ function detectTopics(message: string): string[] {
 }
 
 // Fetch context data based on detected topics
-async function fetchContextData(topics: string[], userId?: string) {
+async function fetchContextData(topics: string[], userId?: string, projectId?: string) {
   const context: Record<string, unknown> = {};
+
+  // Build project-specific where clause
+  const projectWhere: Record<string, unknown> = projectId ? { projectId } : {};
 
   try {
     // Always fetch basic dashboard stats for context
     if (topics.includes('dashboard') || topics.length === 0) {
       const [totalProjects, activeProjects, completedProjects, delayedProjects, totalTasks, totalClients] =
         await Promise.all([
-          db.project.count(),
-          db.project.count({ where: { status: 'active' } }),
-          db.project.count({ where: { status: 'completed' } }),
-          db.project.count({ where: { status: 'delayed' } }),
-          db.task.count(),
+          projectId ? db.project.count({ where: { id: projectId } }) : db.project.count(),
+          projectId ? db.project.count({ where: { id: projectId, status: 'active' } }) : db.project.count({ where: { status: 'active' } }),
+          projectId ? db.project.count({ where: { id: projectId, status: 'completed' } }) : db.project.count({ where: { status: 'completed' } }),
+          projectId ? db.project.count({ where: { id: projectId, status: 'delayed' } }) : db.project.count({ where: { status: 'delayed' } }),
+          db.task.count({ where: Object.keys(projectWhere).length > 0 ? projectWhere : undefined }),
           db.client.count(),
         ]);
       context.dashboardStats = { totalProjects, activeProjects, completedProjects, delayedProjects, totalTasks, totalClients };
@@ -54,8 +57,9 @@ async function fetchContextData(topics: string[], userId?: string) {
     // Projects
     if (topics.includes('projects')) {
       const recentProjects = await db.project.findMany({
+        where: projectId ? { id: projectId } : undefined,
         orderBy: { updatedAt: 'desc' },
-        take: 8,
+        take: projectId ? 1 : 8,
         include: {
           client: { select: { name: true, company: true } },
         },
@@ -94,6 +98,7 @@ async function fetchContextData(topics: string[], userId?: string) {
 
       const overdueTasks = await db.task.findMany({
         where: {
+          ...projectWhere,
           status: { notIn: ['done', 'cancelled'] },
           dueDate: { not: null, lt: startOfDay },
         },
@@ -107,6 +112,7 @@ async function fetchContextData(topics: string[], userId?: string) {
 
       const userTasks = userId ? await db.task.findMany({
         where: {
+          ...projectWhere,
           assigneeId: userId,
           status: { notIn: ['done', 'cancelled'] },
         },
@@ -146,6 +152,7 @@ async function fetchContextData(topics: string[], userId?: string) {
 
       const [invoices, payments] = await Promise.all([
         db.invoice.findMany({
+          where: Object.keys(projectWhere).length > 0 ? projectWhere : undefined,
           orderBy: { issueDate: 'desc' },
           take: 8,
           include: {
@@ -153,6 +160,7 @@ async function fetchContextData(topics: string[], userId?: string) {
           },
         }),
         db.payment.findMany({
+          where: Object.keys(projectWhere).length > 0 ? projectWhere : undefined,
           orderBy: { createdAt: 'desc' },
           take: 5,
         }),
@@ -160,6 +168,7 @@ async function fetchContextData(topics: string[], userId?: string) {
 
       const paidInvoices = await db.invoice.findMany({
         where: {
+          ...(Object.keys(projectWhere).length > 0 ? projectWhere : {}),
           status: { in: ['paid', 'partially_paid'] },
           paidAmount: { gt: 0 },
           issueDate: { gte: sixMonthsAgo },
@@ -250,6 +259,7 @@ async function fetchContextData(topics: string[], userId?: string) {
     if (topics.includes('site')) {
       const [siteVisits, openDefects] = await Promise.all([
         db.siteVisit.findMany({
+          where: Object.keys(projectWhere).length > 0 ? projectWhere : undefined,
           orderBy: { date: 'desc' },
           take: 5,
           include: {
@@ -257,7 +267,10 @@ async function fetchContextData(topics: string[], userId?: string) {
           },
         }),
         db.defect.findMany({
-          where: { status: { in: ['open', 'in_progress'] } },
+          where: {
+            ...(Object.keys(projectWhere).length > 0 ? projectWhere : {}),
+            status: { in: ['open', 'in_progress'] },
+          },
           take: 8,
           include: {
             project: { select: { number: true, name: true } },
@@ -288,6 +301,7 @@ async function fetchContextData(topics: string[], userId?: string) {
     // Contracts
     if (topics.includes('contracts')) {
       const contracts = await db.contract.findMany({
+        where: Object.keys(projectWhere).length > 0 ? projectWhere : undefined,
         take: 8,
         include: {
           client: { select: { name: true, company: true } },
@@ -317,12 +331,16 @@ async function fetchContextData(topics: string[], userId?: string) {
 
       const [overdueInvoices, overdueTasks, pendingGovApprovals] = await Promise.all([
         db.invoice.findMany({
-          where: { status: 'overdue' },
+          where: {
+            ...(Object.keys(projectWhere).length > 0 ? projectWhere : {}),
+            status: 'overdue',
+          },
           take: 5,
           include: { client: { select: { name: true, company: true } } },
         }),
         db.task.findMany({
           where: {
+            ...projectWhere,
             status: { notIn: ['done', 'cancelled'] },
             dueDate: { lt: startOfDay },
           },
@@ -333,7 +351,10 @@ async function fetchContextData(topics: string[], userId?: string) {
           },
         }),
         db.govApproval.findMany({
-          where: { status: { in: ['PENDING', 'SUBMITTED'] } },
+          where: {
+            ...(Object.keys(projectWhere).length > 0 ? projectWhere : {}),
+            status: { in: ['PENDING', 'SUBMITTED'] },
+          },
           take: 5,
           include: { project: { select: { number: true, name: true } } },
         }),
@@ -376,7 +397,7 @@ async function fetchContextData(topics: string[], userId?: string) {
 
 export async function POST(request: NextRequest) {
   try {
-    const { message, conversationId = 'default', userId, language } = await request.json();
+    const { message, conversationId = 'default', userId, language, projectId } = await request.json();
 
     if (!message || typeof message !== 'string') {
       return NextResponse.json(
@@ -429,7 +450,7 @@ export async function POST(request: NextRequest) {
 
     // Detect topics and fetch context data
     const topics = detectTopics(message);
-    const contextData = await fetchContextData(topics, userId);
+    const contextData = await fetchContextData(topics, userId, projectId);
 
     // Build system prompt with context
     let contextSection = '';

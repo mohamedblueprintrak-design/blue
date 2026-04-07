@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -151,14 +151,18 @@ const sortButtonOptions = [
 // ===== Main Component =====
 interface DocumentsPageProps {
   language: "ar" | "en";
+  projectId?: string;
 }
 
-export default function DocumentsPage({ language }: DocumentsPageProps) {
+export default function DocumentsPage({ language, projectId }: DocumentsPageProps) {
   const ar = language === "ar";
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
   const [filterCategory, setFilterCategory] = useState<string>("all");
-  const [filterProject, setFilterProject] = useState<string>("all");
+  const [filterProject, setFilterProject] = useState<string>(projectId || "all");
+  useEffect(() => {
+    if (projectId) setFilterProject(projectId);
+  }, [projectId]);
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [showDialog, setShowDialog] = useState(false);
   const [editDoc, setEditDoc] = useState<Document | null>(null);
@@ -177,14 +181,14 @@ export default function DocumentsPage({ language }: DocumentsPageProps) {
   };
 
   const emptyForm = {
-    projectId: "", contractId: "", name: "", fileType: "",
+    projectId: projectId || "", contractId: "", name: "", fileType: "",
     fileSize: 0, category: "general" as string, version: 1,
   };
   const [formData, setFormData] = useState(emptyForm);
 
   // Fetch documents
   const { data: documents = [], isLoading } = useQuery<Document[]>({
-    queryKey: ["documents"],
+    queryKey: ["documents", projectId],
     queryFn: async () => {
       const res = await fetch("/api/documents");
       if (!res.ok) throw new Error("Failed to fetch");
@@ -434,6 +438,7 @@ export default function DocumentsPage({ language }: DocumentsPageProps) {
             <Search className="absolute start-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 dark:text-slate-500" />
             <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder={ar ? "بحث في المستندات..." : "Search documents..."} className="ps-9 h-8 text-sm" />
           </div>
+          {!projectId && (
           <Select value={filterProject} onValueChange={setFilterProject}>
             <SelectTrigger className="w-[140px] h-8 text-xs hidden sm:block"><SelectValue /></SelectTrigger>
             <SelectContent>
@@ -443,6 +448,7 @@ export default function DocumentsPage({ language }: DocumentsPageProps) {
               ))}
             </SelectContent>
           </Select>
+          )}
           {/* Sort By Buttons */}
           <div className="hidden sm:flex items-center gap-0.5 bg-slate-100 dark:bg-slate-800 rounded-lg p-0.5">
             <ArrowUpDown className="h-3 w-3 text-slate-400 mx-1.5 shrink-0" />

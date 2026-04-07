@@ -7,9 +7,12 @@ export async function GET(request: NextRequest) {
   const status = searchParams.get('status');
   const entityType = searchParams.get('entityType');
 
+  const projectId = searchParams.get('projectId');
+
   const where: Record<string, unknown> = {};
   if (status && status !== 'all') where.status = status;
   if (entityType && entityType !== 'all') where.entityType = entityType;
+  if (projectId) where.projectId = projectId;
 
   const approvals = await db.approval.findMany({
     where,

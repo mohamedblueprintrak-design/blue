@@ -5,11 +5,15 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const filter = searchParams.get('filter') || 'all';
+    const projectId = searchParams.get('projectId');
 
     const where: Record<string, unknown> = {};
 
     if (filter === 'unread') {
       where.isRead = false;
+    }
+    if (projectId) {
+      where.projectId = projectId;
     }
 
     const notifications = await db.notification.findMany({

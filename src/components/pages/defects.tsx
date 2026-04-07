@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToastFeedback } from "@/hooks/use-toast-feedback";
 import { useForm } from "react-hook-form";
@@ -94,9 +94,9 @@ function getStatusConfig(status: string) {
 }
 
 // ===== Main Component =====
-interface DefectsProps { language: "ar" | "en"; }
+interface DefectsProps { language: "ar" | "en"; projectId?: string; }
 
-export default function Defects({ language }: DefectsProps) {
+export default function Defects({ language, projectId }: DefectsProps) {
   const ar = language === "ar";
   const queryClient = useQueryClient();
   const toast = useToastFeedback({ ar });
@@ -168,7 +168,7 @@ export default function Defects({ language }: DefectsProps) {
     },
   });
 
-  const defaultDefectForm = { projectId: "", title: "", severity: "normal", location: "", assigneeId: "", photos: "", notes: "" };
+  const defaultDefectForm = { projectId: projectId || "", title: "", severity: "normal", location: "", assigneeId: "", photos: "", notes: "" };
   const [formData, setFormData] = useState(defaultDefectForm);
 
   const form = useForm<DefectFormData>({
@@ -177,7 +177,15 @@ export default function Defects({ language }: DefectsProps) {
   });
   const { register, handleSubmit: rhfHandleSubmit, formState: { errors }, reset, setValue, watch } = form;
 
-  const resetForm = () => { setFormData(defaultDefectForm); reset(defaultDefectForm); };
+  // Auto-set project filter from props
+  useEffect(() => {
+    if (projectId) {
+      setFilterProject(projectId);
+      setValue("projectId", projectId);
+    }
+  }, [projectId, setValue]);
+
+  const resetForm = () => { const f = { ...defaultDefectForm, projectId: projectId || (filterProject !== "all" ? filterProject : "") }; setFormData(f); reset(f); };
 
   // Summary calculations
   const totalDefects = defects.length;
@@ -208,6 +216,7 @@ export default function Defects({ language }: DefectsProps) {
           </div>
         </div>
         <div className="flex items-center gap-2 w-full sm:w-auto sm:ms-auto">
+          {!projectId && (
           <Select value={filterProject} onValueChange={setFilterProject}>
             <SelectTrigger className="w-[160px] h-8 text-xs rounded-lg">
               <Filter className="h-3 w-3 me-1 text-slate-400" />
@@ -220,6 +229,7 @@ export default function Defects({ language }: DefectsProps) {
               ))}
             </SelectContent>
           </Select>
+          )}
           <Select value={filterSeverity} onValueChange={setFilterSeverity}>
             <SelectTrigger className="w-[130px] h-8 text-xs rounded-lg">
               <SelectValue placeholder={ar ? "الخطورة" : "Severity"} />

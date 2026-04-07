@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { meetingSchema, getErrorMessage, type MeetingFormData } from "@/lib/validations";
@@ -148,20 +148,24 @@ function getAvatarColor(name: string) {
 // ===== Main Component =====
 interface MeetingsProps {
   language: "ar" | "en";
+  projectId?: string;
 }
 
-export default function Meetings({ language }: MeetingsProps) {
+export default function Meetings({ language, projectId }: MeetingsProps) {
   const ar = language === "ar";
   const queryClient = useQueryClient();
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [showDetailDialog, setShowDetailDialog] = useState(false);
   const [selectedMeeting, setSelectedMeeting] = useState<MeetingItem | null>(null);
-  const [filterProject, setFilterProject] = useState<string>("all");
+  const [filterProject, setFilterProject] = useState<string>(projectId || "all");
+  useEffect(() => {
+    if (projectId) setFilterProject(projectId);
+  }, [projectId]);
   const [filterType, setFilterType] = useState<string>("all");
 
   // Fetch meetings
   const { data: meetings = [], isLoading } = useQuery<MeetingItem[]>({
-    queryKey: ["meetings", filterProject, filterType],
+    queryKey: ["meetings", projectId, filterProject, filterType],
     queryFn: async () => {
       const params = new URLSearchParams();
       if (filterProject !== "all") params.set("projectId", filterProject);
@@ -222,7 +226,7 @@ export default function Meetings({ language }: MeetingsProps) {
   const form = useForm<MeetingFormData>({
     resolver: zodResolver(meetingSchema),
     defaultValues: {
-      projectId: "",
+      projectId: projectId || "",
       title: "",
       date: new Date().toISOString().split("T")[0],
       time: "09:00",
@@ -331,6 +335,7 @@ export default function Meetings({ language }: MeetingsProps) {
           </div>
 
           <div className="flex items-center gap-2 w-full sm:w-auto sm:ms-auto">
+            {!projectId && (
             <Select value={filterProject} onValueChange={setFilterProject}>
               <SelectTrigger className="w-[160px] h-8 text-xs rounded-lg">
                 <Filter className="h-3 w-3 me-1 text-slate-400" />
@@ -345,6 +350,7 @@ export default function Meetings({ language }: MeetingsProps) {
                 ))}
               </SelectContent>
             </Select>
+            )}
 
             <Select value={filterType} onValueChange={setFilterType}>
               <SelectTrigger className="w-[130px] h-8 text-xs rounded-lg">

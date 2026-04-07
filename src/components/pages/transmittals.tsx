@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -163,9 +163,10 @@ function getPurposeBadge(purpose: string, ar: boolean) {
 // ===== Main Component =====
 interface TransmittalsProps {
   language: "ar" | "en";
+  projectId?: string;
 }
 
-export default function Transmittals({ language }: TransmittalsProps) {
+export default function Transmittals({ language, projectId }: TransmittalsProps) {
   const ar = language === "ar";
   const queryClient = useQueryClient();
   const [showAddDialog, setShowAddDialog] = useState(false);
@@ -252,8 +253,13 @@ export default function Transmittals({ language }: TransmittalsProps) {
     },
   });
 
+  // Auto-set project filter from props
+  useEffect(() => {
+    if (projectId) setFilterProject(projectId);
+  }, [projectId]);
+
   const [formData, setFormData] = useState({
-    projectId: "",
+    projectId: projectId || "",
     subject: "",
     fromId: "",
     toName: "",
@@ -269,7 +275,7 @@ export default function Transmittals({ language }: TransmittalsProps) {
 
   const resetForm = () => {
     setFormData({
-      projectId: "",
+      projectId: projectId || (filterProject !== "all" ? filterProject : ""),
       subject: "",
       fromId: "",
       toName: "",
@@ -340,6 +346,7 @@ export default function Transmittals({ language }: TransmittalsProps) {
         </div>
 
         <div className="flex items-center gap-2 w-full sm:w-auto">
+          {!projectId && (
           <Select value={filterProject} onValueChange={setFilterProject}>
             <SelectTrigger className="w-[160px] h-8 text-xs">
               <Filter className="h-3 w-3 me-1 text-slate-400" />
@@ -354,6 +361,7 @@ export default function Transmittals({ language }: TransmittalsProps) {
               ))}
             </SelectContent>
           </Select>
+          )}
 
           <Select value={filterStatus} onValueChange={setFilterStatus}>
             <SelectTrigger className="w-[130px] h-8 text-xs">

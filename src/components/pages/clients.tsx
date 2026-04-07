@@ -197,9 +197,10 @@ function getAvatarColor(name: string) {
 // ===== Main Clients Component =====
 interface ClientsPageProps {
   language: "ar" | "en";
+  projectId?: string;
 }
 
-export default function ClientsPage({ language }: ClientsPageProps) {
+export default function ClientsPage({ language, projectId }: ClientsPageProps) {
   const ar = language === "ar";
   const queryClient = useQueryClient();
   const toast = useToastFeedback({ ar });
@@ -221,9 +222,9 @@ export default function ClientsPage({ language }: ClientsPageProps) {
 
   // Fetch clients
   const { data: clients = [], isLoading } = useQuery<Client[]>({
-    queryKey: ["clients"],
+    queryKey: ["clients", projectId],
     queryFn: async () => {
-      const res = await fetch("/api/clients");
+      const res = await fetch(`/api/clients${projectId ? `?projectId=${projectId}` : ''}`);
       if (!res.ok) throw new Error("Failed to fetch clients");
       return res.json();
     },

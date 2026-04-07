@@ -172,9 +172,10 @@ function formatCurrency(amount: number, ar: boolean) {
 // ===== Main Contracts Component =====
 interface ContractsPageProps {
   language: "ar" | "en";
+  projectId?: string;
 }
 
-export default function ContractsPage({ language }: ContractsPageProps) {
+export default function ContractsPage({ language, projectId }: ContractsPageProps) {
   const ar = language === "ar";
   const queryClient = useQueryClient();
   const toast = useToastFeedback({ ar });
@@ -185,7 +186,7 @@ export default function ContractsPage({ language }: ContractsPageProps) {
   const [selectedContract, setSelectedContract] = useState<ContractItem | null>(null);
 
   const emptyForm = {
-    number: "", title: "", clientId: "", projectId: "",
+    number: "", title: "", clientId: "", projectId: projectId || "",
     value: "0", type: "engineering_services", startDate: "", endDate: "",
   };
   const [formData, setFormData] = useState(emptyForm);
@@ -198,9 +199,9 @@ export default function ContractsPage({ language }: ContractsPageProps) {
 
   // Fetch contracts
   const { data: contracts = [], isLoading } = useQuery<ContractItem[]>({
-    queryKey: ["contracts"],
+    queryKey: ["contracts", projectId],
     queryFn: async () => {
-      const res = await fetch("/api/contracts");
+      const res = await fetch(`/api/contracts${projectId ? `?projectId=${projectId}` : ''}`);
       if (!res.ok) throw new Error("Failed to fetch contracts");
       return res.json();
     },
@@ -252,7 +253,7 @@ export default function ContractsPage({ language }: ContractsPageProps) {
       return res.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["contracts"] });
+      queryClient.invalidateQueries({ queryKey: ["contracts", projectId] });
       setShowAddDialog(false);
       setFormData(emptyForm);
       toast.created(ar ? "العقد" : "Contract");
@@ -274,7 +275,7 @@ export default function ContractsPage({ language }: ContractsPageProps) {
       return res.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["contracts"] });
+      queryClient.invalidateQueries({ queryKey: ["contracts", projectId] });
       queryClient.invalidateQueries({ queryKey: ["contract-detail"] });
       setEditContract(null);
       setFormData(emptyForm);
@@ -291,7 +292,7 @@ export default function ContractsPage({ language }: ContractsPageProps) {
       await fetch(`/api/contracts/${id}`, { method: "DELETE" });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["contracts"] });
+      queryClient.invalidateQueries({ queryKey: ["contracts", projectId] });
       setSelectedContract(null);
       toast.deleted(ar ? "العقد" : "Contract");
     },

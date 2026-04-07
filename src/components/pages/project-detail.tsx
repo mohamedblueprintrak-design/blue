@@ -98,6 +98,8 @@ import GlobalSearch from "@/components/pages/search";
 import GanttPage from "@/components/pages/gantt";
 import BOQPage from "@/components/pages/boq";
 import MunicipalityCorrespondencePage from "@/components/pages/municipality-correspondence";
+import SubmittalsPage from "@/components/pages/submittals";
+import TransmittalsPage from "@/components/pages/transmittals";
 import EmployeesPage from "@/components/pages/employees";
 
 // ===== TYPES =====
@@ -407,6 +409,8 @@ const technicalSubTabs = [
   { id: "boq", icon: Calculator, labelAr: "جدول الكميات", labelEn: "BOQ" },
   { id: "change-orders", icon: FileEdit, labelAr: "أوامر التغيير", labelEn: "Change Orders" },
   { id: "risks", icon: ShieldAlert, labelAr: "المخاطر", labelEn: "Risks" },
+  { id: "submittals", icon: FileText, labelAr: "المستندات المقدمة", labelEn: "Submittals" },
+  { id: "transmittals", icon: FileText, labelAr: "الإحالات", labelEn: "Transmittals" },
 ];
 
 const documentsSubTabs = [
@@ -1128,9 +1132,11 @@ export default function ProjectDetail({ language }: ProjectDetailProps) {
                 </CardContent>
               </Card>
             )}
-            {activeSubTab === "boq" && <BOQPage language={language} />}
-            {activeSubTab === "change-orders" && <ChangeOrdersPage language={language} />}
-            {activeSubTab === "risks" && <RisksPage language={language} />}
+            {activeSubTab === "boq" && <BOQPage language={language} projectId={currentProjectId || undefined} />}
+            {activeSubTab === "change-orders" && <ChangeOrdersPage language={language} projectId={currentProjectId || undefined} />}
+            {activeSubTab === "risks" && <RisksPage language={language} projectId={currentProjectId || undefined} />}
+            {activeSubTab === "submittals" && <SubmittalsPage language={language} projectId={currentProjectId || undefined} />}
+            {activeSubTab === "transmittals" && <TransmittalsPage language={language} projectId={currentProjectId || undefined} />}
           </div>
         </TabsContent>
 
@@ -1148,9 +1154,9 @@ export default function ProjectDetail({ language }: ProjectDetailProps) {
             language={language}
           />
           <div className="border rounded-xl p-4 bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700">
-            {activeSubTab === "contract" && <ContractsPage language={language} />}
-            {activeSubTab === "documents" && <DocumentsPage language={language} />}
-            {activeSubTab === "municipality" && <MunicipalityCorrespondencePage language={language} />}
+            {activeSubTab === "contract" && <ContractsPage language={language} projectId={currentProjectId || undefined} />}
+            {activeSubTab === "documents" && <DocumentsPage language={language} projectId={currentProjectId || undefined} />}
+            {activeSubTab === "municipality" && <MunicipalityCorrespondencePage language={language} projectId={currentProjectId || undefined} />}
           </div>
         </TabsContent>
 
@@ -1163,11 +1169,11 @@ export default function ProjectDetail({ language }: ProjectDetailProps) {
             language={language}
           />
           <div className="border rounded-xl p-4 bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700">
-            {activeSubTab === "invoices" && <InvoicesPage language={language} />}
-            {activeSubTab === "payments" && <PaymentsPage language={language} />}
-            {activeSubTab === "budgets" && <BudgetsPage language={language} />}
-            {activeSubTab === "proposals" && <ProposalsPage language={language} />}
-            {activeSubTab === "bids" && <BidsPage language={language} />}
+            {activeSubTab === "invoices" && <InvoicesPage language={language} projectId={currentProjectId || undefined} />}
+            {activeSubTab === "payments" && <PaymentsPage language={language} projectId={currentProjectId || undefined} />}
+            {activeSubTab === "budgets" && <BudgetsPage language={language} projectId={currentProjectId || undefined} />}
+            {activeSubTab === "proposals" && <ProposalsPage language={language} projectId={currentProjectId || undefined} />}
+            {activeSubTab === "bids" && <BidsPage language={language} projectId={currentProjectId || undefined} />}
           </div>
         </TabsContent>
 
@@ -1180,11 +1186,11 @@ export default function ProjectDetail({ language }: ProjectDetailProps) {
             language={language}
           />
           <div className="border rounded-xl p-4 bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700">
-            {activeSubTab === "clients" && <ClientsPage language={language} />}
-            {activeSubTab === "site-visits" && <SiteVisitsPage language={language} />}
-            {activeSubTab === "site-diary" && <SiteDiaryPage language={language} />}
-            {activeSubTab === "rfi" && <RFIPage language={language} />}
-            {activeSubTab === "defects" && <DefectsPage language={language} />}
+            {activeSubTab === "clients" && <ClientsPage language={language} projectId={currentProjectId || undefined} />}
+            {activeSubTab === "site-visits" && <SiteVisitsPage language={language} projectId={currentProjectId || undefined} />}
+            {activeSubTab === "site-diary" && <SiteDiaryPage language={language} projectId={currentProjectId || undefined} />}
+            {activeSubTab === "rfi" && <RFIPage language={language} projectId={currentProjectId || undefined} />}
+            {activeSubTab === "defects" && <DefectsPage language={language} projectId={currentProjectId || undefined} />}
           </div>
         </TabsContent>
 
@@ -1204,10 +1210,10 @@ export default function ProjectDetail({ language }: ProjectDetailProps) {
                 <p className="text-slate-500 mt-2">{t("أعضاء الفريق العاملين على المشروع", "Team members working on this project")}</p>
               </div>
             )}
-            {activeSubTab === "meetings" && <MeetingsPage language={language} />}
-            {activeSubTab === "approvals" && <ApprovalsPage language={language} />}
-            {activeSubTab === "notifications" && <NotificationsPage language={language} />}
-            {activeSubTab === "activity-log" && <ActivityLog language={language} />}
+            {activeSubTab === "meetings" && <MeetingsPage language={language} projectId={currentProjectId || undefined} />}
+            {activeSubTab === "approvals" && <ApprovalsPage language={language} projectId={currentProjectId || undefined} />}
+            {activeSubTab === "notifications" && <NotificationsPage language={language} projectId={currentProjectId || undefined} />}
+            {activeSubTab === "activity-log" && <ActivityLog language={language} projectId={currentProjectId || undefined} />}
           </div>
         </TabsContent>
 
@@ -1220,10 +1226,10 @@ export default function ProjectDetail({ language }: ProjectDetailProps) {
             language={language}
           />
           <div className="border rounded-xl p-4 bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700">
-            {activeSubTab === "ai-assistant" && <AIAssistant language={language} />}
-            {activeSubTab === "knowledge" && <KnowledgePage language={language} />}
-            {activeSubTab === "calendar" && <CalendarPage language={language} />}
-            {activeSubTab === "search" && <GlobalSearch language={language} />}
+            {activeSubTab === "ai-assistant" && <AIAssistant language={language} projectId={currentProjectId || undefined} />}
+            {activeSubTab === "knowledge" && <KnowledgePage language={language} projectId={currentProjectId || undefined} />}
+            {activeSubTab === "calendar" && <CalendarPage language={language} projectId={currentProjectId || undefined} />}
+            {activeSubTab === "search" && <GlobalSearch language={language} projectId={currentProjectId || undefined} />}
           </div>
         </TabsContent>
       </Tabs>

@@ -155,9 +155,10 @@ function PaymentTimeline({ payments, ar }: { payments: PaymentItem[]; ar: boolea
 // ===== Main Component =====
 interface PaymentsPageProps {
   language: "ar" | "en";
+  projectId?: string;
 }
 
-export default function PaymentsPage({ language }: PaymentsPageProps) {
+export default function PaymentsPage({ language, projectId }: PaymentsPageProps) {
   const ar = language === "ar";
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
@@ -165,16 +166,16 @@ export default function PaymentsPage({ language }: PaymentsPageProps) {
   const [showDialog, setShowDialog] = useState(false);
 
   const emptyForm = {
-    voucherNumber: "", projectId: "", amount: "",
+    voucherNumber: "", projectId: projectId || "", amount: "",
     payMethod: "transfer", beneficiary: "", referenceNumber: "", description: "",
   };
   const [formData, setFormData] = useState(emptyForm);
 
   // Fetch payments
   const { data: payments = [], isLoading } = useQuery<PaymentItem[]>({
-    queryKey: ["payments"],
+    queryKey: ["payments", projectId],
     queryFn: async () => {
-      const res = await fetch("/api/payments");
+      const res = await fetch(`/api/payments${projectId ? `?projectId=${projectId}` : ''}`);
       if (!res.ok) throw new Error("Failed to fetch");
       return res.json();
     },
@@ -202,7 +203,7 @@ export default function PaymentsPage({ language }: PaymentsPageProps) {
       return res.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["payments"] });
+      queryClient.invalidateQueries({ queryKey: ["payments", projectId] });
       setShowDialog(false);
       setFormData(emptyForm);
     },
@@ -220,7 +221,7 @@ export default function PaymentsPage({ language }: PaymentsPageProps) {
       return res.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["payments"] });
+      queryClient.invalidateQueries({ queryKey: ["payments", projectId] });
     },
   });
 

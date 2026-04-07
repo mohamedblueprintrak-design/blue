@@ -5,7 +5,7 @@
  * صفحة المراسلات البلدية
  */
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToastFeedback } from "@/hooks/use-toast-feedback";
 import { Button } from "@/components/ui/button";
@@ -142,16 +142,20 @@ function getMunicipalityLabel(val: string, ar: boolean) {
 // ===== Main Component =====
 interface MunicipalityPageProps {
   language: "ar" | "en";
+  projectId?: string;
 }
 
-export default function MunicipalityCorrespondencePage({ language }: MunicipalityPageProps) {
+export default function MunicipalityCorrespondencePage({ language, projectId }: MunicipalityPageProps) {
   const ar = language === "ar";
   const queryClient = useQueryClient();
   const toast = useToastFeedback({ ar });
 
   // Filter states
   const [searchQuery, setSearchQuery] = useState("");
-  const [projectFilter, setProjectFilter] = useState("all");
+  const [projectFilter, setProjectFilter] = useState(projectId || "all");
+  useEffect(() => {
+    if (projectId) setProjectFilter(projectId);
+  }, [projectId]);
   const [statusFilter, setStatusFilter] = useState("all");
   const [typeFilter, setTypeFilter] = useState("all");
 
@@ -190,7 +194,7 @@ export default function MunicipalityCorrespondencePage({ language }: Municipalit
 
   // Fetch correspondence records
   const { data: response, isLoading } = useQuery<{ success: boolean; data: MunicipalityRecord[] }>({
-    queryKey: ["municipality-correspondence", projectFilter, statusFilter, typeFilter],
+    queryKey: ["municipality-correspondence", projectId, projectFilter, statusFilter, typeFilter],
     queryFn: async () => {
       const params = new URLSearchParams();
       if (projectFilter !== "all") params.set("projectId", projectFilter);
@@ -278,7 +282,7 @@ export default function MunicipalityCorrespondencePage({ language }: Municipalit
 
   const resetFormData = () => {
     setFormData({
-      projectId: projectFilter !== "all" ? projectFilter : "",
+      projectId: projectId || (projectFilter !== "all" ? projectFilter : ""),
       referenceNumber: "",
       municipality: "",
       correspondenceType: "SUBMISSION",
@@ -422,6 +426,7 @@ export default function MunicipalityCorrespondencePage({ language }: Municipalit
               className="ps-9 bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 h-9 text-sm"
             />
           </div>
+          {!projectId && (
           <Select value={projectFilter} onValueChange={setProjectFilter}>
             <SelectTrigger className="w-[180px] bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 h-9 text-sm">
               <SelectValue placeholder={ar ? "المشروع" : "Project"} />
@@ -433,6 +438,7 @@ export default function MunicipalityCorrespondencePage({ language }: Municipalit
               ))}
             </SelectContent>
           </Select>
+          )}
           <Select value={statusFilter} onValueChange={setStatusFilter}>
             <SelectTrigger className="w-[160px] bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 h-9 text-sm">
               <SelectValue placeholder={ar ? "الحالة" : "Status"} />

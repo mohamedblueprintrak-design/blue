@@ -22,12 +22,16 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const q = searchParams.get('q') || '';
+    const projectId = searchParams.get('projectId');
 
     if (!q || q.trim().length < 2) {
       return NextResponse.json({ results: {}, total: 0 });
     }
 
     const query = q.trim().toLowerCase();
+
+    // Build project-specific where clause
+    const projectFilter: Record<string, unknown> = projectId ? { projectId } : {};
     const grouped: GroupedResults = {
       project: [],
       task: [],
@@ -37,15 +41,18 @@ export async function GET(request: NextRequest) {
     };
 
     // ===== Search Projects (by name, nameEn, number, location) =====
+    const projectWhere: Record<string, unknown> = {
+      OR: [
+        { name: { contains: query } },
+        { nameEn: { contains: query } },
+        { number: { contains: query } },
+        { location: { contains: query } },
+      ],
+    };
+    if (projectId) projectWhere.id = projectId;
+
     const projects = await db.project.findMany({
-      where: {
-        OR: [
-          { name: { contains: query } },
-          { nameEn: { contains: query } },
-          { number: { contains: query } },
-          { location: { contains: query } },
-        ],
-      },
+      where: projectWhere,
       take: 10,
       select: {
         id: true,
@@ -72,6 +79,7 @@ export async function GET(request: NextRequest) {
     // ===== Search Tasks (by title, description) =====
     const tasks = await db.task.findMany({
       where: {
+        ...projectFilter,
         OR: [
           { title: { contains: query } },
           { description: { contains: query } },
@@ -125,6 +133,7 @@ export async function GET(request: NextRequest) {
     // ===== Search Invoices (by number, status) =====
     const invoices = await db.invoice.findMany({
       where: {
+        ...projectFilter,
         OR: [
           { number: { contains: query } },
         ],
@@ -152,6 +161,7 @@ export async function GET(request: NextRequest) {
     // ===== Search Documents (by name, category) =====
     const documents = await db.document.findMany({
       where: {
+        ...projectFilter,
         OR: [
           { name: { contains: query } },
           { category: { contains: query } },

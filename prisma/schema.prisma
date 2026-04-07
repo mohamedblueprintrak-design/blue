@@ -115,6 +115,10 @@ model Project {
   payments       Payment[]
   comments       ProjectComment[]
   municipalityCorrespondence MunicipalityCorrespondence[]
+  approvals      Approval[]
+  notifications  Notification[]
+  activityLogs   ActivityLog[]
+  knowledgeArticles KnowledgeArticle[]
 }
 
 // ==================== MUNICIPALITY CORRESPONDENCE ====================
@@ -872,10 +876,12 @@ model KnowledgeArticle {
   tags            String   @default("") // comma-separated
   views           Int      @default(0)
   authorId        String?
+  projectId       String?
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
   author          User?    @relation(fields: [authorId], references: [id])
+  project         Project? @relation(fields: [projectId], references: [id])
 }
 
 // ==================== NOTIFICATIONS ====================
@@ -883,6 +889,7 @@ model KnowledgeArticle {
 model Notification {
   id              String   @id @default(cuid())
   userId          String
+  projectId       String?
   type            String   @default("") // task_due, invoice_overdue, approval_needed, etc.
   title           String   @default("")
   message         String   @default("")
@@ -892,6 +899,7 @@ model Notification {
   createdAt       DateTime @default(now())
 
   user            User     @relation(fields: [userId], references: [id])
+  project         Project? @relation(fields: [projectId], references: [id])
 
   @@index([userId, isRead])
 }
@@ -901,6 +909,7 @@ model Notification {
 model ActivityLog {
   id              String   @id @default(cuid())
   userId          String
+  projectId       String?
   action          String   @default("") // create, update, delete, approve, reject
   entityType      String   @default("")
   entityId        String   @default("")
@@ -909,6 +918,7 @@ model ActivityLog {
   createdAt       DateTime @default(now())
 
   user            User     @relation(fields: [userId], references: [id])
+  project         Project? @relation(fields: [projectId], references: [id])
 
   @@index([userId, createdAt])
   @@index([entityType, entityId])
@@ -918,6 +928,7 @@ model ActivityLog {
 
 model Approval {
   id          String   @id @default(cuid())
+  projectId   String?
   entityType  String   // 'invoice', 'payment', 'purchase_order', 'change_order', 'leave'
   entityId    String
   title       String
@@ -931,4 +942,6 @@ model Approval {
   notes       String   @default("")
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+
+  project     Project? @relation(fields: [projectId], references: [id])
 }

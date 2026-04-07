@@ -8,6 +8,7 @@ export async function GET(request: NextRequest) {
     const entityType = searchParams.get('entityType') || '';
     const dateFrom = searchParams.get('dateFrom') || '';
     const limit = parseInt(searchParams.get('limit') || '50', 10);
+    const projectId = searchParams.get('projectId');
 
     const where: Record<string, unknown> = {};
 
@@ -21,6 +22,10 @@ export async function GET(request: NextRequest) {
 
     if (dateFrom) {
       where.createdAt = { gte: new Date(dateFrom) };
+    }
+
+    if (projectId) {
+      where.projectId = projectId;
     }
 
     const activities = await db.activityLog.findMany({

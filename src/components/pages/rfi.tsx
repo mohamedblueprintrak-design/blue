@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToastFeedback } from "@/hooks/use-toast-feedback";
 import { useForm } from "react-hook-form";
@@ -121,9 +121,9 @@ function formatSLABadge(days: number | null, ar: boolean) {
 }
 
 // ===== Main Component =====
-interface RFIProps { language: "ar" | "en"; }
+interface RFIProps { language: "ar" | "en"; projectId?: string; }
 
-export default function RFI({ language }: RFIProps) {
+export default function RFI({ language, projectId }: RFIProps) {
   const ar = language === "ar";
   const queryClient = useQueryClient();
   const [showAddDialog, setShowAddDialog] = useState(false);
@@ -201,13 +201,21 @@ export default function RFI({ language }: RFIProps) {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["rfi"] }),
   });
 
-  const defaultRfiForm = { projectId: "", number: "", subject: "", description: "", fromId: "", toId: "", priority: "normal", dueDate: "" };
+  const defaultRfiForm = { projectId: projectId || "", number: "", subject: "", description: "", fromId: "", toId: "", priority: "normal", dueDate: "" };
   const [formData, setFormData] = useState(defaultRfiForm);
 
   const form = useForm<RfiFormData>({ resolver: zodResolver(rfiSchema), defaultValues: defaultRfiForm });
   const { register, handleSubmit: rhfHandleSubmit, formState: { errors }, reset, setValue, watch } = form;
 
-  const resetForm = () => { setFormData(defaultRfiForm); reset(defaultRfiForm); };
+  // Auto-set project filter from props
+  useEffect(() => {
+    if (projectId) {
+      setFilterProject(projectId);
+      setValue("projectId", projectId);
+    }
+  }, [projectId, setValue]);
+
+  const resetForm = () => { const f = { ...defaultRfiForm, projectId: projectId || (filterProject !== "all" ? filterProject : "") }; setFormData(f); reset(f); };
 
   const handleOpenReply = (rfi: RFIItem) => {
     setSelectedRFI(rfi);
@@ -237,6 +245,7 @@ export default function RFI({ language }: RFIProps) {
           </div>
         </div>
         <div className="flex items-center gap-2 w-full sm:w-auto sm:ms-auto">
+          {!projectId && (
           <Select value={filterProject} onValueChange={setFilterProject}>
             <SelectTrigger className="w-[160px] h-8 text-xs rounded-lg">
               <Filter className="h-3 w-3 me-1 text-slate-400" />
@@ -249,6 +258,7 @@ export default function RFI({ language }: RFIProps) {
               ))}
             </SelectContent>
           </Select>
+          )}
           <Button size="sm" className="h-8 bg-teal-600 hover:bg-teal-700 text-white rounded-lg shadow-sm shadow-teal-600/20" onClick={() => setShowAddDialog(true)}>
             <Plus className="h-3.5 w-3.5 me-1" />{ar ? "طلب جديد" : "New RFI"}
           </Button>

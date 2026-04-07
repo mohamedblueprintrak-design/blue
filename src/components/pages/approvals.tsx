@@ -239,9 +239,10 @@ const mockUsers = [
 // ===== Main Component =====
 interface ApprovalsPageProps {
   language: "ar" | "en";
+  projectId?: string;
 }
 
-export default function ApprovalsPage({ language }: ApprovalsPageProps) {
+export default function ApprovalsPage({ language, projectId }: ApprovalsPageProps) {
   const ar = language === "ar";
   const queryClient = useQueryClient();
   const toast = useToastFeedback({ ar });
@@ -285,9 +286,11 @@ export default function ApprovalsPage({ language }: ApprovalsPageProps) {
 
   // Fetch all approvals (client-side filtering)
   const { data: approvals = [], isLoading } = useQuery<Approval[]>({
-    queryKey: ["approvals"],
+    queryKey: ["approvals", projectId],
     queryFn: async () => {
-      const res = await fetch("/api/approvals");
+      const params = new URLSearchParams();
+      if (projectId) params.set("projectId", projectId);
+      const res = await fetch(`/api/approvals${params.toString() ? `?${params.toString()}` : ""}`);
       if (!res.ok) return [];
       return res.json();
     },

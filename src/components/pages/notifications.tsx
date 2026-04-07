@@ -39,6 +39,7 @@ import {
 
 interface Props {
   language: "ar" | "en";
+  projectId?: string;
 }
 
 interface NotificationRecord {
@@ -171,7 +172,7 @@ const categoryConfig: Record<string, {
   system: { icon: MonitorCheck, ar: "النظام", en: "System", color: "text-violet-600 dark:text-violet-400", types: [] },
 };
 
-export default function NotificationsPage({ language: lang }: Props) {
+export default function NotificationsPage({ language: lang, projectId }: Props) {
   const isAr = lang === "ar";
   const queryClient = useQueryClient();
   const toastFeedback = useToastFeedback({ ar: isAr });
@@ -191,9 +192,13 @@ export default function NotificationsPage({ language: lang }: Props) {
     notifications: NotificationRecord[];
     unreadCount: number;
   }>({
-    queryKey: ["notifications", filter],
-    queryFn: () =>
-      fetch(`/api/notifications?filter=${filter === "important" ? "all" : filter}`).then((r) => r.json()),
+    queryKey: ["notifications", projectId, filter],
+    queryFn: () => {
+      const params = new URLSearchParams();
+      params.set("filter", filter === "important" ? "all" : filter);
+      if (projectId) params.set("projectId", projectId);
+      return fetch(`/api/notifications?${params.toString()}`).then((r) => r.json());
+    },
   });
 
   const rawNotifications = data?.notifications || [];

@@ -116,9 +116,9 @@ function DeadlineBadge({ deadline, ar }: { deadline: string | null; ar: boolean 
 }
 
 // ===== Main Component =====
-interface BidsPageProps { language: "ar" | "en"; }
+interface BidsPageProps { language: "ar" | "en"; projectId?: string; }
 
-export default function BidsPage({ language }: BidsPageProps) {
+export default function BidsPage({ language, projectId }: BidsPageProps) {
   const ar = language === "ar";
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
@@ -127,16 +127,16 @@ export default function BidsPage({ language }: BidsPageProps) {
   const [showDetail, setShowDetail] = useState<BidItem | null>(null);
 
   const emptyForm = {
-    projectId: "", contractorName: "", contractorContact: "",
+    projectId: projectId || "", contractorName: "", contractorContact: "",
     amount: "", notes: "", status: "submitted" as string,
   };
   const [formData, setFormData] = useState(emptyForm);
 
   // Fetch bids
   const { data: bids = [], isLoading } = useQuery<BidItem[]>({
-    queryKey: ["bids"],
+    queryKey: ["bids", projectId],
     queryFn: async () => {
-      const res = await fetch("/api/bids");
+      const res = await fetch(`/api/bids${projectId ? `?projectId=${projectId}` : ''}`);
       if (!res.ok) throw new Error("Failed");
       return res.json();
     },
@@ -157,7 +157,7 @@ export default function BidsPage({ language }: BidsPageProps) {
       if (!res.ok) throw new Error("Failed");
       return res.json();
     },
-    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["bids"] }); setShowDialog(false); setFormData(emptyForm); },
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["bids", projectId] }); setShowDialog(false); setFormData(emptyForm); },
   });
 
   // Update status
@@ -170,13 +170,13 @@ export default function BidsPage({ language }: BidsPageProps) {
       if (!res.ok) throw new Error("Failed");
       return res.json();
     },
-    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["bids"] }); },
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["bids", projectId] }); },
   });
 
   // Delete
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => { await fetch(`/api/bids/${id}`, { method: "DELETE" }); },
-    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["bids"] }); setShowDetail(null); },
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["bids", projectId] }); setShowDetail(null); },
   });
 
   // Filter

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToastFeedback } from "@/hooks/use-toast-feedback";
 import { useForm } from "react-hook-form";
@@ -88,9 +88,9 @@ function getRevisionColor(rev: number) {
 }
 
 // ===== Main Component =====
-interface SubmittalsProps { language: "ar" | "en"; }
+interface SubmittalsProps { language: "ar" | "en"; projectId?: string; }
 
-export default function Submittals({ language }: SubmittalsProps) {
+export default function Submittals({ language, projectId }: SubmittalsProps) {
   const ar = language === "ar";
   const queryClient = useQueryClient();
   const toast = useToastFeedback({ ar });
@@ -153,13 +153,21 @@ export default function Submittals({ language }: SubmittalsProps) {
     },
   });
 
-  const defaultSubForm = { projectId: "", number: "", title: "", type: "", contractor: "", revisionNumber: "1", status: "under_review" };
+  const defaultSubForm = { projectId: projectId || "", number: "", title: "", type: "", contractor: "", revisionNumber: "1", status: "under_review" };
   const [formData, setFormData] = useState(defaultSubForm);
 
   const form = useForm<SubmittalFormData>({ resolver: zodResolver(submittalSchema), defaultValues: defaultSubForm });
   const { register, handleSubmit: rhfHandleSubmit, formState: { errors }, reset, setValue, watch } = form;
 
-  const resetForm = () => { setFormData(defaultSubForm); reset(defaultSubForm); };
+  // Auto-set project filter from props
+  useEffect(() => {
+    if (projectId) {
+      setFilterProject(projectId);
+      setValue("projectId", projectId);
+    }
+  }, [projectId, setValue]);
+
+  const resetForm = () => { const f = { ...defaultSubForm, projectId: projectId || (filterProject !== "all" ? filterProject : "") }; setFormData(f); reset(f); };
 
   // Summary calculations
   const totalSubmittals = submittals.length;
@@ -184,6 +192,7 @@ export default function Submittals({ language }: SubmittalsProps) {
           </div>
         </div>
         <div className="flex items-center gap-2 w-full sm:w-auto sm:ms-auto">
+          {!projectId && (
           <Select value={filterProject} onValueChange={setFilterProject}>
             <SelectTrigger className="w-[160px] h-8 text-xs rounded-lg">
               <Filter className="h-3 w-3 me-1 text-slate-400" />
@@ -194,6 +203,7 @@ export default function Submittals({ language }: SubmittalsProps) {
               {projects.map((p) => (<SelectItem key={p.id} value={p.id}>{ar ? p.name : p.nameEn || p.name}</SelectItem>))}
             </SelectContent>
           </Select>
+          )}
           <Select value={filterStatus} onValueChange={setFilterStatus}>
             <SelectTrigger className="w-[140px] h-8 text-xs rounded-lg">
               <SelectValue placeholder={ar ? "الحالة" : "Status"} />

@@ -6,6 +6,7 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const status = searchParams.get("status");
     const supplierId = searchParams.get("supplierId");
+    const projectId = searchParams.get("projectId");
 
     const where: Record<string, unknown> = {};
 
@@ -14,6 +15,9 @@ export async function GET(request: NextRequest) {
     }
     if (supplierId) {
       where.supplierId = supplierId;
+    }
+    if (projectId) {
+      where.projectId = projectId;
     }
 
     const orders = await db.purchaseOrder.findMany({

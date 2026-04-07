@@ -117,9 +117,10 @@ function relativeTime(dateStr: string, ar: boolean): string {
 // ===== Main Component =====
 interface KnowledgePageProps {
   language: "ar" | "en";
+  projectId?: string;
 }
 
-export default function KnowledgePage({ language }: KnowledgePageProps) {
+export default function KnowledgePage({ language, projectId }: KnowledgePageProps) {
   const ar = language === "ar";
   const queryClient = useQueryClient();
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
@@ -134,11 +135,12 @@ export default function KnowledgePage({ language }: KnowledgePageProps) {
 
   // Fetch articles
   const { data: articles = [], isLoading } = useQuery<Article[]>({
-    queryKey: ["knowledge", selectedCategory, search],
+    queryKey: ["knowledge", projectId, selectedCategory, search],
     queryFn: async () => {
       const params = new URLSearchParams();
       if (selectedCategory && selectedCategory !== "all") params.set("category", selectedCategory);
       if (search) params.set("search", search);
+      if (projectId) params.set("projectId", projectId);
       const res = await fetch(`/api/knowledge?${params.toString()}`);
       if (!res.ok) throw new Error("Failed to fetch");
       return res.json();
@@ -162,7 +164,7 @@ export default function KnowledgePage({ language }: KnowledgePageProps) {
       const res = await fetch("/api/knowledge", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
+        body: JSON.stringify({ ...data, projectId }),
       });
       if (!res.ok) throw new Error("Failed");
       return res.json();
@@ -196,9 +198,11 @@ export default function KnowledgePage({ language }: KnowledgePageProps) {
   // Stats per category (from articles)
   const categoryCounts: Record<string, number> = {};
   const allArticlesQuery = useQuery<Article[]>({
-    queryKey: ["knowledge-all"],
+    queryKey: ["knowledge-all", projectId],
     queryFn: async () => {
-      const res = await fetch("/api/knowledge");
+      const params = new URLSearchParams();
+      if (projectId) params.set("projectId", projectId);
+      const res = await fetch(`/api/knowledge?${params.toString()}`);
       if (!res.ok) return [];
       return res.json();
     },

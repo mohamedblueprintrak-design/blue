@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -131,9 +131,10 @@ function getFrequencyDot(freq: string) {
 // ===== Main Component =====
 interface SiteVisitsProps {
   language: "ar" | "en";
+  projectId?: string;
 }
 
-export default function SiteVisits({ language }: SiteVisitsProps) {
+export default function SiteVisits({ language, projectId }: SiteVisitsProps) {
   const ar = language === "ar";
   const queryClient = useQueryClient();
   const [showAddDialog, setShowAddDialog] = useState(false);
@@ -193,8 +194,13 @@ export default function SiteVisits({ language }: SiteVisitsProps) {
     },
   });
 
+  // Auto-set project filter from props
+  useEffect(() => {
+    if (projectId) setFilterProject(projectId);
+  }, [projectId]);
+
   const [formData, setFormData] = useState({
-    projectId: "",
+    projectId: projectId || "",
     date: new Date().toISOString().split("T")[0],
     plotNumber: "",
     municipality: "",
@@ -207,7 +213,7 @@ export default function SiteVisits({ language }: SiteVisitsProps) {
 
   const resetForm = () => {
     setFormData({
-      projectId: "",
+      projectId: projectId || (filterProject !== "all" ? filterProject : ""),
       date: new Date().toISOString().split("T")[0],
       plotNumber: "",
       municipality: "",
@@ -238,6 +244,7 @@ export default function SiteVisits({ language }: SiteVisitsProps) {
         </div>
 
         <div className="flex items-center gap-2 w-full sm:w-auto">
+          {!projectId && (
           <Select value={filterProject} onValueChange={setFilterProject}>
             <SelectTrigger className="w-[160px] h-8 text-xs">
               <Filter className="h-3 w-3 me-1 text-slate-400" />
@@ -252,6 +259,7 @@ export default function SiteVisits({ language }: SiteVisitsProps) {
               ))}
             </SelectContent>
           </Select>
+          )}
 
           <Select value={filterStatus} onValueChange={setFilterStatus}>
             <SelectTrigger className="w-[130px] h-8 text-xs">

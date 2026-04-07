@@ -3,7 +3,16 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(request: NextRequest) {
   try {
+    const { searchParams } = new URL(request.url);
+    const projectId = searchParams.get("projectId");
+
+    const where: Record<string, unknown> = {};
+    if (projectId) {
+      where.projects = { some: { id: projectId } };
+    }
+
     const clients = await db.client.findMany({
+      where: Object.keys(where).length > 0 ? where : undefined,
       include: {
         _count: {
           select: {

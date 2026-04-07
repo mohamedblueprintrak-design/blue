@@ -129,9 +129,9 @@ function ProbabilityBar({ probability, ar }: { probability: number; ar: boolean 
 }
 
 // ===== Main Component =====
-interface ProposalsPageProps { language: "ar" | "en"; }
+interface ProposalsPageProps { language: "ar" | "en"; projectId?: string; }
 
-export default function ProposalsPage({ language }: ProposalsPageProps) {
+export default function ProposalsPage({ language, projectId }: ProposalsPageProps) {
   const ar = language === "ar";
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
@@ -140,7 +140,7 @@ export default function ProposalsPage({ language }: ProposalsPageProps) {
   const [editProposal, setEditProposal] = useState<Proposal | null>(null);
 
   const emptyForm = {
-    number: "", clientId: "", projectId: "",
+    number: "", clientId: "", projectId: projectId || "",
     status: "draft" as string, notes: "",
     items: [getEmptyLineItem()],
   };
@@ -148,9 +148,9 @@ export default function ProposalsPage({ language }: ProposalsPageProps) {
 
   // Fetch proposals
   const { data: proposals = [], isLoading } = useQuery<Proposal[]>({
-    queryKey: ["proposals"],
+    queryKey: ["proposals", projectId],
     queryFn: async () => {
-      const res = await fetch("/api/proposals");
+      const res = await fetch(`/api/proposals${projectId ? `?projectId=${projectId}` : ''}`);
       if (!res.ok) throw new Error("Failed");
       return res.json();
     },
@@ -177,7 +177,7 @@ export default function ProposalsPage({ language }: ProposalsPageProps) {
       if (!res.ok) throw new Error("Failed");
       return res.json();
     },
-    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["proposals"] }); setShowDialog(false); setFormData(emptyForm); },
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["proposals", projectId] }); setShowDialog(false); setFormData(emptyForm); },
   });
 
   // Update
@@ -191,13 +191,13 @@ export default function ProposalsPage({ language }: ProposalsPageProps) {
       if (!res.ok) throw new Error("Failed");
       return res.json();
     },
-    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["proposals"] }); setEditProposal(null); setFormData(emptyForm); },
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["proposals", projectId] }); setEditProposal(null); setFormData(emptyForm); },
   });
 
   // Delete
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => { await fetch(`/api/proposals/${id}`, { method: "DELETE" }); },
-    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["proposals"] }); },
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["proposals", projectId] }); },
   });
 
   // Convert to Contract

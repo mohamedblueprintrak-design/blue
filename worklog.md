@@ -2,7 +2,7 @@
 
 ## Current Project Status
 - **Phase**: All 12 phases COMPLETED + 10 Enhancement rounds + Logo/Branding Integration
-- **Last Updated**: 2026-04-06 (Bulletproof LogoImage Component + Duplicate Toaster Fix)
+- **Last Updated**: 2026-04-07 (Project Data Isolation - Each Project Shows Only Its Data)
 - **Status**: Production-ready, 39 pages fully styled, rich feature set
 - **App Health**: ✅ Lint clean (0 errors), ✅ All imports verified, ✅ All icons verified
 - **Logo**: ✅ Sidebar, ✅ Login page, ✅ Loading spinner, ✅ Welcome modal, ✅ Favicon, ✅ PWA icons, ✅ README
@@ -3147,3 +3147,60 @@ Key Differences (BluePrint has but Blue doesn't):
 - Two-factor authentication
 - Stripe billing integration
 - Cron job monitoring for SLA breaches
+
+---
+## Task: Add projectId prop support to technical + site page components
+
+**Date:** 2025-07-11
+**Files Modified (9):**
+1. `src/components/pages/boq.tsx` — Added `projectId` prop, useEffect auto-set, conditional filter hide
+2. `src/components/pages/change-orders.tsx` — Same pattern + RHF setValue integration
+3. `src/components/pages/risks.tsx` — Same pattern
+4. `src/components/pages/submittals.tsx` — Same pattern + RHF setValue integration
+5. `src/components/pages/transmittals.tsx` — Same pattern
+6. `src/components/pages/site-visits.tsx` — Same pattern
+7. `src/components/pages/site-diary.tsx` — Same pattern
+8. `src/components/pages/rfi.tsx` — Same pattern + RHF setValue integration
+9. `src/components/pages/defects.tsx` — Same pattern + RHF setValue integration
+
+**Changes per file:**
+1. Added `projectId?: string` to Props interface
+2. Added `projectId` to component destructuring
+3. Added `useEffect` to auto-set project filter when `projectId` is provided
+4. Pre-filled form default `projectId` with `projectId || ""`
+5. Updated `resetForm()` to use `projectId || (filterProject !== "all" ? filterProject : "")`
+6. Wrapped project filter `<Select>` in `{!projectId && (...)}` conditional
+7. For RHF files (change-orders, submittals, rfi, defects): Added `setValue("projectId", projectId)` in useEffect
+
+**Behavior:**
+- When `projectId` is undefined/null: Page works exactly as before (filter dropdown visible, all data shown)
+- When `projectId` is provided: Project filter is auto-set to that project, filter dropdown is hidden, new items pre-filled with projectId
+
+---
+Task ID: project-data-isolation
+Agent: Main Agent + 3 Sub-agents
+Task: Make each project show only its own data - full project data isolation
+
+Work Log:
+- Analyzed full codebase: 21 page components, 5 API routes needing projectId filter
+- Added projectId query parameter support to 5 API routes: payments, contracts, proposals, purchase-orders, clients
+- Added projectId?: string prop to 21 page component interfaces
+- Added auto-filter useEffect to pages with existing project dropdowns (auto-sets filterProject)
+- Added auto-set projectId to budgets page (auto-sets selectedProject)
+- Hid project filter dropdown when projectId is provided (user already in a project)
+- Updated project-detail.tsx to pass projectId={currentProjectId} to all 21 sub-page components
+- Added 2 missing sub-tabs: submittals (المستندات المقدمة) and transmittals (الإحالات) under Technical tab
+- Added imports for SubmittalsPage and TransmittalsPage in project-detail.tsx
+- Added projectId filtering to clients API (filters by related projects)
+- Verified all 21 pages receive projectId from project-detail.tsx
+- Verified all 5 API routes support projectId filtering
+- Node.js verification script: ✅ ALL CHECKS PASSED
+
+Stage Summary:
+- 5 API routes modified to accept projectId query parameter
+- 21 page components modified to accept and use projectId prop
+- project-detail.tsx updated to pass projectId to all sub-pages + added 2 missing sub-tabs
+- When inside a project, all data is filtered to that project only
+- When outside a project (standalone pages), all data is shown (backward compatible)
+- Forms auto-prefill with current projectId when creating new items
+- Project filter dropdowns hidden when already scoped to a project

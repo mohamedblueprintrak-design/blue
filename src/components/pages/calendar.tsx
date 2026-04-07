@@ -46,6 +46,7 @@ import { cn } from "@/lib/utils";
 
 interface Props {
   language: "ar" | "en";
+  projectId?: string;
 }
 
 interface CalendarEvent {
@@ -151,7 +152,7 @@ function getInitials(name: string) {
     .slice(0, 2);
 }
 
-export default function CalendarPage({ language: lang }: Props) {
+export default function CalendarPage({ language: lang, projectId }: Props) {
   const isAr = lang === "ar";
   const locale = isAr ? ar : enUS;
   const [currentMonth, setCurrentMonth] = useState(new Date());
@@ -160,36 +161,36 @@ export default function CalendarPage({ language: lang }: Props) {
 
   // Fetch tasks
   const { data: tasks = [] } = useQuery({
-    queryKey: ["calendar-tasks"],
+    queryKey: ["calendar-tasks", projectId],
     queryFn: () =>
-      fetch("/api/tasks?status=in_progress&limit=50")
+      fetch(`/api/tasks?status=in_progress&limit=50${projectId ? `&projectId=${projectId}` : ''}`)
         .then((r) => r.json())
         .then((data) => (Array.isArray(data) ? data : data.tasks || [])),
   });
 
   // Fetch meetings
   const { data: meetings = [] } = useQuery({
-    queryKey: ["calendar-meetings"],
+    queryKey: ["calendar-meetings", projectId],
     queryFn: () =>
-      fetch("/api/meetings?limit=50")
+      fetch(`/api/meetings?limit=50${projectId ? `&projectId=${projectId}` : ''}`)
         .then((r) => r.json())
         .then((data) => (Array.isArray(data) ? data : [])),
   });
 
   // Fetch invoices for deadlines
   const { data: invoices = [] } = useQuery({
-    queryKey: ["calendar-invoices"],
+    queryKey: ["calendar-invoices", projectId],
     queryFn: () =>
-      fetch("/api/invoices?status=overdue&limit=50")
+      fetch(`/api/invoices?status=overdue&limit=50${projectId ? `&projectId=${projectId}` : ''}`)
         .then((r) => r.json())
         .then((data) => (Array.isArray(data) ? data : data.invoices || [])),
   });
 
   // Fetch site visits
   const { data: siteVisits = [] } = useQuery({
-    queryKey: ["calendar-site-visits"],
+    queryKey: ["calendar-site-visits", projectId],
     queryFn: () =>
-      fetch("/api/site-visits?limit=50")
+      fetch(`/api/site-visits?limit=50${projectId ? `&projectId=${projectId}` : ''}`)
         .then((r) => r.json())
         .then((data) => (Array.isArray(data) ? data : [])),
   });
