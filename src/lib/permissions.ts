@@ -144,6 +144,15 @@ const allNavItems: NavItem[] = [
     roles: ["admin", "manager", "hr"],
   },
 
+  // ───── 8. Advanced Features (المميزات المتقدمة) ─────
+  {
+    id: "features-hub",
+    icon: "Sparkles",
+    labelAr: "المميزات المتقدمة",
+    labelEn: "Advanced Features",
+    roles: allRoles,
+  },
+
   // ───── 7. System Admin (admin بس) ─────
   {
     id: "admin",

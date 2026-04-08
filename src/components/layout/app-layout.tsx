@@ -93,6 +93,7 @@ import EmployeesHub from "@/components/pages/employees-hub";
 import NotificationsPage from "@/components/pages/notifications";
 import SettingsPage from "@/components/pages/settings";
 import AdminPanel from "@/components/pages/admin";
+import FeaturesHub from "@/components/pages/features-hub";
 
 import { useKeyboardShortcuts } from "@/hooks/use-keyboard-shortcuts";
 import Breadcrumbs from "@/components/layout/breadcrumbs";
@@ -552,6 +553,9 @@ export default function AppLayout({ language }: AppLayoutProps) {
               {/* Employees Hub (tabs: list, attendance, leave, workload) */}
               {currentPage === "employees" && <EmployeesHub language={language} />}
 
+              {/* Advanced Features Hub */}
+              {currentPage === "features-hub" && <FeaturesHub language={language} />}
+
               {/* Admin */}
               {currentPage === "admin" && <AdminPanel language={language} />}
 
@@ -567,6 +571,7 @@ export default function AppLayout({ language }: AppLayoutProps) {
    "contractors",
    "finance-revenue", "finance-expenses", "finance-reports",
    "employees",
+   "features-hub",
    "admin", "settings", "notifications",
    ].includes(currentPage) && (
                 <div className="flex flex-col items-center justify-center min-h-[60vh] text-center">
