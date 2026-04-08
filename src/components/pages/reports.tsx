@@ -148,7 +148,7 @@ export default function ReportsPage({ projectId }: ReportsPageProps) {
   // Chart data derivations
   const revenueByClientData = useMemo(() => {
     const clients = financial?.topClients || [];
-    const colors = ["#14b8a6", "#0ea5e9", "#f59e0b", "#8b5cf6", "#f43f5e"];
+    const colors = ["#133371", "#0ea5e9", "#f59e0b", "#8b5cf6", "#f43f5e"];
     return clients.slice(0, 5).map((c: { clientName: string; clientCompany: string; totalRevenue: number }, i: number) => ({
       name: c.clientName || c.clientCompany || "—", value: c.totalRevenue || 0, color: colors[i % colors.length],
     }));
@@ -158,7 +158,7 @@ export default function ReportsPage({ projectId }: ReportsPageProps) {
 
   const departmentData = useMemo(() => {
     const depts = hr?.departmentDistribution || [];
-    const colors = ["#14b8a6", "#0ea5e9", "#f59e0b", "#8b5cf6", "#f43f5e", "#ec4899"];
+    const colors = ["#133371", "#0ea5e9", "#f59e0b", "#8b5cf6", "#f43f5e", "#ec4899"];
     return depts.map((d: { department: string; count: number }, i: number) => ({
       name: d.department, value: d.count, color: colors[i % colors.length],
     }));
@@ -166,7 +166,7 @@ export default function ReportsPage({ projectId }: ReportsPageProps) {
 
   const leaveData = useMemo(() => {
     const leaves = hr?.leaveDistribution || [];
-    const colors = ["#14b8a6", "#0ea5e9", "#f59e0b", "#ef4444", "#8b5cf6"];
+    const colors = ["#133371", "#0ea5e9", "#f59e0b", "#ef4444", "#8b5cf6"];
     return leaves.map((l: { type: string; count: number }, i: number) => ({
       name: l.type, value: l.count, color: colors[i % colors.length],
     }));
@@ -407,7 +407,7 @@ export default function ReportsPage({ projectId }: ReportsPageProps) {
                   <YAxis tickFormatter={formatK} tick={{ fontSize: 11, fill: tickColor }} tickLine={false} axisLine={false} />
                   <Tooltip content={<ChartTooltip ar={ar} />} />
                   <Legend wrapperStyle={{ fontSize: 12, color: legendColor }} />
-                  <Bar dataKey="collected" name={ar ? "المحصل" : "Collected"} fill="#0d9488" radius={[6, 6, 0, 0]} />
+                  <Bar dataKey="collected" name={ar ? "المحصل" : "Collected"} fill="#0e2a5c" radius={[6, 6, 0, 0]} />
                   <Bar dataKey="expenses" name={ar ? "المصروفات" : "Expenses"} fill="#f43f5e" radius={[6, 6, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer></div>

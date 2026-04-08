@@ -276,7 +276,7 @@ function ProgressRing({ progress, size = 120, strokeWidth = 8 }: { progress: num
         />
         <defs>
           <linearGradient id="progress-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" stopColor="#14b8a6" />
+            <stop offset="0%" stopColor="#133371" />
             <stop offset="100%" stopColor="#06b6d4" />
           </linearGradient>
         </defs>

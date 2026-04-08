@@ -351,7 +351,7 @@ function ProgressRing({ value, size = 56, strokeWidth = 4 }: { value: number; si
   const radius = (size - strokeWidth) / 2;
   const circumference = radius * 2 * Math.PI;
   const offset = circumference - (value / 100) * circumference;
-  const color = value >= 80 ? "#10b981" : value >= 40 ? "#14b8a6" : value >= 20 ? "#f59e0b" : "#94a3b8";
+  const color = value >= 80 ? "#10b981" : value >= 40 ? "#133371" : value >= 20 ? "#f59e0b" : "#94a3b8";
 
   return (
     <svg width={size} height={size} className="transform -rotate-90">
@@ -695,7 +695,7 @@ interface DesignDiscipline {
 
 const DESIGN_DISCIPLINES: DesignDiscipline[] = [
   {
-    id: "architectural", nameAr: "المعماري", nameEn: "Architectural", icon: Building2, color: "#14b8a6", supervisor: "",
+    id: "architectural", nameAr: "المعماري", nameEn: "Architectural", icon: Building2, color: "#133371", supervisor: "",
     steps: [
       { id: "arch-1", nameAr: "التخطيط المساحي", nameEn: "Space Planning", assignee: "", status: "not-started", date: null },
       { id: "arch-2", nameAr: "التصميم المبدئي", nameEn: "Preliminary Design", assignee: "", status: "not-started", date: null },
@@ -932,7 +932,7 @@ function OverviewTab({ project, language }: { project: ProjectData; language: "a
             language={language}
             label={t("القسم المعماري", "Architectural")}
             icon={Building2}
-            accentColor="#14b8a6"
+            accentColor="#133371"
           />
           <DepartmentProgress
             stages={project.stages}
@@ -956,7 +956,7 @@ function OverviewTab({ project, language }: { project: ProjectData; language: "a
       {/* ===== Client & Contractor & Project Info ===== */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Client Card — Owner */}
-        <Card className="border-slate-200 dark:border-slate-700/50" style={{ borderInlineStartWidth: "4px", borderInlineStartColor: "#14b8a6" }}>
+        <Card className="border-slate-200 dark:border-slate-700/50" style={{ borderInlineStartWidth: "4px", borderInlineStartColor: "#133371" }}>
           <CardHeader className="pb-3">
             <CardTitle className="text-base flex items-center gap-2">
               <div className="w-8 h-8 rounded-lg bg-teal-100 dark:bg-teal-900/30 flex items-center justify-center">
@@ -1184,7 +1184,7 @@ function OverviewTab({ project, language }: { project: ProjectData; language: "a
       {/* ===== Client & Contractor & Project Info ===== */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Client Info Card — Enhanced with clickable contacts */}
-        <Card className="border-slate-200 dark:border-slate-700/50" style={{ borderInlineStartWidth: "4px", borderInlineStartColor: "#14b8a6" }}>
+        <Card className="border-slate-200 dark:border-slate-700/50" style={{ borderInlineStartWidth: "4px", borderInlineStartColor: "#133371" }}>
           <CardHeader className="pb-3">
             <CardTitle className="text-base flex items-center gap-2">
               <div className="w-8 h-8 rounded-lg bg-teal-100 dark:bg-teal-900/30 flex items-center justify-center">

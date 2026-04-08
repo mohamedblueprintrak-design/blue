@@ -420,7 +420,7 @@ function MiniProgressRing({ progress, size = 40, strokeWidth = 3.5, className }:
   const radius = (size - strokeWidth) / 2;
   const circumference = radius * 2 * Math.PI;
   const offset = circumference - (progress / 100) * circumference;
-  const color = progress >= 80 ? "#10b981" : progress >= 50 ? "#14b8a6" : progress >= 25 ? "#f59e0b" : "#ef4444";
+  const color = progress >= 80 ? "#10b981" : progress >= 50 ? "#133371" : progress >= 25 ? "#f59e0b" : "#ef4444";
 
   return (
     <svg className={cn("shrink-0 -rotate-90", className)} width={size} height={size}>
@@ -450,8 +450,8 @@ function MiniProgressRing({ progress, size = 40, strokeWidth = 3.5, className }:
 }
 
 // ===== Chart Colors =====
-const CHART_BAR_COLOR = "#14b8a6";
-const CHART_BAR_HOVER_COLOR = "#0d9488";
+const CHART_BAR_COLOR = "#133371";
+const CHART_BAR_HOVER_COLOR = "#0e2a5c";
 
 // ===== Custom Chart Tooltip =====
 function ChartTooltip({ active, payload, label, isAr }: {
@@ -804,7 +804,7 @@ export default function Dashboard({ language }: { language: "ar" | "en" }) {
 
   // ===== Mock Chart Data =====
   const projectStatusData = [
-    { name: isAr ? "نشط" : "Active", value: stats.activeProjects, color: "#14b8a6" },
+    { name: isAr ? "نشط" : "Active", value: stats.activeProjects, color: "#133371" },
     { name: isAr ? "مكتمل" : "Completed", value: stats.completedProjects, color: "#10b981" },
     { name: isAr ? "متأخر" : "Delayed", value: stats.delayedProjects, color: "#ef4444" },
     { name: isAr ? "معلق" : "On Hold", value: stats.totalProjects - stats.activeProjects - stats.completedProjects - stats.delayedProjects, color: "#f59e0b" },
@@ -1113,8 +1113,8 @@ export default function Dashboard({ language }: { language: "ar" | "en" }) {
                 <AreaChart data={revenue.monthly} margin={{ top: 8, right: 8, bottom: 0, left: 0 }}>
                   <defs>
                     <linearGradient id="revenueGradient" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#14b8a6" stopOpacity={0.3} />
-                      <stop offset="100%" stopColor="#14b8a6" stopOpacity={0.02} />
+                      <stop offset="0%" stopColor="#133371" stopOpacity={0.3} />
+                      <stop offset="100%" stopColor="#133371" stopOpacity={0.02} />
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" opacity={0.5} />
@@ -1136,7 +1136,7 @@ export default function Dashboard({ language }: { language: "ar" | "en" }) {
                   <Area
                     type="monotone"
                     dataKey="revenue"
-                    stroke="#14b8a6"
+                    stroke="#133371"
                     strokeWidth={2}
                     fill="url(#revenueGradient)"
                   />
@@ -2079,8 +2079,8 @@ export default function Dashboard({ language }: { language: "ar" | "en" }) {
                       <stop offset="100%" stopColor="#94a3b8" stopOpacity={0.7} />
                     </linearGradient>
                     <linearGradient id="completedBar" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#14b8a6" stopOpacity={1} />
-                      <stop offset="100%" stopColor="#0d9488" stopOpacity={0.7} />
+                      <stop offset="0%" stopColor="#133371" stopOpacity={1} />
+                      <stop offset="100%" stopColor="#0e2a5c" stopOpacity={0.7} />
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" opacity={0.4} />
@@ -2222,8 +2222,8 @@ export default function Dashboard({ language }: { language: "ar" | "en" }) {
               <BarChart data={budgetOverviewData} layout="vertical" margin={{ top: 0, right: 20, bottom: 0, left: 0 }}>
                 <defs>
                   <linearGradient id="budgetBar" x1="0" y1="0" x2="1" y2="0">
-                    <stop offset="0%" stopColor="#0d9488" stopOpacity={0.8} />
-                    <stop offset="100%" stopColor="#14b8a6" stopOpacity={1} />
+                    <stop offset="0%" stopColor="#0e2a5c" stopOpacity={0.8} />
+                    <stop offset="100%" stopColor="#133371" stopOpacity={1} />
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="hsl(var(--border))" opacity={0.4} />

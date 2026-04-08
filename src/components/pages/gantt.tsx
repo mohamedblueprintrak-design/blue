@@ -71,8 +71,8 @@ interface GanttTask {
 
 // ===== Color Constants (teal-based) =====
 const STATUS_COLORS: Record<string, string> = {
-  active: "#14b8a6",
-  in_progress: "#14b8a6",
+  active: "#133371",
+  in_progress: "#133371",
   completed: "#10b981",
   done: "#10b981",
   delayed: "#ef4444",
@@ -82,7 +82,7 @@ const STATUS_COLORS: Record<string, string> = {
 };
 
 const PHASE_CATEGORY_COLORS: Record<string, { bg: string; text: string; bar: string }> = {
-  ARCHITECTURAL: { bg: "bg-teal-500/20", text: "text-teal-400", bar: "#14b8a6" },
+  ARCHITECTURAL: { bg: "bg-teal-500/20", text: "text-teal-400", bar: "#133371" },
   STRUCTURAL: { bg: "bg-amber-500/20", text: "text-amber-400", bar: "#f59e0b" },
   MEP: { bg: "bg-cyan-500/20", text: "text-cyan-400", bar: "#06b6d4" },
   GOVERNMENT: { bg: "bg-violet-500/20", text: "text-violet-400", bar: "#8b5cf6" },

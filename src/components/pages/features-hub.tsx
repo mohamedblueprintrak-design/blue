@@ -481,7 +481,7 @@ export default function FeaturesHub({ language }: FeaturesHubProps) {
     }, {} as Record<string, number>)
   }, [timeEntries])
 
-  const pieColors = ['#0d9488', '#f59e0b', '#ef4444', '#8b5cf6', '#3b82f6', '#ec4899', '#10b981', '#f97316']
+  const pieColors = ['#0e2a5c', '#f59e0b', '#ef4444', '#8b5cf6', '#3b82f6', '#ec4899', '#10b981', '#f97316']
 
   // WhatsApp contacts (unique from projects)
   const whatsappContacts = useMemo(() => {

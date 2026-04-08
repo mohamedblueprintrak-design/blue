@@ -976,7 +976,7 @@ function ProjectQuickView({
   ];
 
   const progressColor = project.progress >= 80 ? "text-emerald-500" : project.progress >= 50 ? "text-teal-500" : project.progress >= 25 ? "text-amber-500" : "text-red-500";
-  const progressStroke = project.progress >= 80 ? "#10b981" : project.progress >= 50 ? "#14b8a6" : project.progress >= 25 ? "#f59e0b" : "#ef4444";
+  const progressStroke = project.progress >= 80 ? "#10b981" : project.progress >= 50 ? "#133371" : project.progress >= 25 ? "#f59e0b" : "#ef4444";
   const ringRadius = 28;
   const ringCircumference = ringRadius * 2 * Math.PI;
   const ringOffset = ringCircumference - (project.progress / 100) * ringCircumference;

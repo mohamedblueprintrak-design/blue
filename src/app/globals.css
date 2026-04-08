@@ -171,30 +171,30 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  background: oklch(0.75 0.06 180 / 40%);
+  background: oklch(0.6 0.1 260 / 40%);
   border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: oklch(0.65 0.08 180 / 60%);
+  background: oklch(0.5 0.12 260 / 60%);
 }
 
 .dark ::-webkit-scrollbar-thumb {
-  background: oklch(0.4 0.06 180 / 50%);
+  background: oklch(0.35 0.08 260 / 50%);
 }
 
 .dark ::-webkit-scrollbar-thumb:hover {
-  background: oklch(0.5 0.08 180 / 70%);
+  background: oklch(0.45 0.1 260 / 70%);
 }
 
 /* Firefox scrollbar */
 * {
   scrollbar-width: thin;
-  scrollbar-color: oklch(0.75 0.06 180 / 40%) transparent;
+  scrollbar-color: oklch(0.6 0.1 260 / 40%) transparent;
 }
 
 .dark * {
-  scrollbar-color: oklch(0.4 0.06 180 / 50%) transparent;
+  scrollbar-color: oklch(0.35 0.08 260 / 50%) transparent;
 }
 
 /* Sidebar scrollbar in collapsed state */
@@ -203,18 +203,18 @@
 }
 
 [data-sidebar="content"]::-webkit-scrollbar-thumb {
-  background: oklch(0.75 0.06 180 / 30%);
+  background: oklch(0.6 0.1 260 / 30%);
   border-radius: 2px;
 }
 
 /* ===== Selection Color ===== */
 ::selection {
-  background-color: oklch(0.75 0.15 180 / 30%);
+  background-color: oklch(0.6 0.15 260 / 30%);
   color: oklch(0.15 0 0);
 }
 
 .dark ::selection {
-  background-color: oklch(0.55 0.15 180 / 40%);
+  background-color: oklch(0.4 0.15 260 / 40%);
   color: oklch(0.95 0 0);
 }
 
@@ -264,8 +264,8 @@ select:focus {
 
 /* ===== Subtle Pulse Glow ===== */
 @keyframes glow-pulse {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(20, 184, 166, 0); }
-  50% { box-shadow: 0 0 12px 2px rgba(20, 184, 166, 0.15); }
+  0%, 100% { box-shadow: 0 0 0 0 rgba(19, 51, 113, 0); }
+  50% { box-shadow: 0 0 12px 2px rgba(19, 51, 113, 0.15); }
 }
 .glow-teal {
   animation: glow-pulse 3s ease-in-out infinite;
@@ -337,7 +337,7 @@ select:focus {
   border-radius: inherit;
   background: conic-gradient(
     from var(--gradient-angle),
-    #14b8a6, #06b6d4, #10b981, #14b8a6
+    #133371, #2563eb, #1e40af, #133371
   );
   animation: gradient-rotate 4s linear infinite;
   mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
@@ -350,7 +350,7 @@ select:focus {
 /* Fallback for browsers without @property support */
 @supports not (background: conic-gradient(from 0deg, red, blue)) {
   .login-gradient-border::before {
-    background: linear-gradient(135deg, #14b8a6, #06b6d4, #10b981, #14b8a6);
+    background: linear-gradient(135deg, #133371, #2563eb, #1e40af, #133371);
     background-size: 300% 300%;
     animation: gradient-shift 4s ease infinite;
   }
@@ -392,7 +392,7 @@ select:focus {
     align-items: center;
     justify-content: space-between;
     padding: 16px;
-    border-bottom: 2px solid #0d9488;
+    border-bottom: 2px solid #133371;
     margin-bottom: 16px;
   }
 
@@ -441,7 +441,7 @@ select:focus {
     color: #1e293b !important;
   }
   .dark\:text-teal-400 {
-    color: #0d9488 !important;
+    color: #4f5dba !important;
   }
   .dark\:border-slate-700,
   .dark\:border-slate-800,
