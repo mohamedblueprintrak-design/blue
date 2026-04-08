@@ -243,6 +243,8 @@ model Client {
   taxNumber       String   @default("")
   creditLimit     Float    @default(0)
   paymentTerms    String   @default("")
+  serviceType     String?  @default("")
+  serviceNotes    String?
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
@@ -455,6 +457,13 @@ model Contractor {
   crNumber        String   @default("") // Commercial Registration
   licenseNumber   String   @default("")
   licenseExpiry   DateTime?
+  classification      String?   @default("")  // Contractor classification level (e.g., "الدرجة الثالثة")
+  establishmentDate   DateTime?              // Company establishment date
+  workerCount         Int?      @default(0)  // Number of workers
+  engineerCount       Int?      @default(0)  // Number of engineers
+  tradeLicense        String?   @default("")  // Trade license number
+  tradeLicenseExpiry  DateTime?              // Trade license expiry date
+  vatNumber           String?   @default("")  // VAT registration number
   category        String   @default("") // civil, electrical, mep, finishing, plumbing, hvac
    rating          Int      @default(0) // 1-5 stars
   specialties     String   @default("") // comma-separated specialties

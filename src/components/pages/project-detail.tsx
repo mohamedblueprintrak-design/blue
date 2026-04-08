@@ -73,6 +73,8 @@ import {
   FileCheck,
   Award,
   SearchCheck,
+  Send,
+  BarChart3,
 } from "lucide-react";
 
 // Import page components
@@ -493,8 +495,10 @@ const boqSubTabs = [
 ];
 
 const contractorSubTabs = [
-  { id: "contractors", icon: Users, labelAr: "المقاولين", labelEn: "Contractors" },
-  { id: "bids", icon: Gavel, labelAr: "عروض الأسعار", labelEn: "Bids" },
+  { id: "rfq", icon: Send, labelAr: "إرسال طلب عرض", labelEn: "Send RFQ" },
+  { id: "bids", icon: Gavel, labelAr: "عروض الأسعار", labelEn: "Price Bids" },
+  { id: "comparison", icon: BarChart3, labelAr: "مقارنة ذكية", labelEn: "Smart Compare" },
+  { id: "award", icon: Award, labelAr: "الترسية", labelEn: "Award" },
 ];
 
 const supervisionSubTabs = [
@@ -1236,8 +1240,103 @@ export default function ProjectDetail({ language }: ProjectDetailProps) {
             language={language}
           />
           <div className="border rounded-xl p-4 bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700">
-            {activeSubTab === "contractors" && <ContractorsPage language={language} projectId={currentProjectId || undefined} />}
+            {activeSubTab === "rfq" && (
+              <div className="space-y-6">
+                {/* RFQ Workflow - Step by Step */}
+                <div className="bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/30 dark:to-orange-950/30 rounded-xl p-5 border border-amber-200 dark:border-amber-800/50">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-10 h-10 rounded-xl bg-amber-100 dark:bg-amber-900/50 flex items-center justify-center">
+                      <Send className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+                    </div>
+                    <div>
+                      <h3 className="text-base font-bold text-slate-900 dark:text-white">{t("إرسال طلب عرض سعر", "Send RFQ")}</h3>
+                      <p className="text-xs text-slate-500">{t("أرسل مشروعك للمقاولين المناسبين للحصول على عروض أسعار", "Send your project to suitable contractors for price quotes")}</p>
+                    </div>
+                  </div>
+
+                  {/* Workflow Steps */}
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+                    {[
+                      { step: 1, icon: Users, labelAr: "اختر المقاولين", labelEn: "Select Contractors", color: "bg-teal-100 text-teal-600 dark:bg-teal-900/30 dark:text-teal-400" },
+                      { step: 2, icon: FileText, labelAr: "أرسل الطلب", labelEn: "Send RFQ", color: "bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400" },
+                      { step: 3, icon: Clock, labelAr: "استلم العروض", labelEn: "Receive Bids", color: "bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400" },
+                      { step: 4, icon: Award, labelAr: "رسي العطاء", labelEn: "Award Bid", color: "bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400" },
+                    ].map((item) => (
+                      <div key={item.step} className="flex items-center gap-2 p-2.5 rounded-lg bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700">
+                        <div className={cn("w-8 h-8 rounded-lg flex items-center justify-center shrink-0", item.color)}>
+                          <item.icon className="h-4 w-4" />
+                        </div>
+                        <div>
+                          <span className="text-[10px] text-slate-400">{t("الخطوة", "Step")} {item.step}</span>
+                          <p className="text-xs font-medium text-slate-700 dark:text-slate-300">{isAr ? item.labelAr : item.labelEn}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Contractor Selection */}
+                <ContractorsPage language={language} projectId={currentProjectId || undefined} />
+
+                {/* Send RFQ Button */}
+                <div className="flex justify-center">
+                  <Button className="h-10 px-6 bg-teal-600 hover:bg-teal-700 text-white rounded-xl gap-2 shadow-lg shadow-teal-600/20">
+                    <Send className="h-4 w-4" />
+                    {t("إرسال طلب عرض سعر للمقاولين المحددين", "Send RFQ to selected contractors")}
+                  </Button>
+                </div>
+              </div>
+            )}
             {activeSubTab === "bids" && <BidsPage language={language} projectId={currentProjectId || undefined} />}
+            {activeSubTab === "comparison" && (
+              <div className="space-y-4">
+                <div className="bg-gradient-to-r from-purple-50 to-violet-50 dark:from-purple-950/30 dark:to-violet-950/30 rounded-xl p-5 border border-purple-200 dark:border-purple-800/50">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-purple-100 dark:bg-purple-900/50 flex items-center justify-center">
+                      <Sparkles className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+                    </div>
+                    <div>
+                      <h3 className="text-base font-bold text-slate-900 dark:text-white">{t("مقارنة ذكية بالذكاء الاصطناعي", "AI-Powered Comparison")}</h3>
+                      <p className="text-xs text-slate-500">{t("المساعد الذكي يحلل ويفاضل بين عروض الأسعار", "AI assistant analyzes and compares price bids")}</p>
+                    </div>
+                  </div>
+                </div>
+                <Card className="border-slate-200 dark:border-slate-700/50">
+                  <CardContent className="py-16 text-center">
+                    <Sparkles className="h-16 w-16 mx-auto mb-4 text-purple-300 dark:text-purple-600" />
+                    <h3 className="text-lg font-semibold text-slate-700 dark:text-slate-300 mb-2">{t("المقارنة الذكية", "Smart Comparison")}</h3>
+                    <p className="text-sm text-slate-500 max-w-md mx-auto">{t("بمجرد استلام عروض الأسعار من المقاولين، ستظهر هنا مقارنة تفصيلية مع توصية الذكاء الاصطناعي بأفضل مقاول", "Once contractor bids are received, a detailed comparison will appear here with AI recommendation for the best contractor")}</p>
+                    <div className="mt-4 flex items-center justify-center gap-6 text-xs text-slate-400">
+                      <span className="flex items-center gap-1"><TrendingUp className="h-3.5 w-3.5 text-emerald-500" />{t("أفضل سعر", "Best Price")}</span>
+                      <span className="flex items-center gap-1"><Star className="h-3.5 w-3.5 text-amber-500" />{t("أفضل تقييم", "Best Rating")}</span>
+                      <span className="flex items-center gap-1"><Timer className="h-3.5 w-3.5 text-blue-500" />{t("أسرع تنفيذ", "Fastest")}</span>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
+            {activeSubTab === "award" && (
+              <div className="space-y-4">
+                <div className="bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-950/30 dark:to-teal-950/30 rounded-xl p-5 border border-emerald-200 dark:border-emerald-800/50">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-emerald-100 dark:bg-emerald-900/50 flex items-center justify-center">
+                      <Award className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
+                    </div>
+                    <div>
+                      <h3 className="text-base font-bold text-slate-900 dark:text-white">{t("ترسية العطاء", "Bid Award")}</h3>
+                      <p className="text-xs text-slate-500">{t("اختر المقاول الفائز وأنشئ محضر الترسية", "Select the winning contractor and generate award document")}</p>
+                    </div>
+                  </div>
+                </div>
+                <Card className="border-slate-200 dark:border-slate-700/50">
+                  <CardContent className="py-16 text-center">
+                    <Award className="h-16 w-16 mx-auto mb-4 text-emerald-300 dark:text-emerald-600" />
+                    <h3 className="text-lg font-semibold text-slate-700 dark:text-slate-300 mb-2">{t("ترسية العطاء", "Award Bid")}</h3>
+                    <p className="text-sm text-slate-500 max-w-md mx-auto">{t("بعد المقارنة والموافقة على المقاول المناسب، يمكنك ترسية العطاء هنا. سيتم إنشاء محضر الترسية تلقائياً وإضافة العقد لمستندات المشروع", "After comparison and approval, award the bid here. An award document will be generated and the contract will be added to project documents")}</p>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
           </div>
         </TabsContent>
 
@@ -1303,6 +1402,19 @@ export default function ProjectDetail({ language }: ProjectDetailProps) {
           </div>
         </TabsContent>
       </Tabs>
+
+      {/* Floating AI Button - Opens AI Assistant */}
+      <button
+        onClick={() => {
+          const { setCurrentPage } = useNavStore.getState();
+          setCurrentPage("ai-assistant");
+        }}
+        className="fixed bottom-6 left-6 z-50 w-12 h-12 rounded-full bg-gradient-to-br from-teal-500 to-cyan-500 hover:from-teal-600 hover:to-cyan-600 text-white shadow-xl shadow-teal-500/30 flex items-center justify-center transition-all hover:scale-110 group"
+        title={t("المساعد الذكي", "AI Assistant")}
+      >
+        <Sparkles className="h-5 w-5 group-hover:animate-pulse" />
+        <span className="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-emerald-400 border-2 border-white animate-pulse" />
+      </button>
     </div>
   );
 }

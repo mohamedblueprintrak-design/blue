@@ -119,6 +119,15 @@ const allNavItems: NavItem[] = [
     roles: ["admin", "manager", "accountant"],
   },
 
+  // ───── AI Assistant & Knowledge Base ─────
+  {
+    id: "ai-assistant",
+    icon: "Sparkles",
+    labelAr: "المساعد الذكي",
+    labelEn: "AI Assistant",
+    roles: allRoles,
+  },
+
   // ───── Employees ─────
   {
     id: "employees",

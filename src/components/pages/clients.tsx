@@ -99,6 +99,8 @@ interface Client {
   invoices?: ClientInvoice[];
   contracts?: ClientContract[];
   interactions?: ClientInteraction[];
+  serviceType?: string;
+  serviceNotes?: string;
 }
 
 interface ClientProject {
@@ -213,12 +215,13 @@ export default function ClientsPage({ language, projectId }: ClientsPageProps) {
   const emptyForm: ClientFormData = {
     name: "", company: "", email: "", phone: "", address: "",
     taxNumber: "", creditLimit: "0", paymentTerms: "",
+    serviceType: "", serviceNotes: "",
   };
   const form = useForm<ClientFormData>({
     resolver: zodResolver(clientSchema),
     defaultValues: emptyForm,
   });
-  const { register, handleSubmit: rhfHandleSubmit, formState: { errors }, reset } = form;
+  const { register, handleSubmit: rhfHandleSubmit, formState: { errors }, reset, watch } = form;
 
   // Fetch clients
   const { data: clients = [], isLoading } = useQuery<Client[]>({
@@ -312,6 +315,8 @@ export default function ClientsPage({ language, projectId }: ClientsPageProps) {
       taxNumber: client.taxNumber,
       creditLimit: String(client.creditLimit),
       paymentTerms: client.paymentTerms,
+      serviceType: client.serviceType || "",
+      serviceNotes: client.serviceNotes || "",
     });
   };
 
@@ -601,6 +606,35 @@ export default function ClientsPage({ language, projectId }: ClientsPageProps) {
                 <Label className="text-sm">{ar ? "شروط الدفع" : "Payment Terms"}</Label>
                 <Input {...register("paymentTerms")} placeholder={ar ? "مثال: 30 يوم" : "e.g., Net 30"} />
               </div>
+              {/* Service Type - Purpose of Visit */}
+              <div className="space-y-2">
+                <Label className="text-sm">{ar ? "الغرض من التواصل" : "Purpose of Visit"} *</Label>
+                <Select
+                  value={watch("serviceType") || ""}
+                  onValueChange={(v) => form.setValue("serviceType", v)}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder={ar ? "اختر الغرض من التواصل..." : "Select purpose..."} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="consultation">{ar ? "استشارة هندسية" : "Engineering Consultation"}</SelectItem>
+                    <SelectItem value="design">{ar ? "تصميم (معماري/إنشائي/MEP)" : "Design (Arch/Struct/MEP)"}</SelectItem>
+                    <SelectItem value="license">{ar ? "استخراج ترخيص بلدي" : "Municipality License"}</SelectItem>
+                    <SelectItem value="supervision">{ar ? "إشراف على التنفيذ" : "Construction Supervision"}</SelectItem>
+                    <SelectItem value="inspection">{ar ? "فحص هندسي" : "Engineering Inspection"}</SelectItem>
+                    <SelectItem value="other">{ar ? "أخرى" : "Other"}</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label className="text-sm">{ar ? "تفاصيل إضافية" : "Additional Details"}</Label>
+                <textarea
+                  {...register("serviceNotes")}
+                  placeholder={ar ? "وصف تفصيلي لما يريد العميل..." : "Describe what the client needs..."}
+                  rows={3}
+                  className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 resize-none"
+                />
+              </div>
 
             <DialogFooter>
               <Button
@@ -698,6 +732,27 @@ function ClientDetailPanel({ client, ar, onClose, onEdit }: { client: Client; ar
 
       <ScrollArea className="h-[calc(100vh-340px)]">
         <div className="p-4 space-y-4">
+          {/* Service Type Badge */}
+          {client.serviceType && (
+            <div className="px-4 py-3 bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-700/50">
+              <div className="flex items-center gap-2">
+                <div className="w-6 h-6 rounded-md bg-teal-100 dark:bg-teal-900 flex items-center justify-center shrink-0">
+                  <FileText className="h-3 w-3 text-teal-500" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <span className="text-[10px] text-slate-400 block">{ar ? "الغرض" : "Purpose"}</span>
+                  <span className="text-xs text-teal-700 dark:text-teal-300 font-medium">
+                    {ar
+                      ? { consultation: "استشارة هندسية", design: "تصميم", license: "استخراج ترخيص", supervision: "إشراف على التنفيذ", inspection: "فحص هندسي", other: "أخرى" }[client.serviceType] || client.serviceType
+                      : { consultation: "Engineering Consultation", design: "Design", license: "License", supervision: "Supervision", inspection: "Inspection", other: "Other" }[client.serviceType] || client.serviceType}
+                  </span>
+                </div>
+              </div>
+              {client.serviceNotes && (
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1.5 ms-8 line-clamp-2">{client.serviceNotes}</p>
+              )}
+            </div>
+          )}
           {/* Contact Info */}
           <div className="space-y-2">
             {client.email && (

@@ -32,6 +32,8 @@ export const clientSchema = z.object({
   taxNumber: optionalString,
   creditLimit: z.string().optional().default("0"),
   paymentTerms: optionalString,
+  serviceType: z.string().optional().default(""),
+  serviceNotes: optionalString,
 });
 
 export type ClientFormData = z.infer<typeof clientSchema>;

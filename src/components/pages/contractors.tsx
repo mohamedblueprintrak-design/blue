@@ -43,6 +43,7 @@ import {
   TrendingUp,
   Edit3,
   UserCheck,
+  Calendar,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -60,6 +61,13 @@ interface ContractorItem {
   crNumber: string;
   licenseNumber: string;
   licenseExpiry: string | null;
+  classification: string;
+  establishmentDate: string | null;
+  workerCount: number;
+  engineerCount: number;
+  tradeLicense: string;
+  tradeLicenseExpiry: string | null;
+  vatNumber: string;
   category: string;
   rating: number;
   specialties: string;
@@ -132,7 +140,8 @@ function RatingStars({ rating, size = "sm" }: { rating: number; size?: "sm" | "m
 const emptyForm = {
   name: "", nameEn: "", companyName: "", companyEn: "", contactPerson: "",
   phone: "", email: "", address: "", crNumber: "", licenseNumber: "",
-  licenseExpiry: "", category: "civil", rating: "3", specialties: "",
+  licenseExpiry: "", classification: "", establishmentDate: "", workerCount: "", engineerCount: "",
+  tradeLicense: "", tradeLicenseExpiry: "", vatNumber: "", category: "civil", rating: "3", specialties: "",
   experience: "", bankName: "", bankAccount: "", iban: "", notes: "",
 };
 
@@ -439,7 +448,15 @@ export default function ContractorsPage({ language, projectId }: ContractorsPage
                         companyEn: detail.companyEn, contactPerson: detail.contactPerson,
                         phone: detail.phone, email: detail.email, address: detail.address,
                         crNumber: detail.crNumber, licenseNumber: detail.licenseNumber,
-                        licenseExpiry: detail.licenseExpiry || "", category: detail.category,
+                        licenseExpiry: detail.licenseExpiry || "",
+                        classification: detail.classification,
+                        establishmentDate: detail.establishmentDate || "",
+                        workerCount: String(detail.workerCount),
+                        engineerCount: String(detail.engineerCount),
+                        tradeLicense: detail.tradeLicense,
+                        tradeLicenseExpiry: detail.tradeLicenseExpiry || "",
+                        vatNumber: detail.vatNumber,
+                        category: detail.category,
                         rating: String(detail.rating), specialties: detail.specialties,
                         experience: detail.experience, bankName: detail.bankName,
                         bankAccount: detail.bankAccount, iban: detail.iban, notes: detail.notes,
@@ -522,6 +539,60 @@ export default function ContractorsPage({ language, projectId }: ContractorsPage
                             {ar ? "ينتهي: " : "Expires: "}{new Date(detail.licenseExpiry).toLocaleDateString(ar ? "ar-AE" : "en-US")}
                           </span>
                         )}
+                      </div>
+                    </div>
+                  )}
+                  {detail.classification && (
+                    <div className="flex items-center gap-2.5">
+                      <Award className="h-3.5 w-3.5 text-slate-400 flex-shrink-0" />
+                      <div>
+                        <span className="text-[10px] text-slate-400 block">{ar ? "التصنيف" : "Classification"}</span>
+                        <span className="text-xs text-slate-700 dark:text-slate-300">{detail.classification}</span>
+                      </div>
+                    </div>
+                  )}
+                  {(detail.workerCount > 0 || detail.engineerCount > 0) && (
+                    <div className="flex items-center gap-2.5">
+                      <Users className="h-3.5 w-3.5 text-slate-400 flex-shrink-0" />
+                      <div>
+                        <span className="text-[10px] text-slate-400 block">{ar ? "القوى العاملة" : "Workforce"}</span>
+                        <span className="text-xs text-slate-700 dark:text-slate-300">
+                          {detail.workerCount} {ar ? "عامل" : "workers"} / {detail.engineerCount} {ar ? "مهندس" : "engineers"}
+                        </span>
+                      </div>
+                    </div>
+                  )}
+                  {detail.tradeLicense && (
+                    <div className="flex items-center gap-2.5">
+                      <FileText className="h-3.5 w-3.5 text-slate-400 flex-shrink-0" />
+                      <div>
+                        <span className="text-[10px] text-slate-400 block">{ar ? "السجل التجاري" : "Trade License"}</span>
+                        <span className="text-xs text-slate-700 dark:text-slate-300 font-mono" dir="ltr">{detail.tradeLicense}</span>
+                        {detail.tradeLicenseExpiry && (
+                          <span className="text-[10px] text-slate-400 block ms-4">
+                            {ar ? "ينتهي: " : "Expires: "}{new Date(detail.tradeLicenseExpiry).toLocaleDateString(ar ? "ar-AE" : "en-US")}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                  {detail.vatNumber && (
+                    <div className="flex items-center gap-2.5">
+                      <FileText className="h-3.5 w-3.5 text-slate-400 flex-shrink-0" />
+                      <div>
+                        <span className="text-[10px] text-slate-400 block">{ar ? "الرقم الضريبي" : "VAT No."}</span>
+                        <span className="text-xs text-slate-700 dark:text-slate-300 font-mono" dir="ltr">{detail.vatNumber}</span>
+                      </div>
+                    </div>
+                  )}
+                  {detail.establishmentDate && (
+                    <div className="flex items-center gap-2.5">
+                      <Calendar className="h-3.5 w-3.5 text-slate-400 flex-shrink-0" />
+                      <div>
+                        <span className="text-[10px] text-slate-400 block">{ar ? "تاريخ التأسيس" : "Established"}</span>
+                        <span className="text-xs text-slate-700 dark:text-slate-300">
+                          {new Date(detail.establishmentDate).toLocaleDateString(ar ? "ar-AE" : "en-US")}
+                        </span>
                       </div>
                     </div>
                   )}
@@ -672,6 +743,44 @@ export default function ContractorsPage({ language, projectId }: ContractorsPage
             <div className="space-y-1">
               <Label className="text-xs">{ar ? "انتهاء الترخيص" : "License Expiry"}</Label>
               <Input type="date" value={formData.licenseExpiry} onChange={(e) => setFormData({ ...formData, licenseExpiry: e.target.value })} className="h-8 text-sm rounded-lg" />
+            </div>
+            <div className="space-y-1">
+              <Label className="text-xs">{ar ? "تصنيف المقاول" : "Classification"}</Label>
+              <Select value={formData.classification} onValueChange={(v) => setFormData({ ...formData, classification: v })}>
+                <SelectTrigger className="h-8 text-sm rounded-lg"><SelectValue placeholder={ar ? "اختر التصنيف" : "Select classification"} /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="first">{ar ? "الدرجة الأولى" : "1st Class"}</SelectItem>
+                  <SelectItem value="second">{ar ? "الدرجة الثانية" : "2nd Class"}</SelectItem>
+                  <SelectItem value="third">{ar ? "الدرجة الثالثة" : "3rd Class"}</SelectItem>
+                  <SelectItem value="fourth">{ar ? "الدرجة الرابعة" : "4th Class"}</SelectItem>
+                  <SelectItem value="fifth">{ar ? "الدرجة الخامسة" : "5th Class"}</SelectItem>
+                  <SelectItem value="special">{ar ? "فئة خاصة" : "Special Category"}</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1">
+              <Label className="text-xs">{ar ? "تاريخ التأسيس" : "Established"}</Label>
+              <Input type="date" value={formData.establishmentDate} onChange={(e) => setFormData({ ...formData, establishmentDate: e.target.value })} className="h-8 text-sm rounded-lg" />
+            </div>
+            <div className="space-y-1">
+              <Label className="text-xs">{ar ? "عدد العمال" : "Workers"}</Label>
+              <Input type="number" value={formData.workerCount} onChange={(e) => setFormData({ ...formData, workerCount: e.target.value })} className="h-8 text-sm rounded-lg" />
+            </div>
+            <div className="space-y-1">
+              <Label className="text-xs">{ar ? "عدد المهندسين" : "Engineers"}</Label>
+              <Input type="number" value={formData.engineerCount} onChange={(e) => setFormData({ ...formData, engineerCount: e.target.value })} className="h-8 text-sm rounded-lg" />
+            </div>
+            <div className="space-y-1">
+              <Label className="text-xs">{ar ? "رقم السجل التجاري" : "Trade License"}</Label>
+              <Input value={formData.tradeLicense} onChange={(e) => setFormData({ ...formData, tradeLicense: e.target.value })} className="h-8 text-sm rounded-lg" dir="ltr" />
+            </div>
+            <div className="space-y-1">
+              <Label className="text-xs">{ar ? "انتهاء السجل التجاري" : "Trade License Expiry"}</Label>
+              <Input type="date" value={formData.tradeLicenseExpiry} onChange={(e) => setFormData({ ...formData, tradeLicenseExpiry: e.target.value })} className="h-8 text-sm rounded-lg" />
+            </div>
+            <div className="space-y-1">
+              <Label className="text-xs">{ar ? "الرقم الضريبي" : "VAT Number"}</Label>
+              <Input value={formData.vatNumber} onChange={(e) => setFormData({ ...formData, vatNumber: e.target.value })} className="h-8 text-sm rounded-lg" dir="ltr" />
             </div>
             <div className="space-y-1">
               <Label className="text-xs">{ar ? "الخبرة" : "Experience"}</Label>

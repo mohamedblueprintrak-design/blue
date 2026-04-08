@@ -72,6 +72,7 @@ import {
   ClipboardCheck,
   Gift,
   UserPlus,
+  BookOpen,
   type LucideIcon,
 } from "lucide-react";
 import Dashboard from "@/components/pages/dashboard";
@@ -96,6 +97,7 @@ import SidebarStats from "@/components/layout/sidebar-stats";
 import MobileBottomNav from "@/components/layout/mobile-bottom-nav";
 
 import CommissionsPage from "@/components/pages/commissions";
+import AIAssistantHub from "@/components/pages/ai-assistant-hub";
 import { cn } from "@/lib/utils";
 import { AnimatePresence, motion } from "framer-motion";
 import LogoImage from "@/components/ui/logo-image";
@@ -126,6 +128,7 @@ const iconMap: Record<string, LucideIcon> = {
   Bell,
   User,
   UserPlus,
+  BookOpen,
 };
 
 function getIcon(iconName: string): LucideIcon {
@@ -532,6 +535,9 @@ export default function AppLayout({ language }: AppLayoutProps) {
               {/* Commissions & Referrals */}
               {currentPage === "commissions" && <CommissionsPage language={language} />}
 
+              {/* AI Assistant & Knowledge Base */}
+              {currentPage === "ai-assistant" && <AIAssistantHub language={language} />}
+
               {/* Clients */}
               {currentPage === "clients" && <ClientsPage language={language} />}
 
@@ -553,7 +559,7 @@ export default function AppLayout({ language }: AppLayoutProps) {
               {currentPage === "admin" && <AdminPanel language={language} />}
 
               {/* Placeholder for undefined pages */}
-              {!["dashboard", "projects", "tenders", "commissions", "clients", "contractors", "employees", "employees-list",
+              {!["dashboard", "projects", "tenders", "commissions", "ai-assistant", "clients", "contractors", "employees", "employees-list",
                  "employees-attendance", "employees-leave", "employees-workload", "settings", "admin"].includes(currentPage) && (
                 <div className="flex flex-col items-center justify-center min-h-[60vh] text-center">
                   <LogoImage size={64} className="mb-4 bg-slate-100 dark:bg-slate-800 [&>div]:opacity-40" />
