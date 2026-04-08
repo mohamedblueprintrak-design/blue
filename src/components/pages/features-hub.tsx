@@ -808,33 +808,13 @@ export default function FeaturesHub({ language }: FeaturesHubProps) {
       {/* Map with visits */}
       <Card className="border-slate-200 dark:border-slate-700/50 overflow-hidden">
         <CardContent className="p-0">
-          <div className="h-[300px]">
-            {mounted ? (
-              <Suspense fallback={<MapLoading />}>
-                <MapContainer center={RAK_CENTER} zoom={13} className="h-full w-full" style={{ direction: 'ltr' }}>
-                  <TileLayer
-                    attribution='&copy; OpenStreetMap'
-                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                  />
-                  {visits.map((visit) => (
-                    <Marker key={visit.id} position={[visit.lat, visit.lng]}>
-                      <Popup>
-                        <div dir="rtl" className="text-right min-w-[180px]">
-                          <h3 className="font-bold text-sm">{visit.engineerName}</h3>
-                          <p className="text-xs text-gray-600">{visit.projectName}</p>
-                          <p className="text-xs text-gray-500 mt-1">{visit.date} • {visit.timeIn} - {visit.timeOut || '...'}</p>
-                          <span className={cn('inline-block text-xs px-2 py-0.5 rounded-full mt-1', getVisitStatusColor(visit.status))}>
-                            {getVisitStatusLabel(visit.status)}
-                          </span>
-                        </div>
-                      </Popup>
-                    </Marker>
-                  ))}
-                </MapContainer>
-              </Suspense>
-            ) : (
-              <MapLoading />
-            )}
+          <div className="h-[300px] relative" style={{ direction: 'ltr' }}>
+            <iframe
+              src={`https://www.openstreetmap.org/export/embed.html?bbox=55.90,25.76,56.00,25.82&layer=mapnik&${visits.map(v => `marker=${v.lat},${v.lng}`).join('&')}`}
+              className="w-full h-full border-0"
+              title="خريطة الزيارات"
+              loading="lazy"
+            />
           </div>
         </CardContent>
       </Card>
