@@ -72,6 +72,7 @@ import {
   PenTool,
   FileCheck,
   Award,
+  SearchCheck,
 } from "lucide-react";
 
 // Import page components
@@ -107,6 +108,7 @@ import EmployeesPage from "@/components/pages/employees";
 import TeamMembers from "@/components/pages/team-members";
 import SupervisionPage from "@/components/pages/supervision";
 import ContractorsPage from "@/components/pages/contractors";
+import InspectionsPage from "@/components/pages/inspections";
 
 // ===== TYPES =====
 interface ProjectDetailProps {
@@ -395,13 +397,77 @@ function StageStepper({ stages, language }: { stages: ProjectStage[]; language: 
   );
 }
 
+// ===== DESIGN PIPELINE =====
+const DESIGN_PIPELINE_STAGES = [
+  { key: "concept", labelAr: "مبدئي", labelEn: "Concept" },
+  { key: "schematic", labelAr: "تخطيطي", labelEn: "Schematic" },
+  { key: "development", labelAr: "تطوير", labelEn: "Development" },
+  { key: "construction_docs", labelAr: "مخططات تنفيذية", labelEn: "Construction Docs" },
+  { key: "as_built", labelAr: "أس-بيلت", labelEn: "As-Built" },
+];
+
+function DesignPipeline({ department, stages, language }: { department: string; stages: ProjectStage[]; language: "ar" | "en" }) {
+  const isAr = language === "ar";
+  const deptStages = stages.filter(s => s.department === department);
+  
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "APPROVED": return "bg-emerald-500";
+      case "IN_PROGRESS": return "bg-teal-500";
+      case "SUBMITTED": return "bg-amber-500";
+      case "REJECTED": return "bg-red-500";
+      default: return "bg-slate-200 dark:bg-slate-700";
+    }
+  };
+  
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case "APPROVED": return <CheckCircle2 className="h-3 w-3 text-white" />;
+      case "IN_PROGRESS": return <Clock className="h-3 w-3 text-white" />;
+      case "REJECTED": return <XCircle className="h-3 w-3 text-white" />;
+      default: return <span className="text-[8px] text-slate-500 dark:text-slate-400">•</span>;
+    }
+  };
+
+  return (
+    <div className="space-y-3">
+      {DESIGN_PIPELINE_STAGES.map((stage, idx) => {
+        const stageData = deptStages.find(s => s.stageOrder === idx + 1);
+        const status = stageData?.status || "NOT_STARTED";
+        const color = getStatusColor(status);
+        
+        return (
+          <div key={stage.key} className="flex items-center gap-3">
+            <div className={cn("w-7 h-7 rounded-full flex items-center justify-center shrink-0", color)}>
+              {getStatusIcon(status)}
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center justify-between">
+                <span className={cn("text-xs font-medium", status !== "NOT_STARTED" ? "text-slate-900 dark:text-white" : "text-slate-400")}>
+                  {isAr ? stage.labelAr : stage.labelEn}
+                </span>
+                {stageData?.notes && (
+                  <span className="text-[9px] text-slate-400 truncate max-w-[120px]">{stageData.notes}</span>
+                )}
+              </div>
+              {idx < DESIGN_PIPELINE_STAGES.length - 1 && (
+                <div className={cn("w-0.5 h-3 ms-3 rounded-full", status === "APPROVED" ? "bg-emerald-300" : "bg-slate-200 dark:bg-slate-700")} />
+              )}
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 // ===== TAB CONFIGURATION =====
 const mainTabs = [
   { id: "overview", icon: Eye, labelAr: "نظرة عامة", labelEn: "Overview" },
-  { id: "design", icon: PenTool, labelAr: "التصميم", labelEn: "Design" },
+  { id: "design", icon: PenTool, labelAr: "مرحلة التصميم", labelEn: "Design Stage" },
   { id: "municipality", icon: Landmark, labelAr: "البلدية", labelEn: "Municipality" },
-  { id: "boq", icon: Calculator, labelAr: "مقاييس المشروع", labelEn: "BOQ" },
-  { id: "contractor", icon: HardHat, labelAr: "اختيار مقاول", labelEn: "Contractor" },
+  { id: "boq", icon: Calculator, labelAr: "مقاييس ومواصفات", labelEn: "BOQ & Specs" },
+  { id: "contractor", icon: HardHat, labelAr: "تعيين مقاول", labelEn: "Contractor Assignment" },
   { id: "supervision", icon: ClipboardCheck, labelAr: "الإشراف", labelEn: "Supervision" },
   { id: "tasks", icon: CheckSquare, labelAr: "المهام", labelEn: "Tasks" },
   { id: "financial", icon: Wallet, labelAr: "المالية", labelEn: "Financial" },
@@ -434,6 +500,7 @@ const contractorSubTabs = [
 const supervisionSubTabs = [
   { id: "checklists", icon: ClipboardCheck, labelAr: "زيارات الإشراف", labelEn: "Supervision Visits" },
   { id: "violations", icon: AlertTriangle, labelAr: "المخالفات", labelEn: "Violations" },
+  { id: "inspections", icon: SearchCheck, labelAr: "فحص المباني", labelEn: "Building Inspections" },
   { id: "completion", icon: Award, labelAr: "شهادة الإنجاز", labelEn: "Completion Certificate" },
 ];
 
@@ -1005,6 +1072,12 @@ export default function ProjectDetail({ language }: ProjectDetailProps) {
           <div className="space-y-4">
             {activeSubTab === "architectural" && (
               <>
+                <Card className="border-slate-200 dark:border-slate-700/50">
+                  <CardHeader className="pb-3"><CardTitle className="text-sm font-semibold">{t("خط أنابيب التصميم المعماري", "Architectural Design Pipeline")}</CardTitle></CardHeader>
+                  <CardContent>
+                    <DesignPipeline department="architectural" stages={project.stages || []} language={language} />
+                  </CardContent>
+                </Card>
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
                   <StatCard label={t("الإنجاز", "Progress")} value={`${Math.round(project.stages?.filter((s) => s.department === "architectural" && s.status === "APPROVED").length / Math.max(project.stages?.filter((s) => s.department === "architectural").length, 1) * 100 || 0)}%`} icon={TrendingUp} color="bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400" />
                   <StatCard label={t("مكتمل", "Completed")} value={`${project.stages?.filter((s) => s.department === "architectural" && s.status === "APPROVED").length || 0}/${project.stages?.filter((s) => s.department === "architectural").length || 0}`} icon={CheckCircle2} color="bg-teal-100 dark:bg-teal-900/30 text-teal-600 dark:text-teal-400" />
@@ -1025,6 +1098,12 @@ export default function ProjectDetail({ language }: ProjectDetailProps) {
             )}
             {activeSubTab === "structural" && (
               <>
+                <Card className="border-slate-200 dark:border-slate-700/50">
+                  <CardHeader className="pb-3"><CardTitle className="text-sm font-semibold">{t("خط أنابيب التصميم الإنشائي", "Structural Design Pipeline")}</CardTitle></CardHeader>
+                  <CardContent>
+                    <DesignPipeline department="structural" stages={project.stages || []} language={language} />
+                  </CardContent>
+                </Card>
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
                   <StatCard label={t("الإنجاز", "Progress")} value={`${Math.round(project.stages?.filter((s) => s.department === "structural" && s.status === "APPROVED").length / Math.max(project.stages?.filter((s) => s.department === "structural").length, 1) * 100 || 0)}%`} icon={TrendingUp} color="bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400" />
                   <StatCard label={t("مكتمل", "Completed")} value={`${project.stages?.filter((s) => s.department === "structural" && s.status === "APPROVED").length || 0}/${project.stages?.filter((s) => s.department === "structural").length || 0}`} icon={CheckCircle2} color="bg-teal-100 dark:bg-teal-900/30 text-teal-600 dark:text-teal-400" />
@@ -1045,6 +1124,12 @@ export default function ProjectDetail({ language }: ProjectDetailProps) {
             )}
             {activeSubTab === "mep" && (
               <>
+                <Card className="border-slate-200 dark:border-slate-700/50">
+                  <CardHeader className="pb-3"><CardTitle className="text-sm font-semibold">{t("خط أنابيب التصميم الكهربائي والميكانيك", "MEP Design Pipeline")}</CardTitle></CardHeader>
+                  <CardContent>
+                    <DesignPipeline department="mep_electrical" stages={project.stages || []} language={language} />
+                  </CardContent>
+                </Card>
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
                   <StatCard label={t("الإنجاز", "Progress")} value={`${Math.round(project.stages?.filter((s) => (s.department === "mep_electrical" || s.department === "mep_plumbing" || s.department === "mep_water") && s.status === "APPROVED").length / Math.max(project.stages?.filter((s) => s.department === "mep_electrical" || s.department === "mep_plumbing" || s.department === "mep_water").length, 1) * 100 || 0)}%`} icon={TrendingUp} color="bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400" />
                   <StatCard label={t("مكتمل", "Completed")} value={`${project.stages?.filter((s) => (s.department === "mep_electrical" || s.department === "mep_plumbing" || s.department === "mep_water") && s.status === "APPROVED").length || 0}/${project.stages?.filter((s) => s.department === "mep_electrical" || s.department === "mep_plumbing" || s.department === "mep_water").length || 0}`} icon={CheckCircle2} color="bg-teal-100 dark:bg-teal-900/30 text-teal-600 dark:text-teal-400" />
@@ -1065,6 +1150,12 @@ export default function ProjectDetail({ language }: ProjectDetailProps) {
             )}
             {activeSubTab === "civil-defense" && (
               <>
+                <Card className="border-slate-200 dark:border-slate-700/50">
+                  <CardHeader className="pb-3"><CardTitle className="text-sm font-semibold">{t("خط أنابيب تصميم الدفاع المدني", "Civil Defense Design Pipeline")}</CardTitle></CardHeader>
+                  <CardContent>
+                    <DesignPipeline department="mep_civil_defense" stages={project.stages || []} language={language} />
+                  </CardContent>
+                </Card>
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
                   <StatCard label={t("الإنجاز", "Progress")} value={`${Math.round(project.stages?.filter((s) => s.department === "mep_civil_defense" && s.status === "APPROVED").length / Math.max(project.stages?.filter((s) => s.department === "mep_civil_defense").length, 1) * 100 || 0)}%`} icon={TrendingUp} color="bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400" />
                   <StatCard label={t("مكتمل", "Completed")} value={`${project.stages?.filter((s) => s.department === "mep_civil_defense" && s.status === "APPROVED").length || 0}/${project.stages?.filter((s) => s.department === "mep_civil_defense").length || 0}`} icon={CheckCircle2} color="bg-teal-100 dark:bg-teal-900/30 text-teal-600 dark:text-teal-400" />
@@ -1160,6 +1251,7 @@ export default function ProjectDetail({ language }: ProjectDetailProps) {
           />
           <div>
             {(activeSubTab === "checklists" || activeSubTab === "violations") && <SupervisionPage language={language} projectId={currentProjectId || undefined} />}
+            {activeSubTab === "inspections" && <InspectionsPage language={language} projectId={currentProjectId || undefined} />}
             {activeSubTab === "completion" && (
               <Card className="border-slate-200 dark:border-slate-700/50">
                 <CardHeader className="pb-3">

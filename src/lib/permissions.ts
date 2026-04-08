@@ -74,6 +74,15 @@ const allNavItems: NavItem[] = [
     roles: allRoles,
   },
 
+  // ───── Client Creation (إنشاء عميل) ─────
+  {
+    id: "clients",
+    icon: "UserPlus",
+    labelAr: "إنشاء عميل",
+    labelEn: "Client Creation",
+    roles: allRoles,
+  },
+
   // ───── Projects (مبسط - بدون children) ─────
   {
     id: "projects",
@@ -92,70 +101,13 @@ const allNavItems: NavItem[] = [
     roles: ["admin", "manager", "project_manager"],
   },
 
-  // ───── Design Management ─────
-  {
-    id: "design-management",
-    icon: "PenTool",
-    labelAr: "إدارة التصاميم",
-    labelEn: "Design Management",
-    roles: ["admin", "manager", "project_manager", "engineer", "draftsman"],
-  },
-
-  // ───── Contractors (جديد - للمقاولين والمشتريات) ─────
+  // ───── Contractors (المقاولون) ─────
   {
     id: "contractors",
     icon: "HardHat",
     labelAr: "المقاولون",
     labelEn: "Contractors",
     roles: ["admin", "manager", "project_manager"],
-    children: [
-      {
-        id: "contractors-suppliers",
-        icon: "Truck",
-        labelAr: "الموردون",
-        labelEn: "Suppliers",
-        roles: ["admin", "manager", "project_manager"],
-      },
-      {
-        id: "contractors-inventory",
-        icon: "Warehouse",
-        labelAr: "المخزون",
-        labelEn: "Inventory",
-        roles: ["admin", "manager", "project_manager"],
-      },
-      {
-        id: "contractors-purchase-orders",
-        icon: "Package",
-        labelAr: "أوامر الشراء",
-        labelEn: "Purchase Orders",
-        roles: ["admin", "manager", "project_manager"],
-      },
-      {
-        id: "contractors-equipment",
-        icon: "Settings",
-        labelAr: "المعدات",
-        labelEn: "Equipment",
-        roles: ["admin", "manager", "project_manager"],
-      },
-    ],
-  },
-
-  // ───── Building Inspections ─────
-  {
-    id: "inspections",
-    icon: "SearchCheck",
-    labelAr: "فحص المباني",
-    labelEn: "Building Inspections",
-    roles: ["admin", "manager", "project_manager", "engineer"],
-  },
-
-  // ───── Site Supervision ─────
-  {
-    id: "supervision",
-    icon: "ClipboardCheck",
-    labelAr: "الإشراف على التنفيذ",
-    labelEn: "Site Supervision",
-    roles: ["admin", "manager", "project_manager", "engineer"],
   },
 
   // ───── Commissions & Referrals ─────
@@ -265,13 +217,11 @@ function checkItemAccess(items: NavItem[], pageId: string): boolean {
 // ===== PROJECT TAB ITEMS (للاستخدام داخل المشروع) =====
 export const projectTabItems = [
   { id: "overview", icon: "Eye", labelAr: "نظرة عامة", labelEn: "Overview" },
-  { id: "technical", icon: "Building2", labelAr: "فني", labelEn: "Technical" },
-  { id: "tasks", icon: "CheckSquare", labelAr: "المهام", labelEn: "Tasks" },
-  { id: "documents", icon: "FileText", labelAr: "المستندات", labelEn: "Documents" },
-  { id: "financial", icon: "Wallet", labelAr: "المالية", labelEn: "Financial" },
-  { id: "site", icon: "MapPin", labelAr: "الموقع", labelEn: "Site" },
-  { id: "team", icon: "Users", labelAr: "الفريق", labelEn: "Team" },
-  { id: "help", icon: "Sparkles", labelAr: "مساعدة", labelEn: "Help" },
+  { id: "design-stage", icon: "PenTool", labelAr: "مرحلة التصميم", labelEn: "Design Stage" },
+  { id: "municipality", icon: "Landmark", labelAr: "البلدية", labelEn: "Municipality" },
+  { id: "boq-specs", icon: "Calculator", labelAr: "مقاييس ومواصفات", labelEn: "BOQ & Specs" },
+  { id: "contractor-assignment", icon: "HardHat", labelAr: "تعيين مقاول", labelEn: "Contractor Assignment" },
+  { id: "supervision", icon: "ClipboardCheck", labelAr: "الإشراف", labelEn: "Supervision" },
 ];
 
 // Technical Sub-tabs
