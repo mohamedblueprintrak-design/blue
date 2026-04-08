@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback, useRef, lazy, Suspense, useMemo, useSyncExternalStore } from 'react'
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
@@ -54,11 +54,15 @@ import {
   ClipboardList, Archive, DollarSign, Percent
 } from 'lucide-react'
 
-// ===== Leaflet Dynamic Import =====
-const MapContainer = lazy(() => import('react-leaflet').then(m => ({ default: m.MapContainer })))
-const TileLayer = lazy(() => import('react-leaflet').then(m => ({ default: m.TileLayer })))
-const Marker = lazy(() => import('react-leaflet').then(m => ({ default: m.Marker })))
-const Popup = lazy(() => import('react-leaflet').then(m => ({ default: m.Popup })))
+// ===== OpenStreetMap Embed URL Builder =====
+function buildMapUrl(center?: { lat: number; lng: number }): string {
+  if (center) {
+    const bbox = `${center.lng - 0.008},${center.lat - 0.008},${center.lng + 0.008},${center.lat + 0.008}`
+    return `https://www.openstreetmap.org/export/embed.html?bbox=${bbox}&layer=mapnik&marker=${center.lat},${center.lng}`
+  }
+  const markers = DEMO_PROJECTS.map(p => `marker=${p.lat},${p.lng}`).join('&')
+  return `https://www.openstreetmap.org/export/embed.html?bbox=55.90,25.76,56.00,25.82&layer=mapnik&${markers}`
+}
 
 // ===== Props =====
 interface FeaturesHubProps {
@@ -383,27 +387,10 @@ const NAV_ITEMS: NavItem[] = [
   { id: 'design', label: 'إدارة التصميم', icon: <PenTool className="h-5 w-5" /> },
 ]
 
-// ===== Loading Map Fallback =====
-function MapLoading() {
-  return (
-    <div className="w-full h-full flex items-center justify-center bg-slate-100 dark:bg-slate-800 rounded-xl">
-      <div className="text-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-teal-600 mx-auto mb-2" />
-        <p className="text-sm text-slate-500">جارٍ تحميل الخريطة...</p>
-      </div>
-    </div>
-  )
-}
 
-// ===== Client-side mount check (avoids SSR issues with Leaflet) =====
-const emptySubscribe = () => () => {}
-function useIsMounted() {
-  return useSyncExternalStore(emptySubscribe, () => true, () => false)
-}
 
 // ===== MAIN COMPONENT =====
 export default function FeaturesHub({ language }: FeaturesHubProps) {
-  const mounted = useIsMounted()
   const [activeTab, setActiveTab] = useState<TabId>('map')
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false)
   const [selectedProject, setSelectedProject] = useState<DemoProject | null>(null)
@@ -675,50 +662,34 @@ export default function FeaturesHub({ language }: FeaturesHubProps) {
       {/* Map */}
       <Card className="border-slate-200 dark:border-slate-700/50 overflow-hidden">
         <CardContent className="p-0">
-          <div className="h-[500px] md:h-[600px]">
-            {mounted ? (
-              <Suspense fallback={<MapLoading />}>
-                <MapContainer
-                  center={RAK_CENTER}
-                  zoom={13}
-                  className="h-full w-full"
-                  style={{ direction: 'ltr' }}
-                >
-                  <TileLayer
-                    attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                  />
-                  {DEMO_PROJECTS.map((project) => (
-                    <Marker key={project.id} position={[project.lat, project.lng]}>
-                      <Popup>
-                        <div className="text-right min-w-[200px]" dir="rtl">
-                          <h3 className="font-bold text-sm mb-1">{project.name}</h3>
-                          <p className="text-xs text-gray-600 mb-1">العميل: {project.client}</p>
-                          <p className="text-xs text-gray-600 mb-1">النوع: {project.type}</p>
-                          <div className="flex items-center justify-between my-2">
-                            <span className="text-xs">الحالة</span>
-                            <span className={cn('text-xs px-2 py-0.5 rounded-full text-white', getStatusColor(project.status))}>
-                              {getStatusLabel(project.status)}
-                            </span>
-                          </div>
-                          <div className="mb-1">
-                            <div className="flex items-center justify-between text-xs mb-0.5">
-                              <span>التقدم</span>
-                              <span>{project.progress}%</span>
-                            </div>
-                            <div className="w-full bg-gray-200 rounded-full h-1.5">
-                              <div className="bg-teal-500 h-1.5 rounded-full" style={{ width: `${project.progress}%` }} />
-                            </div>
-                          </div>
-                          <p className="text-xs text-gray-600 mt-1">الميزانية: {formatCurrency(project.budget)}</p>
-                        </div>
-                      </Popup>
-                    </Marker>
-                  ))}
-                </MapContainer>
-              </Suspense>
+          <div className="h-[500px] md:h-[600px] relative" style={{ direction: 'ltr' }}>
+            {selectedProject ? (
+              <>
+                <iframe
+                  src={buildMapUrl({ lat: selectedProject.lat, lng: selectedProject.lng })}
+                  className="w-full h-full border-0"
+                  title="خريطة المشروع"
+                  loading="lazy"
+                />
+                <div className="absolute top-3 right-3 z-10">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="bg-white/90 backdrop-blur-sm shadow-md"
+                    onClick={() => setSelectedProject(null)}
+                  >
+                    <MapPin className="h-4 w-4 me-1" />
+                    عرض الكل
+                  </Button>
+                </div>
+              </>
             ) : (
-              <MapLoading />
+              <iframe
+                src={buildMapUrl()}
+                className="w-full h-full border-0"
+                title="خريطة جميع المشاريع"
+                loading="lazy"
+              />
             )}
           </div>
         </CardContent>
