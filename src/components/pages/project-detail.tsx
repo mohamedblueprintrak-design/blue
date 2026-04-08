@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import React, { useState, useCallback, useRef } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavStore } from "@/store/nav-store";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -75,7 +75,13 @@ import {
   SearchCheck,
   Send,
   BarChart3,
+  GitBranch,
+  Play,
+  ArrowRight,
+  RotateCcw,
+  Upload,
 } from "lucide-react";
+import { toast } from "sonner";
 
 // Import page components
 import TasksKanban from "@/components/pages/tasks";
@@ -111,6 +117,98 @@ import TeamMembers from "@/components/pages/team-members";
 import SupervisionPage from "@/components/pages/supervision";
 import ContractorsPage from "@/components/pages/contractors";
 import InspectionsPage from "@/components/pages/inspections";
+
+// ===== WORKFLOW TYPES =====
+interface WorkflowStageData {
+  id: string;
+  workflowId: string;
+  templateStageId: string | null;
+  name: string;
+  nameEn: string;
+  order: number;
+  status: string;
+  startDate: string | null;
+  dueDate: string | null;
+  completedDate: string | null;
+  assigneeId: string | null;
+  notes: string;
+  steps: WorkflowStepData[];
+}
+
+interface WorkflowStepData {
+  id: string;
+  stageId: string;
+  templateStepId: string | null;
+  name: string;
+  nameEn: string;
+  order: number;
+  status: string;
+  assigneeId: string | null;
+  assignedRole: string;
+  startDate: string | null;
+  dueDate: string | null;
+  completedDate: string | null;
+  action: string;
+  notes: string;
+  returnReason: string;
+  severity: string;
+  assignee?: { id: string; name: string; avatar: string; role: string } | null;
+}
+
+interface WorkflowData {
+  id: string;
+  projectId: string;
+  templateId: string | null;
+  currentStageId: string | null;
+  status: string;
+  progress: number;
+  startedAt: string;
+  completedAt: string | null;
+  stages: WorkflowStageData[];
+  template?: { id: string; name: string; nameEn: string } | null;
+  progressData?: {
+    totalStages: number;
+    completedStages: number;
+    totalSteps: number;
+    completedSteps: number;
+    progress: number;
+    currentStageIndex: number;
+  };
+}
+
+// ===== CONTRACTOR RFQ TYPES =====
+interface ContractorRFQBid {
+  id: string;
+  projectId: string;
+  contractorId: string | null;
+  contractorName: string;
+  contractorContact: string;
+  amount: number;
+  technicalScore: number;
+  financialScore: number;
+  totalScore: number;
+  status: string;
+  deadline: string | null;
+  quoteFile: string;
+  quoteUploadedAt: string | null;
+  rfqSentAt: string | null;
+  rfqStatus: string;
+  aiAnalysis: string;
+  contractFile: string;
+  contractSignedAt: string | null;
+  isAwarded: boolean;
+  contractor?: {
+    id: string;
+    name: string;
+    companyName: string;
+    rating: number;
+    category: string;
+    phone: string;
+    email: string;
+    experience: string;
+    specialties: string;
+  } | null;
+}
 
 // ===== TYPES =====
 interface ProjectDetailProps {
@@ -466,6 +564,7 @@ function DesignPipeline({ department, stages, language }: { department: string; 
 // ===== TAB CONFIGURATION =====
 const mainTabs = [
   { id: "overview", icon: Eye, labelAr: "نظرة عامة", labelEn: "Overview" },
+  { id: "workflow", icon: GitBranch, labelAr: "سير العمل", labelEn: "Workflow" },
   { id: "design", icon: PenTool, labelAr: "مرحلة التصميم", labelEn: "Design Stage" },
   { id: "municipality", icon: Landmark, labelAr: "البلدية", labelEn: "Municipality" },
   { id: "boq", icon: Calculator, labelAr: "مقاييس ومواصفات", labelEn: "BOQ & Specs" },
@@ -516,13 +615,13 @@ const financialSubTabs = [
 ];
 
 // ===== SUB-TAB RENDERER =====
-function SubTabsNav({ 
+function SubTabsNav<T extends { id: string }>({ 
   tabs, 
   activeSubTab, 
   onSubTabChange, 
   language 
 }: { 
-  tabs: typeof technicalSubTabs; 
+  tabs: T[]; 
   activeSubTab: string; 
   onSubTabChange: (id: string) => void;
   language: "ar" | "en";
@@ -867,6 +966,597 @@ function OverviewTab({ project, language }: { project: ProjectData; language: "a
   );
 }
 
+// ===== WORKFLOW TAB =====
+function WorkflowTab({ projectId, language }: { projectId: string; language: "ar" | "en" }) {
+  const isAr = language === "ar";
+  const t = (ar: string, en: string) => (isAr ? ar : en);
+  const [selectedStageIdx, setSelectedStageIdx] = useState(0);
+
+  const { data: workflow, isLoading, refetch } = useQuery({
+    queryKey: ["project-workflow", projectId],
+    queryFn: async () => {
+      const res = await fetch(`/api/projects/${projectId}/workflow`);
+      if (!res.ok) throw new Error("Failed");
+      const data = await res.json();
+      return data.workflow as WorkflowData | null;
+    },
+    enabled: !!projectId,
+  });
+
+  const initMutation = useMutation({
+    mutationFn: async () => {
+      const res = await fetch(`/api/projects/${projectId}/workflow/init`, { method: "POST" });
+      if (!res.ok) throw new Error("Failed");
+      return res.json();
+    },
+    onSuccess: () => { refetch(); toast.success(t("تم إنشاء سير العمل", "Workflow initialized")); },
+    onError: () => toast.error(t("فشل إنشاء سير العمل", "Failed to initialize")),
+  });
+
+  const actionMutation = useMutation({
+    mutationFn: async ({ stepId, action, notes }: { stepId: string; action: string; notes?: string }) => {
+      const stage = workflow?.stages?.[selectedStageIdx];
+      const res = await fetch(`/api/projects/${projectId}/workflow/stages/${stage?.id}/steps/${stepId}/action`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action, userId: "system", notes }),
+      });
+      if (!res.ok) throw new Error("Failed");
+      return res.json();
+    },
+    onSuccess: () => { refetch(); toast.success(t("تم تنفيذ الإجراء", "Action executed")); },
+    onError: () => toast.error(t("فشل تنفيذ الإجراء", "Action failed")),
+  });
+
+  const stages = workflow?.stages || [];
+  const currentStage = stages[selectedStageIdx];
+  const progressPct = workflow?.progress || 0;
+
+  const getStageStatusColor = (status: string) => {
+    switch (status) {
+      case "completed": return "bg-emerald-500 text-white border-emerald-500";
+      case "in_progress": return "bg-teal-500 text-white border-teal-500 ring-2 ring-teal-200";
+      case "pending": return "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 border-amber-300";
+      default: return "bg-slate-100 text-slate-400 dark:bg-slate-800 dark:text-slate-500 border-slate-200";
+    }
+  };
+
+  const getStepStatusBadge = (status: string) => {
+    switch (status) {
+      case "completed": return <Badge className="bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 text-[10px] border-0">{t("مكتمل", "Done")}</Badge>;
+      case "in_progress": return <Badge className="bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-400 text-[10px] border-0">{t("قيد التنفيذ", "In Progress")}</Badge>;
+      case "pending": return <Badge className="bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 text-[10px] border-0">{t("بانتظار", "Pending")}</Badge>;
+      case "returned": return <Badge className="bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 text-[10px] border-0">{t("معاد", "Returned")}</Badge>;
+      default: return <Badge className="bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400 text-[10px] border-0">{t("مقفل", "Locked")}</Badge>;
+    }
+  };
+
+  if (isLoading) {
+    return <div className="space-y-4"><Skeleton className="h-40 rounded-xl" /><Skeleton className="h-64 rounded-xl" /></div>;
+  }
+
+  if (!workflow) {
+    return (
+      <Card className="border-slate-200 dark:border-slate-700/50">
+        <CardContent className="py-16 text-center">
+          <GitBranch className="h-16 w-16 mx-auto mb-4 text-slate-300 dark:text-slate-600" />
+          <h3 className="text-lg font-semibold text-slate-700 dark:text-slate-300 mb-2">{t("سير العمل", "Workflow")}</h3>
+          <p className="text-sm text-slate-500 max-w-md mx-auto mb-4">
+            {t("لم يتم إنشاء سير العمل لهذا المشروع بعد. اضغط لإنشاء سير عمل تلقائي من القالب الافتراضي.", "Workflow has not been created yet. Click to initialize from the default template.")}
+          </p>
+          <Button onClick={() => initMutation.mutate()} disabled={initMutation.isPending} className="bg-teal-600 hover:bg-teal-700 gap-2">
+            <Play className="h-4 w-4" />
+            {initMutation.isPending ? t("جارٍ الإنشاء...", "Creating...") : t("إنشاء سير العمل", "Initialize Workflow")}
+          </Button>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      {/* Progress Header */}
+      <Card className="border-slate-200 dark:border-slate-700/50 overflow-hidden">
+        <div className="bg-gradient-to-r from-teal-600 to-cyan-500 p-4 text-white">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center">
+                <GitBranch className="h-5 w-5" />
+              </div>
+              <div>
+                <h3 className="font-bold text-sm">{workflow.template?.name || t("سير العمل", "Workflow")}</h3>
+                <p className="text-xs text-white/70">{t("المرحلة الحالية", "Current Stage")}: {stages.find(s => s.status === "in_progress" || s.status === "pending")?.name || "—"}</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              <div className="text-end">
+                <span className="text-2xl font-bold">{Math.round(progressPct)}%</span>
+                <p className="text-[10px] text-white/60">{t("الإنجاز", "Progress")}</p>
+              </div>
+            </div>
+          </div>
+          <Progress value={progressPct} className="h-1.5 mt-3 bg-white/20" />
+        </div>
+      </Card>
+
+      {/* Horizontal Stage Pipeline */}
+      <Card className="border-slate-200 dark:border-slate-700/50">
+        <CardContent className="p-4">
+          <div className="overflow-x-auto pb-2">
+            <div className="flex items-center gap-1 min-w-max">
+              {stages.map((stage, idx) => {
+                const isActive = idx === selectedStageIdx;
+                return (
+                  <React.Fragment key={stage.id}>
+                    <button
+                      onClick={() => setSelectedStageIdx(idx)}
+                      className={cn(
+                        "flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium transition-all whitespace-nowrap",
+                        getStageStatusColor(stage.status),
+                        isActive && "ring-2 ring-offset-1 dark:ring-offset-slate-900"
+                      )}
+                    >
+                      {stage.status === "completed" ? <CheckCircle2 className="h-3.5 w-3.5" /> :
+                       stage.status === "in_progress" ? <Clock className="h-3.5 w-3.5" /> :
+                       <span className="w-3.5 h-3.5 rounded-full border-2 border-current opacity-50" />}
+                      <span>{isAr ? stage.name : stage.nameEn || stage.name}</span>
+                    </button>
+                    {idx < stages.length - 1 && (
+                      <div className={cn("w-4 h-0.5 rounded", stage.status === "completed" ? "bg-emerald-400" : "bg-slate-200 dark:bg-slate-700")} />
+                    )}
+                  </React.Fragment>
+                );
+              })}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Selected Stage Steps */}
+      {currentStage && (
+        <Card className="border-slate-200 dark:border-slate-700/50">
+          <CardHeader className="pb-3">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-sm font-semibold flex items-center gap-2">
+                <div className={cn("w-8 h-8 rounded-lg flex items-center justify-center", currentStage.status === "completed" ? "bg-emerald-100 text-emerald-600" : "bg-teal-100 text-teal-600")}>
+                  {currentStage.status === "completed" ? <CheckCircle2 className="h-4 w-4" /> : <Clock className="h-4 w-4" />}
+                </div>
+                <div>
+                  <span>{isAr ? currentStage.name : currentStage.nameEn || currentStage.name}</span>
+                  <p className="text-[10px] text-slate-400 font-normal">
+                    {t("المرحلة", "Stage")} {selectedStageIdx + 1}/{stages.length}
+                    {currentStage.dueDate && ` • ${t("الموعد", "Due")}: ${new Date(currentStage.dueDate).toLocaleDateString(isAr ? "ar-AE" : "en-US")}`}
+                  </p>
+                </div>
+              </CardTitle>
+              {getStageStatusBadge(currentStage.status)}
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              {currentStage.steps.map((step) => (
+                <div key={step.id} className={cn(
+                  "flex items-center gap-3 p-3 rounded-lg border transition-all",
+                  step.status === "completed" ? "bg-emerald-50 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-800/50" :
+                  step.status === "in_progress" ? "bg-teal-50 dark:bg-teal-950/20 border-teal-200 dark:border-teal-800/50" :
+                  step.status === "pending" ? "bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700" :
+                  "bg-slate-50 dark:bg-slate-900 border-slate-100 dark:border-slate-800 opacity-60"
+                )}>
+                  <div className={cn(
+                    "w-8 h-8 rounded-lg flex items-center justify-center shrink-0",
+                    step.status === "completed" ? "bg-emerald-100 text-emerald-600" :
+                    step.status === "in_progress" ? "bg-teal-100 text-teal-600" :
+                    step.status === "pending" ? "bg-amber-100 text-amber-600" :
+                    "bg-slate-100 text-slate-400"
+                  )}>
+                    {step.status === "completed" ? <CheckCircle2 className="h-4 w-4" /> :
+                     step.status === "in_progress" ? <Play className="h-3.5 w-3.5" /> :
+                     step.status === "returned" ? <RotateCcw className="h-4 w-4" /> :
+                     <Circle className="h-3.5 w-3.5" />}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-medium text-slate-800 dark:text-slate-200 truncate">
+                        {isAr ? step.name : step.nameEn || step.name}
+                      </span>
+                      {getStepStatusBadge(step.status)}
+                    </div>
+                    <div className="flex items-center gap-2 mt-0.5">
+                      {step.assignee && <span className="text-[10px] text-slate-400">{step.assignee.name}</span>}
+                      {step.assignedRole && !step.assignee && <span className="text-[10px] text-slate-400 italic">{step.assignedRole}</span>}
+                      {step.dueDate && <span className="text-[10px] text-slate-400">{new Date(step.dueDate).toLocaleDateString(isAr ? "ar-AE" : "en-US")}</span>}
+                    </div>
+                    {step.returnReason && <p className="text-[10px] text-red-500 mt-1">{step.returnReason}</p>}
+                  </div>
+                  <div className="flex items-center gap-1 shrink-0">
+                    {step.status === "pending" && (
+                      <Button size="sm" variant="outline" className="h-7 text-[10px] gap-1 bg-teal-600 text-white border-0 hover:bg-teal-700"
+                        onClick={() => actionMutation.mutate({ stepId: step.id, action: "start" })}>
+                        <Play className="h-3 w-3" />{t("بدء", "Start")}
+                      </Button>
+                    )}
+                    {step.status === "in_progress" && (
+                      <Button size="sm" variant="outline" className="h-7 text-[10px] gap-1 bg-emerald-600 text-white border-0 hover:bg-emerald-700"
+                        onClick={() => actionMutation.mutate({ stepId: step.id, action: "complete" })}>
+                        <CheckCircle2 className="h-3 w-3" />{t("إكمال", "Complete")}
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Stats */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <StatCard label={t("المراحل", "Stages")} value={`${stages.filter(s => s.status === "completed").length}/${stages.length}`} icon={GitBranch} color="bg-teal-100 text-teal-600 dark:bg-teal-900/30 dark:text-teal-400" />
+        <StatCard label={t("الخطوات", "Steps")} value={`${workflow.progressData?.completedSteps || 0}/${workflow.progressData?.totalSteps || 0}`} icon={CheckSquare} color="bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400" />
+        <StatCard label={t("المكتمل", "Completed")} value={`${Math.round(progressPct)}%`} icon={TrendingUp} color="bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400" />
+        <StatCard label={t("الحالة", "Status")} value={workflow.status === "completed" ? t("مكتمل", "Done") : t("نشط", "Active")} icon={Activity} color="bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400" />
+      </div>
+    </div>
+  );
+}
+
+// ===== CONTRACTOR RFQ TAB =====
+function ContractorRFQTab({ projectId, language }: { projectId: string; language: "ar" | "en" }) {
+  const isAr = language === "ar";
+  const t = (ar: string, en: string) => (isAr ? ar : en);
+  const [activeSub, setActiveSub] = useState("rfq");
+  const [selectedContractors, setSelectedContractors] = useState<string[]>([]);
+  const quoteInputRef = useRef<HTMLInputElement>(null);
+  const contractInputRef = useRef<HTMLInputElement>(null);
+
+  const { data: bids, isLoading, refetch } = useQuery({
+    queryKey: ["project-bids-rfq", projectId],
+    queryFn: async () => {
+      const res = await fetch(`/api/bids?projectId=${projectId}`);
+      if (!res.ok) throw new Error("Failed");
+      const data = await res.json();
+      return (data.bids || data || []) as ContractorRFQBid[];
+    },
+    enabled: !!projectId,
+  });
+
+  const { data: contractors } = useQuery({
+    queryKey: ["contractors-list"],
+    queryFn: async () => {
+      const res = await fetch("/api/contractors");
+      if (!res.ok) throw new Error("Failed");
+      const data = await res.json();
+      return data.contractors || data || [];
+    },
+  });
+
+  const rfqMutation = useMutation({
+    mutationFn: async () => {
+      const res = await fetch(`/api/projects/${projectId}/contractor-rfq`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ contractorIds: selectedContractors }),
+      });
+      if (!res.ok) throw new Error("Failed");
+      return res.json();
+    },
+    onSuccess: () => { refetch(); setSelectedContractors([]); toast.success(t("تم إرسال طلب عرض السعر", "RFQ sent")); },
+    onError: () => toast.error(t("فشل الإرسال", "Failed to send")),
+  });
+
+  const uploadQuoteMutation = useMutation({
+    mutationFn: async ({ bidId, file }: { bidId: string; file: File }) => {
+      const formData = new FormData();
+      formData.append("quoteFile", file);
+      const res = await fetch(`/api/projects/${projectId}/contractor-rfq/${bidId}/upload-quote`, {
+        method: "POST",
+        body: formData,
+      });
+      if (!res.ok) throw new Error("Failed");
+      return res.json();
+    },
+    onSuccess: () => { refetch(); toast.success(t("تم رفع العرض", "Quote uploaded")); },
+    onError: () => toast.error(t("فشل رفع العرض", "Failed to upload")),
+  });
+
+  const analyzeMutation = useMutation({
+    mutationFn: async () => {
+      const res = await fetch(`/api/projects/${projectId}/contractor-rfq/analyze`, { method: "POST" });
+      if (!res.ok) throw new Error("Failed");
+      return res.json();
+    },
+    onSuccess: (data) => { refetch(); toast.success(t("تم التحليل", "Analysis complete")); },
+    onError: () => toast.error(t("فشل التحليل", "Analysis failed")),
+  });
+
+  const awardMutation = useMutation({
+    mutationFn: async (bidId: string) => {
+      const res = await fetch(`/api/projects/${projectId}/contractor-rfq/${bidId}/award`, { method: "POST" });
+      if (!res.ok) throw new Error("Failed");
+      return res.json();
+    },
+    onSuccess: () => { refetch(); toast.success(t("تمت الترسية", "Bid awarded")); },
+    onError: () => toast.error(t("فشلت الترسية", "Failed to award")),
+  });
+
+  const uploadContractMutation = useMutation({
+    mutationFn: async ({ bidId, file }: { bidId: string; file: File }) => {
+      const formData = new FormData();
+      formData.append("contractFile", file);
+      const res = await fetch(`/api/projects/${projectId}/contractor-rfq/${bidId}/upload-contract`, {
+        method: "POST",
+        body: formData,
+      });
+      if (!res.ok) throw new Error("Failed");
+      return res.json();
+    },
+    onSuccess: () => { refetch(); toast.success(t("تم رفع العقد", "Contract uploaded")); },
+    onError: () => toast.error(t("فشل رفع العقد", "Failed to upload contract")),
+  });
+
+  const rfqBids = bids?.filter(b => b.rfqSentAt) || [];
+  const quotesReceived = rfqBids.filter(b => b.quoteFile).length;
+  const awardedBid = rfqBids.find(b => b.isAwarded);
+
+  const rfqSubTabs = [
+    { id: "rfq", icon: Send, labelAr: "اختيار المقاولين", labelEn: "Select" },
+    { id: "quotes", icon: FileText, labelAr: "إدارة العروض", labelEn: "Quotes" },
+    { id: "compare", icon: BarChart3, labelAr: "تحليل بالذكاء الاصطناعي", labelEn: "AI Compare" },
+    { id: "award", icon: Award, labelAr: "الترسية", labelEn: "Award" },
+  ];
+
+  return (
+    <div className="space-y-4">
+      {/* Progress Bar */}
+      <Card className="border-slate-200 dark:border-slate-700/50 overflow-hidden">
+        <CardContent className="p-4">
+          <div className="flex items-center gap-3 mb-2">
+            <div className="flex-1 flex items-center gap-2">
+              {rfqSubTabs.map((st, idx) => (
+                <React.Fragment key={st.id}>
+                  <button onClick={() => setActiveSub(st.id)}
+                    className={cn(
+                      "w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all",
+                      (rfqSubTabs.findIndex(s => s.id === activeSub) >= idx || st.id === activeSub)
+                        ? "bg-teal-500 text-white" : "bg-slate-200 dark:bg-slate-700 text-slate-400"
+                    )}>
+                    {rfqSubTabs.findIndex(s => s.id === activeSub) > idx ? <CheckCircle2 className="h-3.5 w-3.5" /> : idx + 1}
+                  </button>
+                  {idx < rfqSubTabs.length - 1 && (
+                    <div className={cn("flex-1 h-1 rounded", rfqSubTabs.findIndex(s => s.id === activeSub) > idx ? "bg-teal-400" : "bg-slate-200 dark:bg-slate-700")} />
+                  )}
+                </React.Fragment>
+              ))}
+            </div>
+          </div>
+          <div className="flex items-center justify-center gap-1 text-xs">
+            {rfqSubTabs.map((st) => (
+              <button key={st.id} onClick={() => setActiveSub(st.id)}
+                className={cn("px-2 py-1 rounded transition-all", activeSub === st.id ? "text-teal-600 font-semibold" : "text-slate-400 hover:text-slate-600")}>
+                {isAr ? st.labelAr : st.labelEn}
+              </button>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* RFQ - Select Contractors */}
+      {activeSub === "rfq" && (
+        <Card className="border-slate-200 dark:border-slate-700/50">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-semibold flex items-center gap-2">
+              <Users className="h-4 w-4 text-teal-500" />
+              {t("اختيار المقاولين", "Select Contractors")}
+              <Badge className="bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-400 text-[10px] border-0 ms-2">
+                {selectedContractors.length} {t("محدد", "selected")}
+              </Badge>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="max-h-96 overflow-y-auto space-y-2">
+              {(contractors || []).map((c: { id: string; name: string; companyName: string; category: string; rating: number; phone: string }) => (
+                <label key={c.id} className={cn(
+                  "flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-all",
+                  selectedContractors.includes(c.id)
+                    ? "bg-teal-50 dark:bg-teal-950/20 border-teal-300 dark:border-teal-800"
+                    : "bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 hover:border-slate-300"
+                )}>
+                  <input type="checkbox" checked={selectedContractors.includes(c.id)}
+                    onChange={(e) => {
+                      if (e.target.checked) setSelectedContractors([...selectedContractors, c.id]);
+                      else setSelectedContractors(selectedContractors.filter(id => id !== c.id));
+                    }}
+                    className="rounded border-slate-300" />
+                  <div className="w-9 h-9 rounded-lg bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center">
+                    <HardHat className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-medium text-slate-800 dark:text-slate-200 truncate">{c.companyName || c.name}</p>
+                    <div className="flex items-center gap-2 text-[10px] text-slate-400">
+                      <span>{getContractorCategoryLabel(c.category, isAr)}</span>
+                      <span>•</span>
+                      <span className="flex items-center gap-0.5"><Star className="h-2.5 w-2.5 text-amber-400 fill-amber-400" />{c.rating}</span>
+                    </div>
+                  </div>
+                </label>
+              ))}
+            </div>
+            <div className="mt-4 flex justify-center">
+              <Button onClick={() => rfqMutation.mutate()} disabled={selectedContractors.length === 0 || rfqMutation.isPending}
+                className="h-10 px-6 bg-teal-600 hover:bg-teal-700 text-white rounded-xl gap-2 shadow-lg shadow-teal-600/20">
+                <Send className="h-4 w-4" />
+                {rfqMutation.isPending ? t("جارٍ الإرسال...", "Sending...") : t("إرسال طلب عرض سعر", "Send RFQ")}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Quotes Management */}
+      {activeSub === "quotes" && (
+        <Card className="border-slate-200 dark:border-slate-700/50">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-semibold flex items-center gap-2">
+              <FileText className="h-4 w-4 text-blue-500" />
+              {t("إدارة العروض", "Quote Management")}
+              <Badge className="bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 text-[10px] border-0 ms-2">
+                {quotesReceived}/{rfqBids.length} {t("مستلم", "received")}
+              </Badge>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {rfqBids.length === 0 ? (
+              <div className="text-center py-12 text-slate-400">
+                <Send className="h-12 w-12 mx-auto mb-3 text-slate-300" />
+                <p className="text-sm">{t("لم يتم إرسال طلبات بعد", "No RFQs sent yet")}</p>
+              </div>
+            ) : (
+              <div className="space-y-3 max-h-96 overflow-y-auto">
+                {rfqBids.map((bid) => (
+                  <div key={bid.id} className={cn(
+                    "flex items-center gap-3 p-3 rounded-lg border",
+                    bid.isAwarded ? "bg-emerald-50 dark:bg-emerald-950/20 border-emerald-300 dark:border-emerald-800" :
+                    "bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700"
+                  )}>
+                    <div className="w-9 h-9 rounded-lg bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center shrink-0">
+                      <HardHat className="h-4 w-4 text-amber-600" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-medium truncate">{bid.contractorName}</span>
+                        {bid.isAwarded && <Badge className="bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 text-[10px] border-0">{t("الفائز", "Winner")}</Badge>}
+                      </div>
+                      <div className="flex items-center gap-2 mt-0.5 text-[10px] text-slate-400">
+                        <Badge className={cn(
+                          "text-[9px] border-0",
+                          bid.rfqStatus === "sent" ? "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400" :
+                          bid.rfqStatus === "received" ? "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400" :
+                          bid.rfqStatus === "reviewing" ? "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400" :
+                          bid.rfqStatus === "awarded" ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400" :
+                          "bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400"
+                        )}>{bid.rfqStatus}</Badge>
+                        {bid.quoteFile && <span className="text-emerald-500">✓ {t("عرض مرفوع", "Quote uploaded")}</span>}
+                        {bid.amount > 0 && <span>{bid.amount.toLocaleString()} {isAr ? "د.إ" : "AED"}</span>}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <input ref={quoteInputRef} type="file" accept=".pdf" className="hidden"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) uploadQuoteMutation.mutate({ bidId: bid.id, file });
+                          e.target.value = "";
+                        }} />
+                      <Button size="sm" variant="outline" className="h-7 text-[10px] gap-1"
+                        onClick={() => quoteInputRef.current?.click()}>
+                        <Upload className="h-3 w-3" />{t("رفع عرض", "Upload")}
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* AI Compare */}
+      {activeSub === "compare" && (
+        <Card className="border-slate-200 dark:border-slate-700/50">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-semibold flex items-center gap-2">
+              <Sparkles className="h-4 w-4 text-purple-500" />
+              {t("تحليل بالذكاء الاصطناعي", "AI Analysis")}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {quotesReceived < 2 ? (
+              <div className="text-center py-12 text-slate-400">
+                <Sparkles className="h-12 w-12 mx-auto mb-3 text-slate-300" />
+                <p className="text-sm">{t("يرجى رفع عرضين على الأقل للمقارنة", "Upload at least 2 quotes to compare")}</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <Button onClick={() => analyzeMutation.mutate()} disabled={analyzeMutation.isPending}
+                  className="w-full bg-gradient-to-r from-purple-600 to-violet-600 hover:from-purple-700 hover:to-violet-700 text-white gap-2">
+                  <Sparkles className="h-4 w-4" />
+                  {analyzeMutation.isPending ? t("جارٍ التحليل...", "Analyzing...") : t("تحليل بالذكاء الاصطناعي", "Analyze with AI")}
+                </Button>
+                {rfqBids.filter(b => b.aiAnalysis).length > 0 && (
+                  <div className="bg-purple-50 dark:bg-purple-950/20 rounded-lg p-4 border border-purple-200 dark:border-purple-800/50">
+                    <p className="text-xs font-semibold text-purple-700 dark:text-purple-400 mb-2">{t("نتيجة التحليل", "Analysis Result")}</p>
+                    <p className="text-xs text-slate-600 dark:text-slate-300 whitespace-pre-line">{rfqBids.find(b => b.aiAnalysis)?.aiAnalysis}</p>
+                  </div>
+                )}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Award */}
+      {activeSub === "award" && (
+        <Card className="border-slate-200 dark:border-slate-700/50">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-semibold flex items-center gap-2">
+              <Award className="h-4 w-4 text-emerald-500" />
+              {t("الترسية", "Award")}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {awardedBid ? (
+              <div className="space-y-4">
+                <div className="bg-emerald-50 dark:bg-emerald-950/20 rounded-lg p-4 border border-emerald-200 dark:border-emerald-800/50">
+                  <div className="flex items-center gap-3">
+                    <CheckCircle2 className="h-8 w-8 text-emerald-500" />
+                    <div>
+                      <p className="text-sm font-semibold text-emerald-700 dark:text-emerald-400">{t("تمت الترسية", "Awarded")}</p>
+                      <p className="text-xs text-slate-600">{awardedBid.contractorName}</p>
+                    </div>
+                  </div>
+                </div>
+                {!awardedBid.contractFile && (
+                  <div className="flex items-center gap-2">
+                    <input ref={contractInputRef} type="file" accept=".pdf" className="hidden"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) uploadContractMutation.mutate({ bidId: awardedBid.id, file });
+                        e.target.value = "";
+                      }} />
+                    <Button onClick={() => contractInputRef.current?.click()}
+                      className="gap-2 bg-emerald-600 hover:bg-emerald-700 text-white">
+                      <Upload className="h-4 w-4" />
+                      {t("رفع العقد", "Upload Contract")}
+                    </Button>
+                  </div>
+                )}
+                {awardedBid.contractFile && (
+                  <p className="text-xs text-emerald-600">✓ {t("تم رفع العقد", "Contract uploaded")}</p>
+                )}
+              </div>
+            ) : (
+              <div className="space-y-3">
+                <p className="text-xs text-slate-500">{t("اختر المقاول الفائز من العروض المستلمة", "Select the winning contractor from received bids")}</p>
+                {rfqBids.filter(b => b.quoteFile).map((bid) => (
+                  <div key={bid.id} className="flex items-center gap-3 p-3 rounded-lg border border-slate-200 dark:border-slate-700">
+                    <div className="flex-1">
+                      <p className="text-xs font-medium">{bid.contractorName}</p>
+                      {bid.amount > 0 && <p className="text-[10px] text-slate-400">{bid.amount.toLocaleString()} {isAr ? "د.إ" : "AED"}</p>}
+                    </div>
+                    <Button size="sm" className="h-8 gap-1 bg-emerald-600 hover:bg-emerald-700 text-white text-[10px]"
+                      onClick={() => awardMutation.mutate(bid.id)} disabled={awardMutation.isPending}>
+                      <Award className="h-3 w-3" />{t("ترسية", "Award")}
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
+    </div>
+  );
+}
+
 // ===== MAIN COMPONENT =====
 export default function ProjectDetail({ language }: ProjectDetailProps) {
   const isAr = language === "ar";
@@ -1065,6 +1755,11 @@ export default function ProjectDetail({ language }: ProjectDetailProps) {
           <OverviewTab project={project} language={language} />
         </TabsContent>
 
+        {/* Workflow Tab */}
+        <TabsContent value="workflow" className="mt-4">
+          <WorkflowTab projectId={currentProjectId || ''} language={language} />
+        </TabsContent>
+
         {/* Design Tab */}
         <TabsContent value="design" className="mt-4">
           <SubTabsNav 
@@ -1233,111 +1928,7 @@ export default function ProjectDetail({ language }: ProjectDetailProps) {
 
         {/* Contractor Tab */}
         <TabsContent value="contractor" className="mt-4">
-          <SubTabsNav 
-            tabs={contractorSubTabs} 
-            activeSubTab={activeSubTab} 
-            onSubTabChange={handleSubTabChange}
-            language={language}
-          />
-          <div className="border rounded-xl p-4 bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700">
-            {activeSubTab === "rfq" && (
-              <div className="space-y-6">
-                {/* RFQ Workflow - Step by Step */}
-                <div className="bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/30 dark:to-orange-950/30 rounded-xl p-5 border border-amber-200 dark:border-amber-800/50">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="w-10 h-10 rounded-xl bg-amber-100 dark:bg-amber-900/50 flex items-center justify-center">
-                      <Send className="h-5 w-5 text-amber-600 dark:text-amber-400" />
-                    </div>
-                    <div>
-                      <h3 className="text-base font-bold text-slate-900 dark:text-white">{t("إرسال طلب عرض سعر", "Send RFQ")}</h3>
-                      <p className="text-xs text-slate-500">{t("أرسل مشروعك للمقاولين المناسبين للحصول على عروض أسعار", "Send your project to suitable contractors for price quotes")}</p>
-                    </div>
-                  </div>
-
-                  {/* Workflow Steps */}
-                  <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-                    {[
-                      { step: 1, icon: Users, labelAr: "اختر المقاولين", labelEn: "Select Contractors", color: "bg-teal-100 text-teal-600 dark:bg-teal-900/30 dark:text-teal-400" },
-                      { step: 2, icon: FileText, labelAr: "أرسل الطلب", labelEn: "Send RFQ", color: "bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400" },
-                      { step: 3, icon: Clock, labelAr: "استلم العروض", labelEn: "Receive Bids", color: "bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400" },
-                      { step: 4, icon: Award, labelAr: "رسي العطاء", labelEn: "Award Bid", color: "bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400" },
-                    ].map((item) => (
-                      <div key={item.step} className="flex items-center gap-2 p-2.5 rounded-lg bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700">
-                        <div className={cn("w-8 h-8 rounded-lg flex items-center justify-center shrink-0", item.color)}>
-                          <item.icon className="h-4 w-4" />
-                        </div>
-                        <div>
-                          <span className="text-[10px] text-slate-400">{t("الخطوة", "Step")} {item.step}</span>
-                          <p className="text-xs font-medium text-slate-700 dark:text-slate-300">{isAr ? item.labelAr : item.labelEn}</p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Contractor Selection */}
-                <ContractorsPage language={language} projectId={currentProjectId || undefined} />
-
-                {/* Send RFQ Button */}
-                <div className="flex justify-center">
-                  <Button className="h-10 px-6 bg-teal-600 hover:bg-teal-700 text-white rounded-xl gap-2 shadow-lg shadow-teal-600/20">
-                    <Send className="h-4 w-4" />
-                    {t("إرسال طلب عرض سعر للمقاولين المحددين", "Send RFQ to selected contractors")}
-                  </Button>
-                </div>
-              </div>
-            )}
-            {activeSubTab === "bids" && <BidsPage language={language} projectId={currentProjectId || undefined} />}
-            {activeSubTab === "comparison" && (
-              <div className="space-y-4">
-                <div className="bg-gradient-to-r from-purple-50 to-violet-50 dark:from-purple-950/30 dark:to-violet-950/30 rounded-xl p-5 border border-purple-200 dark:border-purple-800/50">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-purple-100 dark:bg-purple-900/50 flex items-center justify-center">
-                      <Sparkles className="h-5 w-5 text-purple-600 dark:text-purple-400" />
-                    </div>
-                    <div>
-                      <h3 className="text-base font-bold text-slate-900 dark:text-white">{t("مقارنة ذكية بالذكاء الاصطناعي", "AI-Powered Comparison")}</h3>
-                      <p className="text-xs text-slate-500">{t("المساعد الذكي يحلل ويفاضل بين عروض الأسعار", "AI assistant analyzes and compares price bids")}</p>
-                    </div>
-                  </div>
-                </div>
-                <Card className="border-slate-200 dark:border-slate-700/50">
-                  <CardContent className="py-16 text-center">
-                    <Sparkles className="h-16 w-16 mx-auto mb-4 text-purple-300 dark:text-purple-600" />
-                    <h3 className="text-lg font-semibold text-slate-700 dark:text-slate-300 mb-2">{t("المقارنة الذكية", "Smart Comparison")}</h3>
-                    <p className="text-sm text-slate-500 max-w-md mx-auto">{t("بمجرد استلام عروض الأسعار من المقاولين، ستظهر هنا مقارنة تفصيلية مع توصية الذكاء الاصطناعي بأفضل مقاول", "Once contractor bids are received, a detailed comparison will appear here with AI recommendation for the best contractor")}</p>
-                    <div className="mt-4 flex items-center justify-center gap-6 text-xs text-slate-400">
-                      <span className="flex items-center gap-1"><TrendingUp className="h-3.5 w-3.5 text-emerald-500" />{t("أفضل سعر", "Best Price")}</span>
-                      <span className="flex items-center gap-1"><Star className="h-3.5 w-3.5 text-amber-500" />{t("أفضل تقييم", "Best Rating")}</span>
-                      <span className="flex items-center gap-1"><Timer className="h-3.5 w-3.5 text-blue-500" />{t("أسرع تنفيذ", "Fastest")}</span>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-            )}
-            {activeSubTab === "award" && (
-              <div className="space-y-4">
-                <div className="bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-950/30 dark:to-teal-950/30 rounded-xl p-5 border border-emerald-200 dark:border-emerald-800/50">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-emerald-100 dark:bg-emerald-900/50 flex items-center justify-center">
-                      <Award className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
-                    </div>
-                    <div>
-                      <h3 className="text-base font-bold text-slate-900 dark:text-white">{t("ترسية العطاء", "Bid Award")}</h3>
-                      <p className="text-xs text-slate-500">{t("اختر المقاول الفائز وأنشئ محضر الترسية", "Select the winning contractor and generate award document")}</p>
-                    </div>
-                  </div>
-                </div>
-                <Card className="border-slate-200 dark:border-slate-700/50">
-                  <CardContent className="py-16 text-center">
-                    <Award className="h-16 w-16 mx-auto mb-4 text-emerald-300 dark:text-emerald-600" />
-                    <h3 className="text-lg font-semibold text-slate-700 dark:text-slate-300 mb-2">{t("ترسية العطاء", "Award Bid")}</h3>
-                    <p className="text-sm text-slate-500 max-w-md mx-auto">{t("بعد المقارنة والموافقة على المقاول المناسب، يمكنك ترسية العطاء هنا. سيتم إنشاء محضر الترسية تلقائياً وإضافة العقد لمستندات المشروع", "After comparison and approval, award the bid here. An award document will be generated and the contract will be added to project documents")}</p>
-                  </CardContent>
-                </Card>
-              </div>
-            )}
-          </div>
+          <ContractorRFQTab projectId={currentProjectId || ''} language={language} />
         </TabsContent>
 
         {/* Supervision Tab */}

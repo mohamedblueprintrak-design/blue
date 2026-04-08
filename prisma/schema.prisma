@@ -131,6 +131,7 @@ model Project {
   buildingInspections BuildingInspection[]
   supervisionChecklists SupervisionChecklist[]
   violations           Violation[]
+  workflow             ProjectWorkflow?
 }
 
 // ==================== MUNICIPALITY CORRESPONDENCE ====================
@@ -517,6 +518,14 @@ model Bid {
   deadline          DateTime?
   notes             String   @default("")
   evaluationNotes   String   @default("")
+  quoteFile          String   @default("")
+  quoteUploadedAt    DateTime?
+  rfqSentAt          DateTime?
+  rfqStatus          String   @default("pending") // pending, sent, received, reviewing, awarded, rejected
+  aiAnalysis         String   @default("")
+  contractFile       String   @default("")
+  contractSignedAt   DateTime?
+  isAwarded          Boolean  @default(false)
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 
@@ -1316,4 +1325,122 @@ model MarketingCampaign {
   notes           String   @default("")
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
+}
+
+// ==================== WORKFLOW MANAGEMENT ====================
+
+model WorkflowTemplate {
+  id              String   @id @default(cuid())
+  name            String   @default("")
+  nameEn          String   @default("")
+  projectType     String   @default("")
+  description     String   @default("")
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  stages          WorkflowTemplateStage[]
+  projects        ProjectWorkflow[]
+}
+
+model WorkflowTemplateStage {
+  id              String   @id @default(cuid())
+  templateId      String
+  name            String   @default("")
+  nameEn          String   @default("")
+  order           Int      @default(0)
+  durationDays    Int      @default(0)
+  isParallel      Boolean  @default(false)
+  isOptional      Boolean  @default(false)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  template        WorkflowTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
+  steps           WorkflowTemplateStep[]
+
+  @@index([templateId, order])
+}
+
+model WorkflowTemplateStep {
+  id                String   @id @default(cuid())
+  stageId           String
+  name              String   @default("")
+  nameEn            String   @default("")
+  order             Int      @default(0)
+  assignedRole      String   @default("")
+  isRequired        Boolean  @default(true)
+  requiresApproval  Boolean  @default(false)
+  autoComplete      Boolean  @default(false)
+  onCompleteAction  String   @default("next_step")
+  daysToComplete    Int      @default(0)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  stage             WorkflowTemplateStage @relation(fields: [stageId], references: [id], onDelete: Cascade)
+
+  @@index([stageId, order])
+}
+
+model ProjectWorkflow {
+  id              String   @id @default(cuid())
+  projectId       String   @unique
+  templateId      String?
+  currentStageId  String?
+  status          String   @default("active")
+  progress        Float    @default(0)
+  startedAt       DateTime @default(now())
+  completedAt     DateTime?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  project         Project  @relation(fields: [projectId], references: [id])
+  template        WorkflowTemplate? @relation(fields: [templateId], references: [id])
+  stages          WorkflowStage[]
+}
+
+model WorkflowStage {
+  id              String   @id @default(cuid())
+  workflowId      String
+  templateStageId String?
+  name            String   @default("")
+  nameEn          String   @default("")
+  order           Int      @default(0)
+  status          String   @default("pending")
+  startDate       DateTime?
+  dueDate         DateTime?
+  completedDate   DateTime?
+  assigneeId      String?
+  notes           String   @default("")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  workflow        ProjectWorkflow @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  steps           WorkflowStep[]
+
+  @@index([workflowId, order])
+}
+
+model WorkflowStep {
+  id              String   @id @default(cuid())
+  stageId         String
+  templateStepId  String?
+  name            String   @default("")
+  nameEn          String   @default("")
+  order           Int      @default(0)
+  status          String   @default("locked")
+  assigneeId      String?
+  assignedRole    String   @default("")
+  startDate       DateTime?
+  dueDate         DateTime?
+  completedDate   DateTime?
+  action          String   @default("")
+  notes           String   @default("")
+  returnReason     String   @default("")
+  severity        String   @default("normal")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  stage           WorkflowStage @relation(fields: [stageId], references: [id], onDelete: Cascade)
+
+  @@index([stageId, order])
 }
