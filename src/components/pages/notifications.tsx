@@ -1,12 +1,13 @@
 "use client";
 
-import { useState, useMemo, useSyncExternalStore } from "react";
+import { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useLang } from "@/hooks/use-lang";
 import { cn } from "@/lib/utils";
 import { useNavStore } from "@/store/nav-store";
 import {
@@ -34,19 +35,6 @@ import {
   Layers,
   ArrowRight,
 } from "lucide-react";
-
-// ===== Language Hook =====
-function getLangSnapshot(): "ar" | "en" {
-  if (typeof window === "undefined") return "ar";
-  return (localStorage.getItem("blueprint-lang") as "ar" | "en") || "ar";
-}
-function getLangServerSnapshot(): "ar" | "en" { return "ar"; }
-function subscribeLang(cb: () => void) {
-  window.addEventListener("storage", cb);
-  window.addEventListener("blueprint-lang-change", cb);
-  return () => { window.removeEventListener("storage", cb); window.removeEventListener("blueprint-lang-change", cb); };
-}
-function useLang() { return useSyncExternalStore(subscribeLang, getLangSnapshot, getLangServerSnapshot); }
 
 // ===== Types =====
 interface NotificationRecord {

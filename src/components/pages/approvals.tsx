@@ -61,6 +61,7 @@ import {
   ExternalLink,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { formatCurrency } from "@/lib/formatters";
 
 // ===== Entity item interface for picker =====
 interface EntityItem {
@@ -89,9 +90,6 @@ interface Approval {
 }
 
 // ===== Helpers =====
-function formatCurrency(amount: number, ar: boolean) {
-  return `${amount.toLocaleString(ar ? "ar-AE" : "en-US")} ${ar ? "د.إ" : "AED"}`;
-}
 
 function timeAgo(dateStr: string, ar: boolean): string {
   const now = Date.now();

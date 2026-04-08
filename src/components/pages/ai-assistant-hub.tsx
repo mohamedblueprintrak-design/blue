@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useSyncExternalStore, useRef, useEffect } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -49,25 +49,8 @@ import {
   Globe,
   Shield,
 } from "lucide-react";
+import { useLang } from "@/hooks/use-lang";
 import { cn } from "@/lib/utils";
-
-// ===== Language Hook =====
-function getLangSnapshot(): "ar" | "en" {
-  if (typeof window === "undefined") return "ar";
-  return (localStorage.getItem("blueprint-lang") as "ar" | "en") || "ar";
-}
-function getLangServerSnapshot(): "ar" | "en" { return "ar"; }
-function subscribeLang(cb: () => void) {
-  window.addEventListener("storage", cb);
-  window.addEventListener("blueprint-lang-change", cb);
-  return () => {
-    window.removeEventListener("storage", cb);
-    window.removeEventListener("blueprint-lang-change", cb);
-  };
-}
-function useLang() {
-  return useSyncExternalStore(subscribeLang, getLangSnapshot, getLangServerSnapshot);
-}
 
 // ===== Types =====
 interface ChatMessage {

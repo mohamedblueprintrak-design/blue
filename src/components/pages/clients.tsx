@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useSyncExternalStore, useCallback } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { clientSchema, getErrorMessage, type ClientFormData } from "@/lib/validations";
@@ -75,6 +75,7 @@ import {
   Footprints,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { formatCurrency } from "@/lib/formatters";
 
 // ===== Constants =====
 const NATIONALITIES = [
@@ -160,24 +161,6 @@ const CLIENT_TYPE_LABELS: Record<string, { ar: string; en: string; color: string
   company: { ar: "شركة", en: "Company", color: "bg-violet-100 text-violet-700 dark:bg-violet-900/50 dark:text-violet-300" },
   government: { ar: "حكومة", en: "Government", color: "bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-300" },
 };
-
-// ===== Language =====
-function getLangSnapshot(): "ar" | "en" {
-  if (typeof window === "undefined") return "ar";
-  return (localStorage.getItem("blueprint-lang") as "ar" | "en") || "ar";
-}
-function getLangServerSnapshot(): "ar" | "en" { return "ar"; }
-function subscribeLang(cb: () => void) {
-  window.addEventListener("storage", cb);
-  window.addEventListener("blueprint-lang-change", cb);
-  return () => {
-    window.removeEventListener("storage", cb);
-    window.removeEventListener("blueprint-lang-change", cb);
-  };
-}
-function useLang() {
-  return useSyncExternalStore(subscribeLang, getLangSnapshot, getLangServerSnapshot);
-}
 
 // ===== Types =====
 interface Client {
@@ -300,11 +283,6 @@ function getInteractionIcon(type: string) {
     case "email": return Mail;
     default: return FileText;
   }
-}
-
-function formatCurrency(amount: number | undefined | null, ar: boolean) {
-  const safeAmount = amount ?? 0;
-  return `${safeAmount.toLocaleString(ar ? "ar-AE" : "en-US")} ${ar ? "د.إ" : "AED"}`;
 }
 
 function getAvatarColor(name: string) {

@@ -62,6 +62,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { generateInvoicePDF } from "@/lib/pdf-utils";
+import { formatCurrency } from "@/lib/formatters";
 
 // ===== Types =====
 interface InvoiceItem {
@@ -104,10 +105,6 @@ interface ClientOption {
 }
 
 // ===== Helpers =====
-function formatCurrency(amount: number, ar: boolean) {
-  return `${amount.toLocaleString(ar ? "ar-AE" : "en-US")} ${ar ? "د.إ" : "AED"}`;
-}
-
 function getStatusConfig(status: string) {
   const configs: Record<string, { ar: string; en: string; color: string }> = {
     draft: { ar: "مسودة", en: "Draft", color: "bg-slate-100 text-slate-700 dark:bg-slate-700 dark:text-slate-300" },

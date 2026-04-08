@@ -47,6 +47,7 @@ import {
   ArrowDownRight,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { formatCurrency } from "@/lib/formatters";
 
 // ===== Types =====
 interface PaymentItem {
@@ -72,10 +73,6 @@ interface ProjectOption {
 }
 
 // ===== Helpers =====
-function formatCurrency(amount: number, ar: boolean) {
-  return `${amount.toLocaleString(ar ? "ar-AE" : "en-US")} ${ar ? "د.إ" : "AED"}`;
-}
-
 function getStatusConfig(status: string) {
   const configs: Record<string, { ar: string; en: string; color: string }> = {
     pending: { ar: "معلّق", en: "Pending", color: "bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-300" },

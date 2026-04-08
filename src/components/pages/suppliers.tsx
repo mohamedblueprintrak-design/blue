@@ -6,6 +6,7 @@ import { useToastFeedback } from "@/hooks/use-toast-feedback";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { supplierSchema, getErrorMessage, type SupplierFormData } from "@/lib/validations";
+import { formatCurrency } from "@/lib/formatters";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -89,10 +90,6 @@ const categoryDotColors: Record<string, string> = {
   services: "bg-teal-500",
   subcontractors: "bg-amber-500",
 };
-
-function formatCurrency(amount: number, ar: boolean) {
-  return `${amount.toLocaleString(ar ? "ar-AE" : "en-US")} ${ar ? "د.إ" : "AED"}`;
-}
 
 function getPerformanceDot(rating: number): { color: string; label: string; labelAr: string } {
   if (rating >= 4) return { color: "bg-green-500", label: "Excellent", labelAr: "ممتاز" };

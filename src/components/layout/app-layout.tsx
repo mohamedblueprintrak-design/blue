@@ -86,13 +86,13 @@ import ProjectsList from "@/components/pages/projects";
 import ProjectDetail from "@/components/pages/project-detail";
 import ContractorsPage from "@/components/pages/contractors";
 import ClientsPage from "@/components/pages/clients";
-import EmployeesPage from "@/components/pages/employees";
-import AttendancePage from "@/components/pages/attendance";
-import LeavePage from "@/components/pages/leave";
-import WorkloadPage from "@/components/pages/workload";
+import ReportsPage from "@/components/pages/reports";
+import FinanceRevenuePage from "@/components/pages/finance-revenue";
+import FinanceExpensesPage from "@/components/pages/finance-expenses";
+import EmployeesHub from "@/components/pages/employees-hub";
+import NotificationsPage from "@/components/pages/notifications";
 import SettingsPage from "@/components/pages/settings";
 import AdminPanel from "@/components/pages/admin";
-import TendersPage from "@/components/pages/tenders";
 
 import { useKeyboardShortcuts } from "@/hooks/use-keyboard-shortcuts";
 import Breadcrumbs from "@/components/layout/breadcrumbs";
@@ -101,14 +101,6 @@ import WelcomeModal from "@/components/layout/welcome-modal";
 import ShortcutsOverlay from "@/components/layout/shortcuts-overlay";
 import SidebarStats from "@/components/layout/sidebar-stats";
 import MobileBottomNav from "@/components/layout/mobile-bottom-nav";
-
-import CommissionsPage from "@/components/pages/commissions";
-import AIAssistantHub from "@/components/pages/ai-assistant-hub";
-import NotificationsPage from "@/components/pages/notifications";
-import ReportsPage from "@/components/pages/reports";
-import FinanceRevenuePage from "@/components/pages/finance-revenue";
-import FinanceExpensesPage from "@/components/pages/finance-expenses";
-import FinanceReportsPage from "@/components/pages/finance-reports";
 import { cn } from "@/lib/utils";
 import { AnimatePresence, motion } from "framer-motion";
 import LogoImage from "@/components/ui/logo-image";
@@ -546,71 +538,37 @@ export default function AppLayout({ language }: AppLayoutProps) {
                 )
               )}
 
-              {/* Tenders */}
-              {currentPage === "tenders" && <TendersPage language={language} />}
+              {/* Clients (single page with internal tabs) */}
+              {currentPage === "clients" && <ClientsPage language={language} />}
 
-              {/* Commissions & Referrals */}
-              {currentPage === "commissions" && <CommissionsPage language={language} />}
+              {/* Contractors (single page with internal tabs) */}
+              {currentPage === "contractors" && <ContractorsPage language={language} />}
 
-              {/* AI Assistant & Knowledge Base */}
-              {currentPage === "ai-assistant" && <AIAssistantHub language={language} />}
+              {/* Finance sub-menu */}
+              {currentPage === "finance-revenue" && <FinanceRevenuePage language={language} />}
+              {currentPage === "finance-expenses" && <FinanceExpensesPage language={language} />}
+              {currentPage === "finance-reports" && <ReportsPage language={language} />}
 
-              {/* Clients - list or create */}
-              {(currentPage === "clients" || currentPage === "clients-list" || currentPage === "clients-create") && <ClientsPage language={language} initialTab={currentPage === "clients-create" ? "create" : "list"} />}
-
-              {/* Projects - list or filtered or create */}
-              {currentPage === "projects" && (
-                currentProjectId ? (
-                  <ProjectDetail language={language} />
-                ) : (
-                  <ProjectsList language={language} />
-                )
-              )}
-              {currentPage === "projects-all" && <ProjectsList language={language} />}
-              {currentPage === "projects-active" && <ProjectsList language={language} filter="active" />}
-              {currentPage === "projects-completed" && <ProjectsList language={language} filter="completed" />}
-              {currentPage === "projects-create" && <ProjectsList language={language} showCreate={true} />}
-
-              {/* Contractors */}
-              {(currentPage === "contractors" || currentPage === "contractors-list" || currentPage === "contractors-create") && <ContractorsPage language={language} initialTab={currentPage === "contractors-create" ? "create" : "list"} />}
-              {currentPage === "contractors-rfqs" && <ContractorsPage language={language} initialTab="rfqs" />}
-
-              {/* Employees Section */}
-              {(currentPage === "employees" || currentPage === "employees-list") && (
-                <EmployeesPage language={language} />
-              )}
-              {currentPage === "employees-attendance" && <AttendancePage language={language} />}
-              {currentPage === "employees-leave" && <LeavePage language={language} />}
-              {currentPage === "employees-workload" && <WorkloadPage language={language} />}
-
-              {/* Settings */}
-              {currentPage === "settings" && <SettingsPage language={language} />}
+              {/* Employees Hub (tabs: list, attendance, leave, workload) */}
+              {currentPage === "employees" && <EmployeesHub language={language} />}
 
               {/* Admin */}
               {currentPage === "admin" && <AdminPanel language={language} />}
 
-              {/* Notifications */}
+              {/* Settings — accessible from user dropdown */}
+              {currentPage === "settings" && <SettingsPage language={language} />}
+
+              {/* Notifications — accessible from header bell */}
               {currentPage === "notifications" && <NotificationsPage language={language} />}
 
-              {/* Reports */}
-              {currentPage === "reports" && <ReportsPage language={language} />}
-
-              {/* Finance */}
-              {currentPage === "finance-revenue" && <FinanceRevenuePage language={language} />}
-              {currentPage === "finance-expenses" && <FinanceExpensesPage language={language} />}
-              {currentPage === "finance-reports" && <FinanceReportsPage language={language} />}
-
               {/* Placeholder for undefined pages */}
-              {!["dashboard", "projects", "projects-all", "projects-active", "projects-completed", "projects-create",
-                 "tenders", "commissions", "ai-assistant",
-                 "clients", "clients-list", "clients-create",
-                 "contractors", "contractors-list", "contractors-create", "contractors-rfqs",
-                 "employees", "employees-list",
-                 "employees-attendance", "employees-leave", "employees-workload",
-                 "settings", "admin",
-                 "notifications", "reports",
-                 "finance-revenue", "finance-expenses", "finance-reports",
-                 ].includes(currentPage) && (
+              {!["dashboard", "projects",
+   "clients",
+   "contractors",
+   "finance-revenue", "finance-expenses", "finance-reports",
+   "employees",
+   "admin", "settings", "notifications",
+   ].includes(currentPage) && (
                 <div className="flex flex-col items-center justify-center min-h-[60vh] text-center">
                   <LogoImage size={64} className="mb-4 bg-slate-100 dark:bg-slate-800 [&>div]:opacity-40" />
                   <h2 className="text-xl font-semibold text-slate-900 dark:text-white mb-2">

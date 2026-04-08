@@ -63,6 +63,7 @@ import {
   UserCheck,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { formatCurrency } from "@/lib/formatters";
 import {
   BarChart,
   Bar,
@@ -153,9 +154,6 @@ interface ContractorFull {
 interface ProjectOption { id: string; name: string; nameEn: string; number: string; }
 
 // ===== Helpers =====
-function formatCurrency(amount: number, ar: boolean) {
-  return `${amount.toLocaleString(ar ? "ar-AE" : "en-US")} ${ar ? "د.إ" : "AED"}`;
-}
 
 function getStatusConfig(status: string) {
   const configs: Record<string, { ar: string; en: string; color: string; gradient: string }> = {

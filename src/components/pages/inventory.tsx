@@ -49,6 +49,7 @@ import {
   Ban,
   CheckCircle,
 } from "lucide-react";
+import { formatCurrency } from "@/lib/formatters";
 
 // ===== Types =====
 interface InventoryItem {
@@ -83,10 +84,6 @@ interface SimpleProject {
 }
 
 // ===== Helpers =====
-function formatCurrency(amount: number, ar: boolean) {
-  return `${amount.toLocaleString(ar ? "ar-AE" : "en-US")} ${ar ? "د.إ" : "AED"}`;
-}
-
 function getStockBarColor(item: InventoryItem): { barColor: string; bgBarColor: string; textColor: string } {
   if (item.quantity === 0) {
     return { barColor: "bg-red-500", bgBarColor: "bg-red-100 dark:bg-red-900/30", textColor: "text-red-600 dark:text-red-400" };

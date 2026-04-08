@@ -7,6 +7,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { changeOrderSchema, getErrorMessage, type ChangeOrderFormData } from "@/lib/validation-schemas";
 import { cn } from "@/lib/utils";
+import { formatCurrency } from "@/lib/formatters";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -93,13 +94,7 @@ function getStatusConfig(status: string) {
   return configs[status] || configs.pending;
 }
 
-function formatCurrency(amount: number, ar: boolean) {
-  const formatted = Math.abs(amount).toLocaleString(ar ? "ar-AE" : "en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 });
-  const prefix = ar ? "د.إ" : "AED";
-  return `${amount < 0 ? "-" : ""}${formatted} ${prefix}`;
-}
-
-// ===== Main Component =====
+// ===== Helpers =====
 interface ChangeOrdersProps { language: "ar" | "en"; projectId?: string; }
 
 export default function ChangeOrders({ language, projectId }: ChangeOrdersProps) {

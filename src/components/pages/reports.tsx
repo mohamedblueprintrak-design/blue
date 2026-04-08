@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo, useSyncExternalStore } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -20,34 +20,13 @@ import {
   Download, FileText, FileSpreadsheet, Loader2, FolderKanban, UserCheck, Target,
   PieChart as PieChartIcon,
 } from "lucide-react";
+import { useLang } from "@/hooks/use-lang";
 import { cn } from "@/lib/utils";
 import { exportToCSV } from "@/lib/export-utils";
 import { useToastFeedback } from "@/hooks/use-toast-feedback";
-
-// ===== Language Hook =====
-function getLangSnapshot(): "ar" | "en" {
-  if (typeof window === "undefined") return "ar";
-  return (localStorage.getItem("blueprint-lang") as "ar" | "en") || "ar";
-}
-function getLangServerSnapshot(): "ar" | "en" { return "ar"; }
-function subscribeLang(cb: () => void) {
-  window.addEventListener("storage", cb);
-  window.addEventListener("blueprint-lang-change", cb);
-  return () => { window.removeEventListener("storage", cb); window.removeEventListener("blueprint-lang-change", cb); };
-}
-function useLang() { return useSyncExternalStore(subscribeLang, getLangSnapshot, getLangServerSnapshot); }
+import { formatCurrency, formatK } from "@/lib/formatters";
 
 // ===== Helpers =====
-function formatCurrency(amount: number, ar: boolean) {
-  return `${amount.toLocaleString(ar ? "ar-AE" : "en-US")} ${ar ? "د.إ" : "AED"}`;
-}
-
-function formatK(amount: number): string {
-  if (amount >= 1000000) return `${(amount / 1000000).toFixed(1)}M`;
-  if (amount >= 1000) return `${(amount / 1000).toFixed(1)}K`;
-  return amount.toString();
-}
-
 function TrendIndicator({ value, ar }: { value: number; ar: boolean }) {
   const isPositive = value >= 0;
   return (

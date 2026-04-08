@@ -45,6 +45,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { formatCurrency } from "@/lib/formatters";
 
 // ===== Types =====
 interface ProposalItem {
@@ -75,10 +76,6 @@ interface ProjectOption { id: string; name: string; nameEn: string; number: stri
 interface ClientOption { id: string; name: string; company: string; }
 
 // ===== Helpers =====
-function formatCurrency(amount: number, ar: boolean) {
-  return `${amount.toLocaleString(ar ? "ar-AE" : "en-US")} ${ar ? "د.إ" : "AED"}`;
-}
-
 function getStatusConfig(status: string) {
   const configs: Record<string, { ar: string; en: string; color: string; gradient: string }> = {
     draft: { ar: "مسودة", en: "Draft", color: "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300", gradient: "from-slate-400 to-slate-500" },

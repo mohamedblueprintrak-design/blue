@@ -51,6 +51,7 @@ import {
   StickyNote,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { formatCurrency } from "@/lib/formatters";
 
 // ===== Types =====
 interface ContractorItem {
@@ -121,10 +122,6 @@ function getStatusConfig(status: string) {
     rejected: { ar: "مرفوض", en: "Rejected", color: "bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-300" },
   };
   return configs[status] || configs.submitted;
-}
-
-function formatCurrency(amount: number, ar: boolean) {
-  return `${amount.toLocaleString(ar ? "ar-AE" : "en-US")} ${ar ? "د.إ" : "AED"}`;
 }
 
 function RatingStars({ rating, size = "sm", interactive = false, onRate }: { rating: number; size?: "sm" | "md"; interactive?: boolean; onRate?: (r: number) => void }) {

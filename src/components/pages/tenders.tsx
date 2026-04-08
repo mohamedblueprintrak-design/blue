@@ -1,9 +1,11 @@
 "use client";
 
-import { useState, useEffect, useSyncExternalStore } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToastFeedback } from "@/hooks/use-toast-feedback";
+import { useLang } from "@/hooks/use-lang";
 import { cn } from "@/lib/utils";
+import { formatCurrency } from "@/lib/formatters";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -58,21 +60,6 @@ import {
   Inbox,
   AlertCircle,
 } from "lucide-react";
-
-// ===== Language =====
-function getLangSnapshot(): "ar" | "en" {
-  if (typeof window === "undefined") return "ar";
-  return (localStorage.getItem("blueprint-lang") as "ar" | "en") || "ar";
-}
-function getLangServerSnapshot(): "ar" | "en" { return "ar"; }
-function subscribeLang(cb: () => void) {
-  window.addEventListener("storage", cb);
-  window.addEventListener("blueprint-lang-change", cb);
-  return () => {
-    window.removeEventListener("storage", cb);
-    window.removeEventListener("blueprint-lang-change", cb);
-  };
-}
 
 // ===== Types =====
 interface TenderItem {
@@ -182,10 +169,6 @@ function getProjectTypeLabel(type: string, ar: boolean) {
   return ar ? (labels[type]?.ar || type) : (labels[type]?.en || type);
 }
 
-function formatCurrency(amount: number, ar: boolean) {
-  return `${amount.toLocaleString(ar ? "ar-AE" : "en-US")} ${ar ? "د.إ" : "AED"}`;
-}
-
 // ===== Countdown Component =====
 function ClosingCountdown({ closingDate, ar }: { closingDate: string | null; ar: boolean }) {
   const [now, setNow] = useState(Date.now());
@@ -275,7 +258,7 @@ interface TendersPageProps {
 
 export default function TendersPage({ language }: TendersPageProps) {
   const ar = language === "ar";
-  const lang = useSyncExternalStore(subscribeLang, getLangSnapshot, getLangServerSnapshot);
+  const lang = useLang();
   const isAr = lang === "ar";
 
   const queryClient = useQueryClient();

@@ -62,9 +62,12 @@ const managementRoles: Role[] = [
 
 const fullRoles: Role[] = ["admin", "manager"];
 
-// ===== NAVIGATION ITEMS =====
+// ===== NAVIGATION ITEMS (Simplified) =====
+// Strategy: fewer top-level items, no unnecessary sub-menus.
+// Pages handle their own tabs internally.
+// Notifications → bell icon in header | AI Assistant → floating button | Settings → user dropdown
 const allNavItems: NavItem[] = [
-  // ───── Dashboard ─────
+  // ───── 1. Dashboard ─────
   {
     id: "dashboard",
     icon: "LayoutDashboard",
@@ -73,121 +76,34 @@ const allNavItems: NavItem[] = [
     roles: allRoles,
   },
 
-  // ───── Clients (قائمة فرعية) ─────
+  // ───── 2. Clients (صفحة واحدة بتابات داخلية) ─────
   {
     id: "clients",
     icon: "UserPlus",
     labelAr: "العملاء",
     labelEn: "Clients",
     roles: allRoles,
-    children: [
-      {
-        id: "clients-list",
-        icon: "Users",
-        labelAr: "كل العملاء",
-        labelEn: "All Clients",
-        roles: allRoles,
-      },
-      {
-        id: "clients-create",
-        icon: "UserPlus",
-        labelAr: "إنشاء عميل جديد",
-        labelEn: "Create New Client",
-        roles: allRoles,
-      },
-    ],
   },
 
-  // ───── Projects (قائمة فرعية) ─────
+  // ───── 3. Projects (صفحة واحدة بتابات داخلية + إنشاء جواها) ─────
   {
     id: "projects",
     icon: "FolderKanban",
     labelAr: "المشاريع",
     labelEn: "Projects",
     roles: allRoles,
-    children: [
-      {
-        id: "projects-all",
-        icon: "FolderKanban",
-        labelAr: "كل المشاريع",
-        labelEn: "All Projects",
-        roles: allRoles,
-      },
-      {
-        id: "projects-active",
-        icon: "Activity",
-        labelAr: "المشاريع النشطة",
-        labelEn: "Active Projects",
-        roles: allRoles,
-      },
-      {
-        id: "projects-completed",
-        icon: "CheckCircle2",
-        labelAr: "المشاريع المكتملة",
-        labelEn: "Completed Projects",
-        roles: allRoles,
-      },
-      {
-        id: "projects-create",
-        icon: "Plus",
-        labelAr: "إنشاء مشروع",
-        labelEn: "Create Project",
-        roles: managementRoles,
-      },
-    ],
   },
 
-  // ───── Contractors (قائمة فرعية) ─────
+  // ───── 4. Contractors (صفحة واحدة بتابات: قائمة + إضافة + RFQs) ─────
   {
     id: "contractors",
     icon: "HardHat",
     labelAr: "المقاولون",
     labelEn: "Contractors",
     roles: ["admin", "manager", "project_manager", "engineer"],
-    children: [
-      {
-        id: "contractors-list",
-        icon: "HardHat",
-        labelAr: "كل المقاولين",
-        labelEn: "All Contractors",
-        roles: ["admin", "manager", "project_manager", "engineer"],
-      },
-      {
-        id: "contractors-rfqs",
-        icon: "FileText",
-        labelAr: "طلبات العروض",
-        labelEn: "RFQs",
-        roles: ["admin", "manager", "project_manager"],
-      },
-      {
-        id: "contractors-create",
-        icon: "UserPlus",
-        labelAr: "إضافة مقاول",
-        labelEn: "Add Contractor",
-        roles: ["admin", "manager"],
-      },
-    ],
   },
 
-  // ───── Tenders (المناقصات) ─────
-  {
-    id: "tenders",
-    icon: "Gavel",
-    labelAr: "المناقصات",
-    labelEn: "Tenders",
-    roles: ["admin", "manager", "project_manager"],
-  },
-
-  // ───── Commissions & Referrals ─────
-  {
-    id: "commissions",
-    icon: "Gift",
-    labelAr: "العمولات",
-    labelEn: "Commissions",
-    roles: ["admin", "manager", "accountant"],
-  },
-
-  // ───── Finance (قائمة فرعية) ─────
+  // ───── 5. Finance (قائمة فرعية - الوحيدة المحتاجة sub-menu) ─────
   {
     id: "finance",
     icon: "Wallet",
@@ -212,89 +128,23 @@ const allNavItems: NavItem[] = [
       {
         id: "finance-reports",
         icon: "BarChart3",
-        labelAr: "التقارير المالية",
-        labelEn: "Financial Reports",
-        roles: ["admin", "manager", "accountant"],
+        labelAr: "التقارير",
+        labelEn: "Reports",
+        roles: ["admin", "manager", "project_manager", "accountant"],
       },
     ],
   },
 
-  // ───── Reports (قسم منفصل) ─────
-  {
-    id: "reports",
-    icon: "BarChart3",
-    labelAr: "التقارير",
-    labelEn: "Reports",
-    roles: ["admin", "manager", "project_manager"],
-  },
-
-  // ───── AI Assistant & Knowledge Base ─────
-  {
-    id: "ai-assistant",
-    icon: "Sparkles",
-    labelAr: "المساعد الذكي",
-    labelEn: "AI Assistant",
-    roles: allRoles,
-  },
-
-  // ───── Employees (قائمة فرعية) ─────
+  // ───── 6. Employees (صفحة واحدة بتابات: قائمة + حضور + إجازات + أعباء) ─────
   {
     id: "employees",
     icon: "UsersRound",
     labelAr: "الموظفين",
     labelEn: "Employees",
     roles: ["admin", "manager", "hr"],
-    children: [
-      {
-        id: "employees-list",
-        icon: "UsersRound",
-        labelAr: "قائمة الموظفين",
-        labelEn: "Employees List",
-        roles: ["admin", "manager", "hr"],
-      },
-      {
-        id: "employees-attendance",
-        icon: "Clock",
-        labelAr: "الحضور والانصراف",
-        labelEn: "Attendance",
-        roles: ["admin", "manager", "hr"],
-      },
-      {
-        id: "employees-leave",
-        icon: "CalendarOff",
-        labelAr: "الإجازات",
-        labelEn: "Leave Management",
-        roles: ["admin", "manager", "hr"],
-      },
-      {
-        id: "employees-workload",
-        icon: "BarChart3",
-        labelAr: "أعباء العمل",
-        labelEn: "Workload",
-        roles: ["admin", "manager", "hr"],
-      },
-    ],
   },
 
-  // ───── Notifications ─────
-  {
-    id: "notifications",
-    icon: "Bell",
-    labelAr: "الإشعارات",
-    labelEn: "Notifications",
-    roles: allRoles,
-  },
-
-  // ───── Settings ─────
-  {
-    id: "settings",
-    icon: "Settings",
-    labelAr: "الإعدادات",
-    labelEn: "Settings",
-    roles: ["admin", "manager"],
-  },
-
-  // ───── Admin ─────
+  // ───── 7. System Admin (admin بس) ─────
   {
     id: "admin",
     icon: "Shield",

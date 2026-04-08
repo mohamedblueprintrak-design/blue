@@ -45,6 +45,7 @@ import {
   Settings,
   Archive,
 } from "lucide-react";
+import { formatCurrency } from "@/lib/formatters";
 
 // ===== Types =====
 interface Equipment {
@@ -78,10 +79,6 @@ const statusConfig: Record<string, { ar: string; en: string; color: string; bgCo
   maintenance: { ar: "صيانة", en: "Maintenance", color: "text-amber-700 dark:text-amber-300", bgColor: "bg-amber-100 dark:bg-amber-900/30", icon: Settings, dotColor: "bg-amber-500" },
   retired: { ar: "مُتقاعد", en: "Retired", color: "text-slate-500 dark:text-slate-400", bgColor: "bg-slate-100 dark:bg-slate-800", icon: Archive, dotColor: "bg-slate-400" },
 };
-
-function formatCurrency(amount: number, ar: boolean) {
-  return `${amount.toLocaleString(ar ? "ar-AE" : "en-US")} ${ar ? "د.إ" : "AED"}`;
-}
 
 function getDaysUntil(dateStr: string | null): number | null {
   if (!dateStr) return null;

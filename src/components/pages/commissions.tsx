@@ -63,6 +63,7 @@ import {
   ArrowDownRight,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { formatCurrency } from "@/lib/formatters";
 
 // ===== Types =====
 interface CommissionItem {
@@ -130,9 +131,6 @@ interface ProjectOption {
 }
 
 // ===== Helpers =====
-function formatCurrency(amount: number, ar: boolean) {
-  return `${amount.toLocaleString(ar ? "ar-AE" : "en-US")} ${ar ? "د.إ" : "AED"}`;
-}
 
 function getCommissionStatusConfig(status: string) {
   const configs: Record<string, { ar: string; en: string; color: string }> = {

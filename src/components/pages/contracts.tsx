@@ -1,12 +1,13 @@
 "use client";
 
-import { useState, useSyncExternalStore } from "react";
+import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToastFeedback } from "@/hooks/use-toast-feedback";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { contractSchema, getErrorMessage, type ContractFormData } from "@/lib/validations";
 import { cn } from "@/lib/utils";
+import { formatCurrency } from "@/lib/formatters";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -54,21 +55,6 @@ import {
   Sparkles,
   Inbox,
 } from "lucide-react";
-
-// ===== Language =====
-function getLangSnapshot(): "ar" | "en" {
-  if (typeof window === "undefined") return "ar";
-  return (localStorage.getItem("blueprint-lang") as "ar" | "en") || "ar";
-}
-function getLangServerSnapshot(): "ar" | "en" { return "ar"; }
-function subscribeLang(cb: () => void) {
-  window.addEventListener("storage", cb);
-  window.addEventListener("blueprint-lang-change", cb);
-  return () => {
-    window.removeEventListener("storage", cb);
-    window.removeEventListener("blueprint-lang-change", cb);
-  };
-}
 
 // ===== Types =====
 interface ContractItem {
@@ -163,10 +149,6 @@ function getAmendmentStatus(status: string, ar: boolean) {
     rejected: { ar: "مرفوض", en: "Rejected" },
   };
   return ar ? (labels[status]?.ar || status) : (labels[status]?.en || status);
-}
-
-function formatCurrency(amount: number, ar: boolean) {
-  return `${amount.toLocaleString(ar ? "ar-AE" : "en-US")} ${ar ? "د.إ" : "AED"}`;
 }
 
 // ===== Main Contracts Component =====

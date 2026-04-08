@@ -53,6 +53,7 @@ import {
   Building2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { formatCurrency } from "@/lib/formatters";
 
 // ===== BOQ Categories =====
 const BOQ_CATEGORIES = [
@@ -95,9 +96,6 @@ interface Project {
 }
 
 // ===== Helpers =====
-function formatCurrency(amount: number, ar: boolean) {
-  return `${amount.toLocaleString(ar ? "ar-AE" : "en-US")} ${ar ? "د.إ" : "AED"}`;
-}
 
 function getCategoryLabel(category: string, ar: boolean) {
   const cat = BOQ_CATEGORIES.find((c) => c.value === category);

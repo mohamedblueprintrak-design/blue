@@ -25,6 +25,7 @@ import {
   Minus,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { formatCurrency } from "@/lib/formatters";
 
 // ===== Types =====
 interface BudgetChild {
@@ -55,9 +56,6 @@ interface BudgetItem {
 interface ProjectOption { id: string; name: string; nameEn: string; number: string; }
 
 // ===== Helpers =====
-function formatCurrency(amount: number, ar: boolean) {
-  return `${Math.abs(amount).toLocaleString(ar ? "ar-AE" : "en-US")} ${ar ? "د.إ" : "AED"}`;
-}
 
 function getCategoryConfig(category: string) {
   const configs: Record<string, { ar: string; en: string; color: string; icon: string }> = {

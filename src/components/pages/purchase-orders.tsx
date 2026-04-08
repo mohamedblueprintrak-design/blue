@@ -53,6 +53,7 @@ import {
   FileCheck,
   DollarSign,
 } from "lucide-react";
+import { formatCurrency } from "@/lib/formatters";
 
 // ===== Types =====
 interface PurchaseOrderItem {
@@ -108,10 +109,6 @@ const statusConfig: Record<string, { ar: string; en: string; color: string; dotC
   received: { ar: "مستلمة", en: "Received", color: "bg-teal-100 text-teal-700 dark:bg-teal-900/50 dark:text-teal-300", dotColor: "bg-teal-500" },
   cancelled: { ar: "ملغاة", en: "Cancelled", color: "bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-300", dotColor: "bg-red-500" },
 };
-
-function formatCurrency(amount: number, ar: boolean) {
-  return `${amount.toLocaleString(ar ? "ar-AE" : "en-US")} ${ar ? "د.إ" : "AED"}`;
-}
 
 function isHighValue(amount: number) {
   return amount >= 50000;
