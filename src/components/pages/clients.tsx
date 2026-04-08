@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useSyncExternalStore } from "react";
+import { useState, useEffect, useSyncExternalStore, useCallback } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { clientSchema, getErrorMessage, type ClientFormData } from "@/lib/validations";
@@ -13,6 +13,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Progress } from "@/components/ui/progress";
+import { Checkbox } from "@/components/ui/checkbox";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import {
   Dialog,
   DialogContent,
@@ -61,8 +63,103 @@ import {
   X,
   UserCircle,
   AlertCircle,
+  MessageCircle,
+  Upload,
+  Globe,
+  User,
+  Landmark,
+  Home,
+  Briefcase,
+  Megaphone,
+  Share2,
+  Footprints,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+
+// ===== Constants =====
+const NATIONALITIES = [
+  { value: "emirati", ar: "إماراتي", en: "Emirati" },
+  { value: "saudi", ar: "سعودي", en: "Saudi" },
+  { value: "kuwaiti", ar: "كويتي", en: "Kuwaiti" },
+  { value: "bahraini", ar: "بحريني", en: "Bahraini" },
+  { value: "omani", ar: "عماني", en: "Omani" },
+  { value: "qatari", ar: "قطري", en: "Qatari" },
+  { value: "jordanian", ar: "أردني", en: "Jordanian" },
+  { value: "egyptian", ar: "مصري", en: "Egyptian" },
+  { value: "syrian", ar: "سوري", en: "Syrian" },
+  { value: "lebanese", ar: "لبناني", en: "Lebanese" },
+  { value: "iraqi", ar: "عراقي", en: "Iraqi" },
+  { value: "yemeni", ar: "يمني", en: "Yemeni" },
+  { value: "sudanese", ar: "سوداني", en: "Sudanese" },
+  { value: "moroccan", ar: "مغربي", en: "Moroccan" },
+  { value: "tunisian", ar: "تونسي", en: "Tunisian" },
+  { value: "algerian", ar: "جزائري", en: "Algerian" },
+  { value: "libyan", ar: "ليبي", en: "Libyan" },
+  { value: "palestinian", ar: "فلسطيني", en: "Palestinian" },
+  { value: "indian", ar: "هندي", en: "Indian" },
+  { value: "pakistani", ar: "باكستاني", en: "Pakistani" },
+  { value: "bangladeshi", ar: "بنجلاديشي", en: "Bangladeshi" },
+  { value: "filipino", ar: "فلبيني", en: "Filipino" },
+  { value: "other", ar: "أخرى", en: "Other" },
+];
+
+const EMIRATES = [
+  { value: "abu_dhabi", ar: "أبو ظبي", en: "Abu Dhabi" },
+  { value: "dubai", ar: "دبي", en: "Dubai" },
+  { value: "sharjah", ar: "الشارقة", en: "Sharjah" },
+  { value: "ajman", ar: "عجمان", en: "Ajman" },
+  { value: "umm_al_quwain", ar: "أم القيوين", en: "Umm Al Quwain" },
+  { value: "ras_al_khaimah", ar: "رأس الخيمة", en: "Ras Al Khaimah" },
+  { value: "fujairah", ar: "الفجيرة", en: "Fujairah" },
+];
+
+const SERVICES = [
+  { value: "consultation", ar: "استشارة هندسية", en: "Consultation" },
+  { value: "architectural_design", ar: "تصميم معماري", en: "Architectural Design" },
+  { value: "structural_design", ar: "تصميم إنشائي", en: "Structural Design" },
+  { value: "mep_design", ar: "تصميم MEP", en: "MEP Design" },
+  { value: "municipality_license", ar: "استخراج ترخيص بلدي", en: "Municipality License" },
+  { value: "construction_supervision", ar: "إشراف على التنفيذ", en: "Construction Supervision" },
+  { value: "engineering_inspection", ar: "فحص هندسي", en: "Engineering Inspection" },
+  { value: "project_management", ar: "إدارة مشاريع", en: "Project Management" },
+  { value: "other", ar: "أخرى", en: "Other" },
+];
+
+const PROJECT_TYPES = [
+  { value: "villa", ar: "فيلا", en: "Villa" },
+  { value: "apartment", ar: "شقة", en: "Apartment" },
+  { value: "commercial", ar: "تجاري", en: "Commercial" },
+  { value: "industrial", ar: "صناعي", en: "Industrial" },
+  { value: "residential_building", ar: "عمارة سكنية", en: "Residential Building" },
+  { value: "medical", ar: "طبي", en: "Medical" },
+  { value: "other", ar: "أخرى", en: "Other" },
+];
+
+const LAND_PROJECT_TYPES = ["villa", "commercial", "industrial", "residential_building"];
+
+const REFERRAL_SOURCES = [
+  { value: "social_media", ar: "وسائل التواصل الاجتماعي", en: "Social Media", icon: Globe },
+  { value: "referral", ar: "إحالة من عميل", en: "Client Referral", icon: Share2 },
+  { value: "website", ar: "الموقع الإلكتروني", en: "Website", icon: Globe },
+  { value: "walk_in", ar: "زيارة مباشرة", en: "Walk-in", icon: Footprints },
+  { value: "advertisement", ar: "إعلان", en: "Advertisement", icon: Megaphone },
+  { value: "other", ar: "أخرى", en: "Other", icon: MessageCircle },
+];
+
+const SERVICE_LABELS: Record<string, { ar: string; en: string }> = {};
+SERVICES.forEach((s) => { SERVICE_LABELS[s.value] = { ar: s.ar, en: s.en }; });
+
+const PROJECT_TYPE_LABELS: Record<string, { ar: string; en: string }> = {};
+PROJECT_TYPES.forEach((p) => { PROJECT_TYPE_LABELS[p.value] = { ar: p.ar, en: p.en }; });
+
+const REFERRAL_LABELS: Record<string, { ar: string; en: string }> = {};
+REFERRAL_SOURCES.forEach((r) => { REFERRAL_LABELS[r.value] = { ar: r.ar, en: r.en }; });
+
+const CLIENT_TYPE_LABELS: Record<string, { ar: string; en: string; color: string }> = {
+  individual: { ar: "فرد", en: "Individual", color: "bg-sky-100 text-sky-700 dark:bg-sky-900/50 dark:text-sky-300" },
+  company: { ar: "شركة", en: "Company", color: "bg-violet-100 text-violet-700 dark:bg-violet-900/50 dark:text-violet-300" },
+  government: { ar: "حكومة", en: "Government", color: "bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-300" },
+};
 
 // ===== Language =====
 function getLangSnapshot(): "ar" | "en" {
@@ -86,14 +183,33 @@ function useLang() {
 interface Client {
   id: string;
   name: string;
+  nameEn?: string;
   company: string;
+  companyEn?: string;
+  clientType?: string;
+  idNumber?: string;
+  nationality?: string;
+  idPhoto?: string;
   email: string;
   phone: string;
+  whatsapp?: string;
+  extraPhone?: string;
   address: string;
+  fullAddress?: string;
   taxNumber: string;
   creditLimit: number;
   creditUsed: number;
   paymentTerms: string;
+  servicesWanted?: string;
+  projectType?: string;
+  landLocation?: string;
+  landArea?: string;
+  plotNumber?: string;
+  planNumber?: string;
+  landDocuments?: string;
+  notes?: string;
+  referralSource?: string;
+  referralDetail?: string;
   _count: { projects: number; invoices: number; contracts: number };
   projects?: ClientProject[];
   invoices?: ClientInvoice[];
@@ -142,6 +258,15 @@ interface ClientInteraction {
   description: string;
   outcome: string;
   projectId: string;
+}
+
+interface FullAddressData {
+  emirate?: string;
+  city?: string;
+  area?: string;
+  street?: string;
+  building?: string;
+  unit?: string;
 }
 
 // ===== Helpers =====
@@ -196,13 +321,35 @@ function getAvatarColor(name: string) {
   return colors[Math.abs(hash) % colors.length];
 }
 
+function parseFullAddress(json: string | undefined | null): FullAddressData {
+  if (!json) return {};
+  try { return JSON.parse(json); } catch { return {}; }
+}
+
+function parseServicesWanted(json: string | undefined | null): string[] {
+  if (!json) return [];
+  try { return JSON.parse(json); } catch { return []; }
+}
+
+function parseLandDocuments(json: string | undefined | null): { type: string; path: string }[] {
+  if (!json) return [];
+  try { return JSON.parse(json); } catch { return []; }
+}
+
+function getNationalityLabel(val: string | undefined, ar: boolean): string {
+  if (!val) return "";
+  const found = NATIONALITIES.find((n) => n.value === val);
+  return found ? (ar ? found.ar : found.en) : val;
+}
+
 // ===== Main Clients Component =====
 interface ClientsPageProps {
   language: "ar" | "en";
   projectId?: string;
+  initialTab?: "list" | "create";
 }
 
-export default function ClientsPage({ language, projectId }: ClientsPageProps) {
+export default function ClientsPage({ language, projectId, initialTab }: ClientsPageProps) {
   const ar = language === "ar";
   const queryClient = useQueryClient();
   const toast = useToastFeedback({ ar });
@@ -210,6 +357,29 @@ export default function ClientsPage({ language, projectId }: ClientsPageProps) {
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [editClient, setEditClient] = useState<Client | null>(null);
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
+
+  // Form state for new fields (not in Zod schema, managed via local state)
+  const [formClientType, setFormClientType] = useState<string>("individual");
+  const [formServices, setFormServices] = useState<string[]>([]);
+  const [formProjectType, setFormProjectType] = useState<string>("");
+  const [formReferralSource, setFormReferralSource] = useState<string>("");
+  const [formAddress, setFormAddress] = useState<FullAddressData>({});
+
+  // Auto-open create dialog on initialTab
+  useEffect(() => {
+    if (initialTab === "create") {
+      resetLocalForm();
+      setShowAddDialog(true);
+    }
+  }, [initialTab]);
+
+  const resetLocalForm = useCallback(() => {
+    setFormClientType("individual");
+    setFormServices([]);
+    setFormProjectType("");
+    setFormReferralSource("");
+    setFormAddress({});
+  }, []);
 
   // Form
   const emptyForm: ClientFormData = {
@@ -221,7 +391,7 @@ export default function ClientsPage({ language, projectId }: ClientsPageProps) {
     resolver: zodResolver(clientSchema),
     defaultValues: emptyForm,
   });
-  const { register, handleSubmit: rhfHandleSubmit, formState: { errors }, reset, watch } = form;
+  const { register, handleSubmit: rhfHandleSubmit, formState: { errors }, reset, watch, setValue } = form;
 
   // Fetch clients
   const { data: clients = [], isLoading } = useQuery<Client[]>({
@@ -246,7 +416,7 @@ export default function ClientsPage({ language, projectId }: ClientsPageProps) {
 
   // Create mutation
   const createMutation = useMutation({
-    mutationFn: async (data: Record<string, string>) => {
+    mutationFn: async (data: Record<string, unknown>) => {
       const res = await fetch("/api/clients", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -259,6 +429,7 @@ export default function ClientsPage({ language, projectId }: ClientsPageProps) {
       queryClient.invalidateQueries({ queryKey: ["clients"] });
       setShowAddDialog(false);
       reset();
+      resetLocalForm();
       toast.created(ar ? "العميل" : "Client");
     },
     onError: () => {
@@ -268,7 +439,7 @@ export default function ClientsPage({ language, projectId }: ClientsPageProps) {
 
   // Update mutation
   const updateMutation = useMutation({
-    mutationFn: async ({ id, data }: { id: string; data: Record<string, string> }) => {
+    mutationFn: async ({ id, data }: { id: string; data: Record<string, unknown> }) => {
       const res = await fetch(`/api/clients/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
@@ -282,6 +453,7 @@ export default function ClientsPage({ language, projectId }: ClientsPageProps) {
       queryClient.invalidateQueries({ queryKey: ["client-detail"] });
       setEditClient(null);
       reset();
+      resetLocalForm();
       toast.updated(ar ? "العميل" : "Client");
     },
     onError: () => {
@@ -318,19 +490,53 @@ export default function ClientsPage({ language, projectId }: ClientsPageProps) {
       serviceType: client.serviceType || "",
       serviceNotes: client.serviceNotes || "",
     });
+    // Populate local form state from client data
+    setFormClientType(client.clientType || "individual");
+    setFormServices(parseServicesWanted(client.servicesWanted));
+    setFormProjectType(client.projectType || "");
+    setFormReferralSource(client.referralSource || "");
+    setFormAddress(parseFullAddress(client.fullAddress));
   };
 
   const openAddDialog = () => {
-    reset();
+    reset(emptyForm);
+    resetLocalForm();
     setShowAddDialog(true);
   };
 
   const handleSave = (data: ClientFormData) => {
+    const payload: Record<string, unknown> = {
+      ...data,
+      clientType: formClientType,
+      nameEn: watch("nameEn") || "",
+      companyEn: watch("companyEn") || "",
+      idNumber: watch("idNumber") || "",
+      nationality: watch("nationality") || "",
+      whatsapp: watch("whatsapp") || "",
+      extraPhone: watch("extraPhone") || "",
+      fullAddress: JSON.stringify(formAddress),
+      servicesWanted: JSON.stringify(formServices),
+      projectType: formProjectType,
+      notes: watch("notes") || "",
+      referralSource: formReferralSource,
+      referralDetail: watch("referralDetail") || "",
+      landLocation: watch("landLocation") || "",
+      landArea: watch("landArea") || "",
+      plotNumber: watch("plotNumber") || "",
+      planNumber: watch("planNumber") || "",
+    };
+
     if (editClient) {
-      updateMutation.mutate({ id: editClient.id, data });
+      updateMutation.mutate({ id: editClient.id, data: payload });
     } else {
-      createMutation.mutate(data);
+      createMutation.mutate(payload);
     }
+  };
+
+  const toggleService = (service: string) => {
+    setFormServices((prev) =>
+      prev.includes(service) ? prev.filter((s) => s !== service) : [...prev, service]
+    );
   };
 
   // Filter clients
@@ -339,6 +545,8 @@ export default function ClientsPage({ language, projectId }: ClientsPageProps) {
     c.company.toLowerCase().includes(search.toLowerCase()) ||
     c.email.toLowerCase().includes(search.toLowerCase())
   );
+
+  const showLandSection = LAND_PROJECT_TYPES.includes(formProjectType);
 
   return (
     <TooltipProvider delayDuration={200}>
@@ -544,15 +752,15 @@ export default function ClientsPage({ language, projectId }: ClientsPageProps) {
           )}
         </div>
 
-        {/* Add/Edit Dialog */}
+        {/* Add/Edit Dialog - Full Screen with Tabs */}
         <Dialog
           open={showAddDialog || !!editClient}
           onOpenChange={(open) => {
-            if (!open) { setShowAddDialog(false); setEditClient(null); reset(); }
+            if (!open) { setShowAddDialog(false); setEditClient(null); reset(); resetLocalForm(); }
           }}
         >
-          <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
+          <DialogContent className="max-w-4xl max-h-[92vh] overflow-hidden flex flex-col">
+            <DialogHeader className="shrink-0">
               <DialogTitle>
                 {editClient ? (ar ? "تعديل عميل" : "Edit Client") : (ar ? "عميل جديد" : "New Client")}
               </DialogTitle>
@@ -563,99 +771,608 @@ export default function ClientsPage({ language, projectId }: ClientsPageProps) {
               </DialogDescription>
             </DialogHeader>
 
-            <form onSubmit={rhfHandleSubmit(handleSave)} className="space-y-4">
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-2">
-                  <Label className="text-sm">{ar ? "الاسم" : "Name"} *</Label>
-                  <Input {...register("name")} placeholder={ar ? "اسم العميل" : "Client name"} className={cn(errors.name && "border-red-500 focus:ring-red-500/20 focus:border-red-500")} />
-                  {errors.name && <p className="text-red-500 text-xs mt-1 flex items-center gap-1"><AlertCircle className="h-3 w-3 shrink-0" />{getErrorMessage(errors.name.message || "", ar)}</p>}
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-sm">{ar ? "الشركة" : "Company"}</Label>
-                  <Input {...register("company")} placeholder={ar ? "اسم الشركة" : "Company name"} className={cn(errors.company && "border-red-500 focus:ring-red-500/20 focus:border-red-500")} />
-                  {errors.company && <p className="text-red-500 text-xs mt-1 flex items-center gap-1"><AlertCircle className="h-3 w-3 shrink-0" />{getErrorMessage(errors.company.message || "", ar)}</p>}
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-2">
-                  <Label className="text-sm">{ar ? "البريد" : "Email"}</Label>
-                  <Input type="email" {...register("email")} placeholder="email@example.com" className={cn(errors.email && "border-red-500 focus:ring-red-500/20 focus:border-red-500")} />
-                  {errors.email && <p className="text-red-500 text-xs mt-1 flex items-center gap-1"><AlertCircle className="h-3 w-3 shrink-0" />{getErrorMessage(errors.email.message || "", ar)}</p>}
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-sm">{ar ? "الهاتف" : "Phone"}</Label>
-                  <Input {...register("phone")} placeholder="+971 XX XXX XXXX" className={cn(errors.phone && "border-red-500 focus:ring-red-500/20 focus:border-red-500")} />
-                  {errors.phone && <p className="text-red-500 text-xs mt-1 flex items-center gap-1"><AlertCircle className="h-3 w-3 shrink-0" />{getErrorMessage(errors.phone.message || "", ar)}</p>}
-                </div>
-              </div>
-              <div className="space-y-2">
-                <Label className="text-sm">{ar ? "العنوان" : "Address"}</Label>
-                <Input {...register("address")} placeholder={ar ? "عنوان العميل" : "Client address"} />
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-2">
-                  <Label className="text-sm">{ar ? "الرقم الضريبي" : "Tax Number"}</Label>
-                  <Input {...register("taxNumber")} placeholder={ar ? "الرقم الضريبي" : "Tax number"} />
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-sm">{ar ? "حد الائتمان" : "Credit Limit"} ({ar ? "د.إ" : "AED"})</Label>
-                  <Input type="number" {...register("creditLimit")} placeholder="0" />
-                </div>
-              </div>
-              <div className="space-y-2">
-                <Label className="text-sm">{ar ? "شروط الدفع" : "Payment Terms"}</Label>
-                <Input {...register("paymentTerms")} placeholder={ar ? "مثال: 30 يوم" : "e.g., Net 30"} />
-              </div>
-              {/* Service Type - Purpose of Visit */}
-              <div className="space-y-2">
-                <Label className="text-sm">{ar ? "الغرض من التواصل" : "Purpose of Visit"} *</Label>
-                <Select
-                  value={watch("serviceType") || ""}
-                  onValueChange={(v) => form.setValue("serviceType", v)}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder={ar ? "اختر الغرض من التواصل..." : "Select purpose..."} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="consultation">{ar ? "استشارة هندسية" : "Engineering Consultation"}</SelectItem>
-                    <SelectItem value="design">{ar ? "تصميم (معماري/إنشائي/MEP)" : "Design (Arch/Struct/MEP)"}</SelectItem>
-                    <SelectItem value="license">{ar ? "استخراج ترخيص بلدي" : "Municipality License"}</SelectItem>
-                    <SelectItem value="supervision">{ar ? "إشراف على التنفيذ" : "Construction Supervision"}</SelectItem>
-                    <SelectItem value="inspection">{ar ? "فحص هندسي" : "Engineering Inspection"}</SelectItem>
-                    <SelectItem value="other">{ar ? "أخرى" : "Other"}</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label className="text-sm">{ar ? "تفاصيل إضافية" : "Additional Details"}</Label>
-                <textarea
-                  {...register("serviceNotes")}
-                  placeholder={ar ? "وصف تفصيلي لما يريد العميل..." : "Describe what the client needs..."}
-                  rows={3}
-                  className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 resize-none"
-                />
-              </div>
+            <form onSubmit={rhfHandleSubmit(handleSave)} className="flex-1 overflow-hidden flex flex-col">
+              <Tabs defaultValue="basic" dir={ar ? "rtl" : "ltr"} className="flex-1 flex flex-col overflow-hidden">
+                <TabsList className="w-full grid grid-cols-5 shrink-0 h-9 bg-slate-100 dark:bg-slate-800">
+                  <TabsTrigger value="basic" className="text-xs gap-1">
+                    {ar ? "الأساسية" : "Basic"}
+                  </TabsTrigger>
+                  <TabsTrigger value="contact" className="text-xs gap-1">
+                    {ar ? "الاتصال" : "Contact"}
+                  </TabsTrigger>
+                  <TabsTrigger value="services" className="text-xs gap-1">
+                    {ar ? "الخدمات" : "Services"}
+                  </TabsTrigger>
+                  <TabsTrigger value="land" className="text-xs gap-1">
+                    {ar ? "الأرض" : "Land"}
+                  </TabsTrigger>
+                  <TabsTrigger value="referral" className="text-xs gap-1">
+                    {ar ? "المصدر" : "Referral"}
+                  </TabsTrigger>
+                </TabsList>
 
-            <DialogFooter>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => { setShowAddDialog(false); setEditClient(null); reset(); }}
-              >
-                {ar ? "إلغاء" : "Cancel"}
-              </Button>
-              <Button
-                type="submit"
-                className="bg-teal-600 hover:bg-teal-700 text-white"
-                disabled={createMutation.isPending || updateMutation.isPending}
-              >
-                {(createMutation.isPending || updateMutation.isPending)
-                  ? (ar ? "جارٍ الحفظ..." : "Saving...")
-                  : (ar ? "حفظ" : "Save")}
-              </Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
+                <ScrollArea className="flex-1 mt-3">
+                  {/* ===== Section 1: Basic Info ===== */}
+                  <TabsContent value="basic" className="space-y-4 px-1">
+                    {/* Client Type */}
+                    <div className="space-y-2">
+                      <Label className="text-sm font-medium">{ar ? "نوع العميل" : "Client Type"} *</Label>
+                      <RadioGroup
+                        value={formClientType}
+                        onValueChange={setFormClientType}
+                        className="flex gap-4"
+                        dir={ar ? "rtl" : "ltr"}
+                      >
+                        <div className="flex items-center gap-2 px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors cursor-pointer">
+                          <RadioGroupItem value="individual" id="type-individual" />
+                          <Label htmlFor="type-individual" className="text-sm cursor-pointer flex items-center gap-1.5">
+                            <User className="h-3.5 w-3.5 text-sky-500" />
+                            {ar ? "فرد" : "Individual"}
+                          </Label>
+                        </div>
+                        <div className="flex items-center gap-2 px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors cursor-pointer">
+                          <RadioGroupItem value="company" id="type-company" />
+                          <Label htmlFor="type-company" className="text-sm cursor-pointer flex items-center gap-1.5">
+                            <Briefcase className="h-3.5 w-3.5 text-violet-500" />
+                            {ar ? "شركة" : "Company"}
+                          </Label>
+                        </div>
+                        <div className="flex items-center gap-2 px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors cursor-pointer">
+                          <RadioGroupItem value="government" id="type-government" />
+                          <Label htmlFor="type-government" className="text-sm cursor-pointer flex items-center gap-1.5">
+                            <Landmark className="h-3.5 w-3.5 text-amber-500" />
+                            {ar ? "حكومة" : "Government"}
+                          </Label>
+                        </div>
+                      </RadioGroup>
+                    </div>
+
+                    {/* Name Arabic + English */}
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="space-y-2">
+                        <Label className="text-sm">{ar ? "الاسم (عربي)" : "Name (Arabic)"} *</Label>
+                        <Input
+                          {...register("name")}
+                          placeholder={ar ? "اسم العميل بالعربي" : "Client name in Arabic"}
+                          dir="rtl"
+                          className={cn(errors.name && "border-red-500 focus:ring-red-500/20 focus:border-red-500")}
+                        />
+                        {errors.name && <p className="text-red-500 text-xs mt-1 flex items-center gap-1"><AlertCircle className="h-3 w-3 shrink-0" />{getErrorMessage(errors.name.message || "", ar)}</p>}
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-sm">{ar ? "الاسم (إنجليزي)" : "Name (English)"}</Label>
+                        <Input
+                          {...register("nameEn")}
+                          placeholder={ar ? "اسم العميل بالإنجليزي" : "Client name in English"}
+                          dir="ltr"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Company Name - shown for company/government */}
+                    {(formClientType === "company" || formClientType === "government") && (
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="space-y-2">
+                          <Label className="text-sm">{ar ? "اسم الجهة (عربي)" : "Organization (Arabic)"}</Label>
+                          <Input
+                            {...register("company")}
+                            placeholder={ar ? "اسم الشركة/الجهة" : "Company/Organization name"}
+                            dir="rtl"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label className="text-sm">{ar ? "اسم الجهة (إنجليزي)" : "Organization (English)"}</Label>
+                          <Input
+                            {...register("companyEn")}
+                            placeholder={ar ? "اسم الشركة بالإنجليزي" : "Organization in English"}
+                            dir="ltr"
+                          />
+                        </div>
+                      </div>
+                    )}
+
+                    {/* ID / Commercial Registration */}
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="space-y-2">
+                        <Label className="text-sm">
+                          {formClientType === "individual"
+                            ? (ar ? "رقم الهوية الإماراتية" : "UAE ID Number")
+                            : (ar ? "السجل التجاري" : "Commercial Registration")}
+                        </Label>
+                        <Input
+                          {...register("idNumber")}
+                          placeholder={formClientType === "individual" ? "784-XXXX-XXXXXXX-X" : "CR-XXXXX"}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-sm">{ar ? "الجنسية" : "Nationality"}</Label>
+                        <Select
+                          value={watch("nationality") || ""}
+                          onValueChange={(v) => setValue("nationality", v)}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder={ar ? "اختر الجنسية..." : "Select nationality..."} />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {NATIONALITIES.map((n) => (
+                              <SelectItem key={n.value} value={n.value}>
+                                {ar ? n.ar : n.en}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+
+                    {/* ID Photo Upload Placeholder */}
+                    <div className="space-y-2">
+                      <Label className="text-sm">{ar ? "صورة الهوية" : "ID Photo"}</Label>
+                      <div className="flex items-center gap-3">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          className="gap-2"
+                          onClick={() => {
+                            const input = document.createElement("input");
+                            input.type = "file";
+                            input.accept = "image/*";
+                            input.onchange = () => {
+                              if (input.files && input.files[0]) {
+                                setValue("idPhoto", input.files[0].name);
+                              }
+                            };
+                            input.click();
+                          }}
+                        >
+                          <Upload className="h-3.5 w-3.5" />
+                          {ar ? "اختيار ملف" : "Choose File"}
+                        </Button>
+                        {watch("idPhoto") && (
+                          <span className="text-xs text-slate-500 flex items-center gap-1">
+                            <FileText className="h-3 w-3" />
+                            {watch("idPhoto")}
+                          </span>
+                        )}
+                      </div>
+                      <input type="hidden" {...register("idPhoto")} />
+                    </div>
+
+                    {/* Credit Limit & Payment Terms */}
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="space-y-2">
+                        <Label className="text-sm">{ar ? "حد الائتمان" : "Credit Limit"} ({ar ? "د.إ" : "AED"})</Label>
+                        <Input type="number" {...register("creditLimit")} placeholder="0" />
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-sm">{ar ? "شروط الدفع" : "Payment Terms"}</Label>
+                        <Input {...register("paymentTerms")} placeholder={ar ? "مثال: 30 يوم" : "e.g., Net 30"} />
+                      </div>
+                    </div>
+
+                    {/* Tax Number */}
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="space-y-2">
+                        <Label className="text-sm">{ar ? "الرقم الضريبي" : "Tax Number"}</Label>
+                        <Input {...register("taxNumber")} placeholder={ar ? "الرقم الضريبي" : "Tax number"} />
+                      </div>
+                    </div>
+                  </TabsContent>
+
+                  {/* ===== Section 2: Contact Info ===== */}
+                  <TabsContent value="contact" className="space-y-4 px-1">
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="space-y-2">
+                        <Label className="text-sm">{ar ? "البريد الإلكتروني" : "Email"}</Label>
+                        <Input
+                          type="email"
+                          {...register("email")}
+                          placeholder="email@example.com"
+                          className={cn(errors.email && "border-red-500 focus:ring-red-500/20 focus:border-red-500")}
+                        />
+                        {errors.email && <p className="text-red-500 text-xs mt-1 flex items-center gap-1"><AlertCircle className="h-3 w-3 shrink-0" />{getErrorMessage(errors.email.message || "", ar)}</p>}
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-sm">{ar ? "رقم الهاتف" : "Mobile Phone"} *</Label>
+                        <Input
+                          {...register("phone")}
+                          placeholder="+971 XX XXX XXXX"
+                          className={cn(errors.phone && "border-red-500 focus:ring-red-500/20 focus:border-red-500")}
+                        />
+                        {errors.phone && <p className="text-red-500 text-xs mt-1 flex items-center gap-1"><AlertCircle className="h-3 w-3 shrink-0" />{getErrorMessage(errors.phone.message || "", ar)}</p>}
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="space-y-2">
+                        <Label className="text-sm flex items-center gap-1.5">
+                          <MessageCircle className="h-3.5 w-3.5 text-green-500" />
+                          {ar ? "رقم الواتساب" : "WhatsApp Number"}
+                        </Label>
+                        <Input
+                          {...register("whatsapp")}
+                          placeholder="+971 XX XXX XXXX"
+                          dir="ltr"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-sm">{ar ? "هاتف إضافي" : "Extra Phone"}</Label>
+                        <Input
+                          {...register("extraPhone")}
+                          placeholder="+971 XX XXX XXXX"
+                          dir="ltr"
+                        />
+                      </div>
+                    </div>
+
+                    <Separator />
+
+                    {/* Full Address */}
+                    <div className="space-y-3">
+                      <Label className="text-sm font-medium flex items-center gap-1.5">
+                        <MapPin className="h-3.5 w-3.5 text-rose-500" />
+                        {ar ? "العنوان التفصيلي" : "Full Address"}
+                      </Label>
+                      <div className="grid grid-cols-3 gap-3">
+                        <div className="space-y-2">
+                          <Label className="text-xs text-slate-500">{ar ? "الإمارة" : "Emirate"}</Label>
+                          <Select
+                            value={formAddress.emirate || ""}
+                            onValueChange={(v) => setFormAddress((p) => ({ ...p, emirate: v }))}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder={ar ? "اختر الإمارة..." : "Select emirate..."} />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {EMIRATES.map((e) => (
+                                <SelectItem key={e.value} value={e.value}>
+                                  {ar ? e.ar : e.en}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="space-y-2">
+                          <Label className="text-xs text-slate-500">{ar ? "المدينة" : "City"}</Label>
+                          <Input
+                            value={formAddress.city || ""}
+                            onChange={(e) => setFormAddress((p) => ({ ...p, city: e.target.value }))}
+                            placeholder={ar ? "المدينة" : "City"}
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label className="text-xs text-slate-500">{ar ? "المنطقة" : "Area"}</Label>
+                          <Input
+                            value={formAddress.area || ""}
+                            onChange={(e) => setFormAddress((p) => ({ ...p, area: e.target.value }))}
+                            placeholder={ar ? "المنطقة" : "Area"}
+                          />
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-3 gap-3">
+                        <div className="space-y-2">
+                          <Label className="text-xs text-slate-500">{ar ? "الشارع" : "Street"}</Label>
+                          <Input
+                            value={formAddress.street || ""}
+                            onChange={(e) => setFormAddress((p) => ({ ...p, street: e.target.value }))}
+                            placeholder={ar ? "الشارع" : "Street"}
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label className="text-xs text-slate-500">{ar ? "المبنى" : "Building"}</Label>
+                          <Input
+                            value={formAddress.building || ""}
+                            onChange={(e) => setFormAddress((p) => ({ ...p, building: e.target.value }))}
+                            placeholder={ar ? "رقم المبنى" : "Building No."}
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label className="text-xs text-slate-500">{ar ? "الوحدة / الشقة" : "Unit / Apt"}</Label>
+                          <Input
+                            value={formAddress.unit || ""}
+                            onChange={(e) => setFormAddress((p) => ({ ...p, unit: e.target.value }))}
+                            placeholder={ar ? "رقم الوحدة" : "Unit No."}
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Simple address (legacy) */}
+                    <div className="space-y-2">
+                      <Label className="text-xs text-slate-400">{ar ? "عنوان مبسط (اختياري)" : "Simple address (optional)"}</Label>
+                      <Input {...register("address")} placeholder={ar ? "عنوان العميل" : "Client address"} />
+                    </div>
+                  </TabsContent>
+
+                  {/* ===== Section 3: Services ===== */}
+                  <TabsContent value="services" className="space-y-4 px-1">
+                    {/* Services Wanted as Checkboxes */}
+                    <div className="space-y-2">
+                      <Label className="text-sm font-medium">{ar ? "الخدمات المطلوبة" : "Services Wanted"}</Label>
+                      <div className="grid grid-cols-2 gap-2">
+                        {SERVICES.map((service) => (
+                          <div
+                            key={service.value}
+                            className={cn(
+                              "flex items-center gap-2 px-3 py-2.5 rounded-lg border cursor-pointer transition-colors",
+                              formServices.includes(service.value)
+                                ? "border-teal-300 bg-teal-50 dark:border-teal-700 dark:bg-teal-950/30"
+                                : "border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800/50"
+                            )}
+                            onClick={() => toggleService(service.value)}
+                          >
+                            <Checkbox
+                              checked={formServices.includes(service.value)}
+                              onCheckedChange={() => toggleService(service.value)}
+                            />
+                            <Label className="text-sm cursor-pointer flex-1 select-none">
+                              {ar ? service.ar : service.en}
+                            </Label>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    <Separator />
+
+                    {/* Project Type */}
+                    <div className="space-y-2">
+                      <Label className="text-sm font-medium">{ar ? "نوع المشروع" : "Project Type"}</Label>
+                      <RadioGroup
+                        value={formProjectType}
+                        onValueChange={setFormProjectType}
+                        className="grid grid-cols-4 gap-2"
+                        dir={ar ? "rtl" : "ltr"}
+                      >
+                        {PROJECT_TYPES.map((pt) => (
+                          <div
+                            key={pt.value}
+                            className={cn(
+                              "flex items-center gap-2 px-3 py-2 rounded-lg border cursor-pointer transition-colors",
+                              formProjectType === pt.value
+                                ? "border-teal-300 bg-teal-50 dark:border-teal-700 dark:bg-teal-950/30"
+                                : "border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800/50"
+                            )}
+                          >
+                            <RadioGroupItem value={pt.value} id={`pt-${pt.value}`} />
+                            <Label htmlFor={`pt-${pt.value}`} className="text-xs cursor-pointer select-none">
+                              {ar ? pt.ar : pt.en}
+                            </Label>
+                          </div>
+                        ))}
+                      </RadioGroup>
+                    </div>
+
+                    <Separator />
+
+                    {/* Notes */}
+                    <div className="space-y-2">
+                      <Label className="text-sm font-medium">{ar ? "ملاحظات / تفاصيل" : "Notes / Details"}</Label>
+                      <textarea
+                        {...register("notes")}
+                        placeholder={ar ? "وصف تفصيلي لما يريد العميل..." : "Describe what the client needs..."}
+                        rows={4}
+                        className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 resize-none"
+                      />
+                    </div>
+
+                    {/* Legacy fields: Service Type + Notes */}
+                    <Separator />
+                    <div className="space-y-2">
+                      <Label className="text-xs text-slate-400">{ar ? "الغرض من التواصل (قديم)" : "Purpose of Visit (legacy)"}</Label>
+                      <Select
+                        value={watch("serviceType") || ""}
+                        onValueChange={(v) => setValue("serviceType", v)}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder={ar ? "اختر الغرض..." : "Select purpose..."} />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="consultation">{ar ? "استشارة هندسية" : "Engineering Consultation"}</SelectItem>
+                          <SelectItem value="design">{ar ? "تصميم (معماري/إنشائي/MEP)" : "Design (Arch/Struct/MEP)"}</SelectItem>
+                          <SelectItem value="license">{ar ? "استخراج ترخيص بلدي" : "Municipality License"}</SelectItem>
+                          <SelectItem value="supervision">{ar ? "إشراف على التنفيذ" : "Construction Supervision"}</SelectItem>
+                          <SelectItem value="inspection">{ar ? "فحص هندسي" : "Engineering Inspection"}</SelectItem>
+                          <SelectItem value="other">{ar ? "أخرى" : "Other"}</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-xs text-slate-400">{ar ? "تفاصيل إضافية (قديم)" : "Additional Details (legacy)"}</Label>
+                      <textarea
+                        {...register("serviceNotes")}
+                        placeholder={ar ? "وصف تفصيلي..." : "Describe in detail..."}
+                        rows={2}
+                        className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 resize-none"
+                      />
+                    </div>
+                  </TabsContent>
+
+                  {/* ===== Section 4: Land Details ===== */}
+                  <TabsContent value="land" className="space-y-4 px-1">
+                    {showLandSection ? (
+                      <>
+                        <div className="px-3 py-2 rounded-lg bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 text-xs text-amber-700 dark:text-amber-300">
+                          {ar
+                            ? "تفاصيل الأرض مطلوبة لنوع المشروع المحدد (فيلا / تجاري / صناعي / عمارة سكنية)"
+                            : "Land details are needed for the selected project type (Villa / Commercial / Industrial / Residential Building)"}
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-3">
+                          <div className="space-y-2">
+                            <Label className="text-sm">{ar ? "موقع الأرض" : "Land Location"}</Label>
+                            <Input {...register("landLocation")} placeholder={ar ? "وصف موقع الأرض" : "Land location description"} />
+                          </div>
+                          <div className="space-y-2">
+                            <Label className="text-sm">{ar ? "مساحة الأرض" : "Land Area"}</Label>
+                            <div className="flex gap-2">
+                              <Input {...register("landArea")} placeholder={ar ? "المساحة" : "Area"} className="flex-1" />
+                              <Select defaultValue="sqm">
+                                <SelectTrigger className="w-24">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="sqm">m²</SelectItem>
+                                  <SelectItem value="sqft">ft²</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-3">
+                          <div className="space-y-2">
+                            <Label className="text-sm">{ar ? "رقم القطعة" : "Plot Number"}</Label>
+                            <Input {...register("plotNumber")} placeholder={ar ? "رقم القطعة" : "Plot number"} />
+                          </div>
+                          <div className="space-y-2">
+                            <Label className="text-sm">{ar ? "رقم المخطط" : "Plan Number"}</Label>
+                            <Input {...register("planNumber")} placeholder={ar ? "رقم المخطط" : "Plan number"} />
+                          </div>
+                        </div>
+
+                        <Separator />
+
+                        {/* Land Documents Upload Area */}
+                        <div className="space-y-2">
+                          <Label className="text-sm font-medium">{ar ? "مستندات الأرض" : "Land Documents"}</Label>
+                          <p className="text-xs text-slate-400">
+                            {ar
+                              ? "المسح، خريطة الموقع، صك الملكية، صور الموقع"
+                              : "Survey, site map, ownership deed, site photos"}
+                          </p>
+                          <div className="grid grid-cols-2 gap-2">
+                            {[
+                              { key: "survey", ar: "مسح الأرض", en: "Land Survey" },
+                              { key: "map", ar: "خريطة الموقع", en: "Site Map" },
+                              { key: "deed", ar: "صك الملكية", en: "Ownership Deed" },
+                              { key: "photos", ar: "صور الموقع", en: "Site Photos" },
+                            ].map((doc) => (
+                              <div
+                                key={doc.key}
+                                className="flex items-center gap-2 px-3 py-2 rounded-lg border border-dashed border-slate-300 dark:border-slate-600 hover:border-teal-400 dark:hover:border-teal-600 transition-colors cursor-pointer"
+                                onClick={() => {
+                                  const input = document.createElement("input");
+                                  input.type = "file";
+                                  input.onchange = () => {
+                                    // Placeholder: just logs the filename
+                                    if (input.files && input.files[0]) {
+                                      console.log(doc.key, input.files[0].name);
+                                    }
+                                  };
+                                  input.click();
+                                }}
+                              >
+                                <Upload className="h-3.5 w-3.5 text-slate-400" />
+                                <span className="text-xs text-slate-500">{ar ? doc.ar : doc.en}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </>
+                    ) : (
+                      <div className="flex flex-col items-center justify-center py-12 text-center">
+                        <div className="w-16 h-16 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center mb-4">
+                          <Home className="h-7 w-7 text-slate-400" />
+                        </div>
+                        <p className="text-sm text-slate-500 dark:text-slate-400 mb-1">
+                          {ar ? "تفاصيل الأرض غير مطلوبة" : "Land details not required"}
+                        </p>
+                        <p className="text-xs text-slate-400">
+                          {ar
+                            ? "تفاصيل الأرض تظهر فقط لمشاريع الفلل، التجارية، الصناعية، والعمائر السكنية"
+                            : "Land details are shown only for Villa, Commercial, Industrial, and Residential Building projects"}
+                        </p>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          className="mt-4"
+                          onClick={() => {
+                            const servicesTab = document.querySelector('[value="services"]');
+                            if (servicesTab) (servicesTab as HTMLElement).click();
+                          }}
+                        >
+                          {ar ? "اختر نوع مشروع" : "Select a project type"}
+                        </Button>
+                      </div>
+                    )}
+                  </TabsContent>
+
+                  {/* ===== Section 5: Referral ===== */}
+                  <TabsContent value="referral" className="space-y-4 px-1">
+                    <div className="space-y-2">
+                      <Label className="text-sm font-medium">{ar ? "مصدر العميل" : "Referral Source"}</Label>
+                      <RadioGroup
+                        value={formReferralSource}
+                        onValueChange={setFormReferralSource}
+                        className="grid grid-cols-2 gap-2"
+                        dir={ar ? "rtl" : "ltr"}
+                      >
+                        {REFERRAL_SOURCES.map((source) => {
+                          const IconComp = source.icon;
+                          return (
+                            <div
+                              key={source.value}
+                              className={cn(
+                                "flex items-center gap-3 px-3 py-3 rounded-lg border cursor-pointer transition-colors",
+                                formReferralSource === source.value
+                                  ? "border-teal-300 bg-teal-50 dark:border-teal-700 dark:bg-teal-950/30"
+                                  : "border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800/50"
+                              )}
+                            >
+                              <RadioGroupItem value={source.value} id={`ref-${source.value}`} />
+                              <IconComp className="h-4 w-4 text-slate-400" />
+                              <Label htmlFor={`ref-${source.value}`} className="text-sm cursor-pointer select-none">
+                                {ar ? source.ar : source.en}
+                              </Label>
+                            </div>
+                          );
+                        })}
+                      </RadioGroup>
+                    </div>
+
+                    {(formReferralSource === "other" || formReferralSource === "referral") && (
+                      <div className="space-y-2">
+                        <Label className="text-sm">
+                          {formReferralSource === "other"
+                            ? (ar ? "تفاصيل أخرى" : "Other Details")
+                            : (ar ? "اسم العميل المُحيل" : "Referring Client Name")}
+                        </Label>
+                        <Input
+                          {...register("referralDetail")}
+                          placeholder={
+                            formReferralSource === "other"
+                              ? (ar ? "اذكر المصدر..." : "Specify source...")
+                              : (ar ? "اسم العميل المحيل..." : "Referring client name...")
+                          }
+                        />
+                      </div>
+                    )}
+                  </TabsContent>
+                </ScrollArea>
+              </Tabs>
+
+              {/* Footer - fixed at bottom */}
+              <DialogFooter className="shrink-0 pt-3 border-t border-slate-200 dark:border-slate-700 mt-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => { setShowAddDialog(false); setEditClient(null); reset(); resetLocalForm(); }}
+                >
+                  {ar ? "إلغاء" : "Cancel"}
+                </Button>
+                <Button
+                  type="submit"
+                  className="bg-teal-600 hover:bg-teal-700 text-white"
+                  disabled={createMutation.isPending || updateMutation.isPending}
+                >
+                  {(createMutation.isPending || updateMutation.isPending)
+                    ? (ar ? "جارٍ الحفظ..." : "Saving...")
+                    : (ar ? "حفظ" : "Save")}
+                </Button>
+              </DialogFooter>
+            </form>
+          </DialogContent>
         </Dialog>
       </div>
     </TooltipProvider>
@@ -665,6 +1382,18 @@ export default function ClientsPage({ language, projectId }: ClientsPageProps) {
 // ===== Client Detail Panel =====
 function ClientDetailPanel({ client, ar, onClose, onEdit }: { client: Client; ar: boolean; onClose: () => void; onEdit: () => void }) {
   const creditPct = client.creditLimit > 0 ? Math.min((client.creditUsed / client.creditLimit) * 100, 100) : 0;
+
+  const services = parseServicesWanted(client.servicesWanted);
+  const fullAddr = parseFullAddress(client.fullAddress);
+  const landDocs = parseLandDocuments(client.landDocuments);
+  const clientTypeConfig = CLIENT_TYPE_LABELS[client.clientType || ""] || CLIENT_TYPE_LABELS.individual;
+  const projectTypeLabel = PROJECT_TYPE_LABELS[client.projectType || ""];
+  const referralLabel = REFERRAL_LABELS[client.referralSource || ""];
+
+  // Build formatted address string
+  const addrParts = [fullAddr.emirate, fullAddr.city, fullAddr.area, fullAddr.street, fullAddr.building, fullAddr.unit].filter(Boolean);
+  const formattedAddr = addrParts.join(" - ");
+  const emirateLabel = fullAddr.emirate ? EMIRATES.find((e) => e.value === fullAddr.emirate) : null;
 
   return (
     <div className="w-full lg:w-[420px] flex-shrink-0 rounded-xl border border-slate-200 dark:border-slate-700/50 bg-white dark:bg-slate-900 overflow-hidden shadow-sm">
@@ -679,9 +1408,16 @@ function ClientDetailPanel({ client, ar, onClose, onEdit }: { client: Client; ar
               <X className="h-3.5 w-3.5" />
             </Button>
           </div>
-          <span className="text-xs text-teal-100">
-            {ar ? "تفاصيل العميل" : "Client Details"}
-          </span>
+          <div className="flex items-center gap-2">
+            {client.clientType && (
+              <Badge className={cn("text-[10px] h-5 border-0", clientTypeConfig.color)}>
+                {ar ? clientTypeConfig.ar : clientTypeConfig.en}
+              </Badge>
+            )}
+            <span className="text-xs text-teal-100">
+              {ar ? "تفاصيل العميل" : "Client Details"}
+            </span>
+          </div>
         </div>
 
         <div className="flex items-center gap-3">
@@ -690,8 +1426,8 @@ function ClientDetailPanel({ client, ar, onClose, onEdit }: { client: Client; ar
           </div>
           <div className="min-w-0">
             <h3 className="text-base font-bold text-white truncate">{client.name}</h3>
-            {client.company && (
-              <p className="text-xs text-teal-100 truncate">{client.company}</p>
+            {(client.nameEn || client.company) && (
+              <p className="text-xs text-teal-100 truncate">{client.nameEn || client.company}</p>
             )}
             <div className="flex items-center gap-2 mt-1">
               <Badge className="text-[10px] h-5 bg-white/20 text-white border-0 hover:bg-white/30">
@@ -732,28 +1468,7 @@ function ClientDetailPanel({ client, ar, onClose, onEdit }: { client: Client; ar
 
       <ScrollArea className="h-[calc(100vh-340px)]">
         <div className="p-4 space-y-4">
-          {/* Service Type Badge */}
-          {client.serviceType && (
-            <div className="px-4 py-3 bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-700/50">
-              <div className="flex items-center gap-2">
-                <div className="w-6 h-6 rounded-md bg-teal-100 dark:bg-teal-900 flex items-center justify-center shrink-0">
-                  <FileText className="h-3 w-3 text-teal-500" />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <span className="text-[10px] text-slate-400 block">{ar ? "الغرض" : "Purpose"}</span>
-                  <span className="text-xs text-teal-700 dark:text-teal-300 font-medium">
-                    {ar
-                      ? { consultation: "استشارة هندسية", design: "تصميم", license: "استخراج ترخيص", supervision: "إشراف على التنفيذ", inspection: "فحص هندسي", other: "أخرى" }[client.serviceType] || client.serviceType
-                      : { consultation: "Engineering Consultation", design: "Design", license: "License", supervision: "Supervision", inspection: "Inspection", other: "Other" }[client.serviceType] || client.serviceType}
-                  </span>
-                </div>
-              </div>
-              {client.serviceNotes && (
-                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1.5 ms-8 line-clamp-2">{client.serviceNotes}</p>
-              )}
-            </div>
-          )}
-          {/* Contact Info */}
+          {/* Contact Info with WhatsApp + Call buttons */}
           <div className="space-y-2">
             {client.email && (
               <div className="flex items-center gap-2 text-xs text-slate-600 dark:text-slate-400">
@@ -775,31 +1490,244 @@ function ClientDetailPanel({ client, ar, onClose, onEdit }: { client: Client; ar
                 </a>
               </div>
             )}
-            {client.address && (
-              <div className="flex items-center gap-2 text-xs text-slate-500">
-                <div className="w-6 h-6 rounded-md bg-slate-100 dark:bg-slate-800 flex items-center justify-center shrink-0">
-                  <MapPin className="h-3 w-3 text-slate-500" />
+            {/* Action buttons: WhatsApp + Call */}
+            <div className="flex gap-2 pt-1">
+              {(client.whatsapp || client.phone) && (
+                <a
+                  href={`https://wa.me/${(client.whatsapp || client.phone || "").replace(/[^0-9+]/g, "")}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-green-500 hover:bg-green-600 text-white text-xs font-medium transition-colors"
+                >
+                  <MessageCircle className="h-3 w-3" />
+                  {ar ? "واتساب" : "WhatsApp"}
+                </a>
+              )}
+              {client.phone && (
+                <a
+                  href={`tel:${client.phone}`}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-teal-600 hover:bg-teal-700 text-white text-xs font-medium transition-colors"
+                >
+                  <Phone className="h-3 w-3" />
+                  {ar ? "اتصال" : "Call"}
+                </a>
+              )}
+            </div>
+            {client.whatsapp && client.phone && client.whatsapp !== client.phone && (
+              <div className="flex items-center gap-2 text-xs text-slate-400">
+                <div className="w-6 h-6 rounded-md bg-green-50 dark:bg-green-900/20 flex items-center justify-center shrink-0">
+                  <MessageCircle className="h-3 w-3 text-green-500" />
                 </div>
-                <span className="truncate">{client.address}</span>
+                <span className="text-green-600 dark:text-green-400">{client.whatsapp}</span>
               </div>
             )}
-            {client.taxNumber && (
-              <div className="flex items-center gap-2 text-xs text-slate-500">
+            {client.extraPhone && (
+              <div className="flex items-center gap-2 text-xs text-slate-400">
                 <div className="w-6 h-6 rounded-md bg-slate-100 dark:bg-slate-800 flex items-center justify-center shrink-0">
-                  <FileText className="h-3 w-3 text-slate-500" />
+                  <Phone className="h-3 w-3 text-slate-500" />
                 </div>
-                <span>{ar ? "ض.ر:" : "TRN:"} {client.taxNumber}</span>
-              </div>
-            )}
-            {client.paymentTerms && (
-              <div className="flex items-center gap-2 text-xs text-slate-500">
-                <div className="w-6 h-6 rounded-md bg-slate-100 dark:bg-slate-800 flex items-center justify-center shrink-0">
-                  <CreditCard className="h-3 w-3 text-slate-500" />
-                </div>
-                <span>{ar ? "شروط الدفع:" : "Terms:"} {client.paymentTerms}</span>
+                <span>{client.extraPhone}</span>
               </div>
             )}
           </div>
+
+          {/* Address section */}
+          {(formattedAddr || client.address) && (
+            <>
+              <Separator />
+              <div className="space-y-2">
+                {formattedAddr ? (
+                  <div className="flex items-start gap-2 text-xs text-slate-500">
+                    <div className="w-6 h-6 rounded-md bg-slate-100 dark:bg-slate-800 flex items-center justify-center shrink-0 mt-0.5">
+                      <MapPin className="h-3 w-3 text-slate-500" />
+                    </div>
+                    <div className="min-w-0">
+                      {emirateLabel && (
+                        <span className="text-teal-600 dark:text-teal-400 font-medium block">
+                          {ar ? emirateLabel.ar : emirateLabel.en}
+                        </span>
+                      )}
+                      <span className="truncate">{formattedAddr}</span>
+                    </div>
+                  </div>
+                ) : client.address ? (
+                  <div className="flex items-center gap-2 text-xs text-slate-500">
+                    <div className="w-6 h-6 rounded-md bg-slate-100 dark:bg-slate-800 flex items-center justify-center shrink-0">
+                      <MapPin className="h-3 w-3 text-slate-500" />
+                    </div>
+                    <span className="truncate">{client.address}</span>
+                  </div>
+                ) : null}
+              </div>
+            </>
+          )}
+
+          {/* ID & Nationality */}
+          {(client.idNumber || client.nationality) && (
+            <div className="space-y-2">
+              {client.idNumber && (
+                <div className="flex items-center gap-2 text-xs text-slate-500">
+                  <div className="w-6 h-6 rounded-md bg-slate-100 dark:bg-slate-800 flex items-center justify-center shrink-0">
+                    <FileSignature className="h-3 w-3 text-slate-500" />
+                  </div>
+                  <span>{ar ? "رقم الهوية:" : "ID:"} {client.idNumber}</span>
+                </div>
+              )}
+              {client.nationality && (
+                <div className="flex items-center gap-2 text-xs text-slate-500">
+                  <div className="w-6 h-6 rounded-md bg-slate-100 dark:bg-slate-800 flex items-center justify-center shrink-0">
+                    <Globe className="h-3 w-3 text-slate-500" />
+                  </div>
+                  <span>{ar ? "الجنسية:" : "Nationality:"} {getNationalityLabel(client.nationality, ar)}</span>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Services Wanted as Badges */}
+          {services.length > 0 && (
+            <>
+              <Separator />
+              <div className="space-y-2">
+                <span className="text-[10px] text-slate-400 block">{ar ? "الخدمات المطلوبة" : "Services Wanted"}</span>
+                <div className="flex flex-wrap gap-1">
+                  {services.map((svc) => {
+                    const label = SERVICE_LABELS[svc];
+                    return (
+                      <Badge key={svc} variant="secondary" className="text-[10px] h-5">
+                        {label ? (ar ? label.ar : label.en) : svc}
+                      </Badge>
+                    );
+                  })}
+                </div>
+              </div>
+            </>
+          )}
+
+          {/* Project Type */}
+          {projectTypeLabel && (
+            <div className="space-y-2">
+              <span className="text-[10px] text-slate-400 block">{ar ? "نوع المشروع" : "Project Type"}</span>
+              <Badge className={cn("text-[10px] h-5", "bg-violet-100 text-violet-700 dark:bg-violet-900/50 dark:text-violet-300")}>
+                <Home className="h-3 w-3 me-1" />
+                {ar ? projectTypeLabel.ar : projectTypeLabel.en}
+              </Badge>
+            </div>
+          )}
+
+          {/* Land Details */}
+          {LAND_PROJECT_TYPES.includes(client.projectType || "") && (
+            <>
+              <Separator />
+              <div className="space-y-2">
+                <span className="text-[10px] text-slate-400 font-medium block">
+                  {ar ? "تفاصيل الأرض" : "Land Details"}
+                </span>
+                {client.landLocation && (
+                  <div className="flex items-center gap-2 text-xs text-slate-500">
+                    <MapPin className="h-3 w-3 text-slate-400" />
+                    <span>{client.landLocation}</span>
+                  </div>
+                )}
+                {client.landArea && (
+                  <div className="flex items-center gap-2 text-xs text-slate-500">
+                    <FileText className="h-3 w-3 text-slate-400" />
+                    <span>{ar ? "المساحة:" : "Area:"} {client.landArea}</span>
+                  </div>
+                )}
+                {client.plotNumber && (
+                  <div className="flex items-center gap-2 text-xs text-slate-500">
+                    <FileText className="h-3 w-3 text-slate-400" />
+                    <span>{ar ? "رقم القطعة:" : "Plot:"} {client.plotNumber}</span>
+                  </div>
+                )}
+                {client.planNumber && (
+                  <div className="flex items-center gap-2 text-xs text-slate-500">
+                    <FileText className="h-3 w-3 text-slate-400" />
+                    <span>{ar ? "رقم المخطط:" : "Plan:"} {client.planNumber}</span>
+                  </div>
+                )}
+                {landDocs.length > 0 && (
+                  <div className="flex flex-wrap gap-1 mt-1">
+                    {landDocs.map((doc, i) => (
+                      <Badge key={i} variant="outline" className="text-[9px] h-4">
+                        <FileText className="h-2.5 w-2.5 me-0.5" />
+                        {doc.type}
+                      </Badge>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </>
+          )}
+
+          {/* Referral Source */}
+          {referralLabel && (
+            <>
+              <Separator />
+              <div className="space-y-2">
+                <span className="text-[10px] text-slate-400 block">{ar ? "مصدر العميل" : "Referral Source"}</span>
+                <Badge className="text-[10px] h-5 bg-sky-100 text-sky-700 dark:bg-sky-900/50 dark:text-sky-300">
+                  {ar ? referralLabel.ar : referralLabel.en}
+                </Badge>
+                {client.referralDetail && (
+                  <p className="text-xs text-slate-500">{client.referralDetail}</p>
+                )}
+              </div>
+            </>
+          )}
+
+          {/* Service Type Badge (legacy) */}
+          {client.serviceType && (
+            <div className="px-4 py-3 bg-slate-50 dark:bg-slate-800/50 border rounded-lg">
+              <div className="flex items-center gap-2">
+                <div className="w-6 h-6 rounded-md bg-teal-100 dark:bg-teal-900 flex items-center justify-center shrink-0">
+                  <FileText className="h-3 w-3 text-teal-500" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <span className="text-[10px] text-slate-400 block">{ar ? "الغرض" : "Purpose"}</span>
+                  <span className="text-xs text-teal-700 dark:text-teal-300 font-medium">
+                    {ar
+                      ? { consultation: "استشارة هندسية", design: "تصميم", license: "استخراج ترخيص", supervision: "إشراف على التنفيذ", inspection: "فحص هندسي", other: "أخرى" }[client.serviceType] || client.serviceType
+                      : { consultation: "Engineering Consultation", design: "Design", license: "License", supervision: "Supervision", inspection: "Inspection", other: "Other" }[client.serviceType] || client.serviceType}
+                  </span>
+                </div>
+              </div>
+              {client.serviceNotes && (
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1.5 ms-8 line-clamp-2">{client.serviceNotes}</p>
+              )}
+            </div>
+          )}
+
+          {/* Tax / Terms */}
+          {(client.taxNumber || client.paymentTerms) && (
+            <div className="space-y-2">
+              {client.taxNumber && (
+                <div className="flex items-center gap-2 text-xs text-slate-500">
+                  <div className="w-6 h-6 rounded-md bg-slate-100 dark:bg-slate-800 flex items-center justify-center shrink-0">
+                    <FileText className="h-3 w-3 text-slate-500" />
+                  </div>
+                  <span>{ar ? "ض.ر:" : "TRN:"} {client.taxNumber}</span>
+                </div>
+              )}
+              {client.paymentTerms && (
+                <div className="flex items-center gap-2 text-xs text-slate-500">
+                  <div className="w-6 h-6 rounded-md bg-slate-100 dark:bg-slate-800 flex items-center justify-center shrink-0">
+                    <CreditCard className="h-3 w-3 text-slate-500" />
+                  </div>
+                  <span>{ar ? "شروط الدفع:" : "Terms:"} {client.paymentTerms}</span>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Notes */}
+          {client.notes && (
+            <div className="px-3 py-2 rounded-lg bg-slate-50 dark:bg-slate-800/50">
+              <span className="text-[10px] text-slate-400 block mb-1">{ar ? "ملاحظات" : "Notes"}</span>
+              <p className="text-xs text-slate-600 dark:text-slate-300 line-clamp-3">{client.notes}</p>
+            </div>
+          )}
 
           <Separator />
 

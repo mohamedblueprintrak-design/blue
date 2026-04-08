@@ -83,9 +83,15 @@ model Project {
   status        String   @default("active") // active, completed, delayed, on_hold, cancelled
   progress      Float    @default(0)
   budget        Float    @default(0)
+  contractValue  Float    @default(0) // Total contract value
+  paymentMethod  String   @default("") // cash, cheque, transfer, installments
+  paymentSchedule String  @default("") // JSON: [{milestone,amount,percentage,dueDate,status}]
+  expectedDuration Int     @default(0) // Expected duration in days
   startDate     DateTime?
   endDate       DateTime?
+  expectedEndDate DateTime? // Expected delivery date
   description   String   @default("")
+  municipalityChecklist String @default("") // JSON: [{id,label,checked,stage}]
   createdById   String
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
@@ -236,16 +242,42 @@ model GovApproval {
 
 model Client {
   id              String   @id @default(cuid())
+  // Basic Info
+  clientType      String   @default("individual") // individual, company, government
   name            String   @default("")
+  nameEn          String   @default("")
   company         String   @default("")
+  companyEn       String   @default("")
+  idNumber        String   @default("") // UAE ID or Commercial Registration
+  nationality      String   @default("")
+  idPhoto         String   @default("") // ID photo file path
   email           String   @default("")
   phone           String   @default("")
+  whatsapp        String   @default("") // separate WhatsApp number
+  extraPhone      String   @default("") // additional phone
   address         String   @default("")
+  fullAddress     String   @default("") // JSON: {emirate,city,area,street,building,unit}
   taxNumber       String   @default("")
   creditLimit     Float    @default(0)
   paymentTerms    String   @default("")
-  serviceType     String?  @default("")
-  serviceNotes    String?
+  // Services & Project Info
+  servicesWanted  String   @default("") // JSON array: ["consultation","design","license",...]
+  projectType     String   @default("") // villa, apartment, commercial, industrial, residential_building, medical
+  serviceType     String?  @default("") // legacy: purpose of visit
+  serviceNotes    String?  // legacy: additional details
+  // Land Details
+  landLocation    String   @default("")
+  landArea        String   @default("")
+  plotNumber      String   @default("")
+  planNumber      String   @default("")
+  landDocuments   String   @default("") // JSON array: [{type:"survey",path:...},...]
+  notes           String   @default("")
+  // Referral
+  referralSource  String   @default("") // social_media, referral, website, walk_in, advertisement, other
+  referralDetail  String   @default("")
+  // Credit & Status
+  creditUsed      Float    @default(0)
+  isActive        Boolean  @default(true)
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 

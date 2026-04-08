@@ -62,8 +62,7 @@ const managementRoles: Role[] = [
 
 const fullRoles: Role[] = ["admin", "manager"];
 
-// ===== SIMPLIFIED NAVIGATION ITEMS =====
-// الشريط الجانبي المبسط
+// ===== NAVIGATION ITEMS =====
 const allNavItems: NavItem[] = [
   // ───── Dashboard ─────
   {
@@ -74,22 +73,100 @@ const allNavItems: NavItem[] = [
     roles: allRoles,
   },
 
-  // ───── Client Creation (إنشاء عميل) ─────
+  // ───── Clients (قائمة فرعية) ─────
   {
     id: "clients",
     icon: "UserPlus",
-    labelAr: "إنشاء عميل",
-    labelEn: "Client Creation",
+    labelAr: "العملاء",
+    labelEn: "Clients",
     roles: allRoles,
+    children: [
+      {
+        id: "clients-list",
+        icon: "Users",
+        labelAr: "كل العملاء",
+        labelEn: "All Clients",
+        roles: allRoles,
+      },
+      {
+        id: "clients-create",
+        icon: "UserPlus",
+        labelAr: "إنشاء عميل جديد",
+        labelEn: "Create New Client",
+        roles: allRoles,
+      },
+    ],
   },
 
-  // ───── Projects (مبسط - بدون children) ─────
+  // ───── Projects (قائمة فرعية) ─────
   {
     id: "projects",
     icon: "FolderKanban",
     labelAr: "المشاريع",
     labelEn: "Projects",
     roles: allRoles,
+    children: [
+      {
+        id: "projects-all",
+        icon: "FolderKanban",
+        labelAr: "كل المشاريع",
+        labelEn: "All Projects",
+        roles: allRoles,
+      },
+      {
+        id: "projects-active",
+        icon: "Activity",
+        labelAr: "المشاريع النشطة",
+        labelEn: "Active Projects",
+        roles: allRoles,
+      },
+      {
+        id: "projects-completed",
+        icon: "CheckCircle2",
+        labelAr: "المشاريع المكتملة",
+        labelEn: "Completed Projects",
+        roles: allRoles,
+      },
+      {
+        id: "projects-create",
+        icon: "Plus",
+        labelAr: "إنشاء مشروع",
+        labelEn: "Create Project",
+        roles: managementRoles,
+      },
+    ],
+  },
+
+  // ───── Contractors (قائمة فرعية) ─────
+  {
+    id: "contractors",
+    icon: "HardHat",
+    labelAr: "المقاولون",
+    labelEn: "Contractors",
+    roles: ["admin", "manager", "project_manager", "engineer"],
+    children: [
+      {
+        id: "contractors-list",
+        icon: "HardHat",
+        labelAr: "كل المقاولين",
+        labelEn: "All Contractors",
+        roles: ["admin", "manager", "project_manager", "engineer"],
+      },
+      {
+        id: "contractors-rfqs",
+        icon: "FileText",
+        labelAr: "طلبات العروض",
+        labelEn: "RFQs",
+        roles: ["admin", "manager", "project_manager"],
+      },
+      {
+        id: "contractors-create",
+        icon: "UserPlus",
+        labelAr: "إضافة مقاول",
+        labelEn: "Add Contractor",
+        roles: ["admin", "manager"],
+      },
+    ],
   },
 
   // ───── Tenders (المناقصات) ─────
@@ -98,15 +175,6 @@ const allNavItems: NavItem[] = [
     icon: "Gavel",
     labelAr: "المناقصات",
     labelEn: "Tenders",
-    roles: ["admin", "manager", "project_manager"],
-  },
-
-  // ───── Contractors (المقاولون) ─────
-  {
-    id: "contractors",
-    icon: "HardHat",
-    labelAr: "المقاولون",
-    labelEn: "Contractors",
     roles: ["admin", "manager", "project_manager"],
   },
 
@@ -119,6 +187,47 @@ const allNavItems: NavItem[] = [
     roles: ["admin", "manager", "accountant"],
   },
 
+  // ───── Finance (قائمة فرعية) ─────
+  {
+    id: "finance",
+    icon: "Wallet",
+    labelAr: "المالية",
+    labelEn: "Finance",
+    roles: ["admin", "manager", "accountant"],
+    children: [
+      {
+        id: "finance-revenue",
+        icon: "TrendingUp",
+        labelAr: "الإيرادات",
+        labelEn: "Revenue",
+        roles: ["admin", "manager", "accountant"],
+      },
+      {
+        id: "finance-expenses",
+        icon: "TrendingDown",
+        labelAr: "المصروفات",
+        labelEn: "Expenses",
+        roles: ["admin", "manager", "accountant"],
+      },
+      {
+        id: "finance-reports",
+        icon: "BarChart3",
+        labelAr: "التقارير المالية",
+        labelEn: "Financial Reports",
+        roles: ["admin", "manager", "accountant"],
+      },
+    ],
+  },
+
+  // ───── Reports (قسم منفصل) ─────
+  {
+    id: "reports",
+    icon: "BarChart3",
+    labelAr: "التقارير",
+    labelEn: "Reports",
+    roles: ["admin", "manager", "project_manager"],
+  },
+
   // ───── AI Assistant & Knowledge Base ─────
   {
     id: "ai-assistant",
@@ -128,7 +237,7 @@ const allNavItems: NavItem[] = [
     roles: allRoles,
   },
 
-  // ───── Employees ─────
+  // ───── Employees (قائمة فرعية) ─────
   {
     id: "employees",
     icon: "UsersRound",
@@ -167,6 +276,15 @@ const allNavItems: NavItem[] = [
     ],
   },
 
+  // ───── Notifications ─────
+  {
+    id: "notifications",
+    icon: "Bell",
+    labelAr: "الإشعارات",
+    labelEn: "Notifications",
+    roles: allRoles,
+  },
+
   // ───── Settings ─────
   {
     id: "settings",
@@ -197,7 +315,6 @@ function filterNavItemsByRole(items: NavItem[], role: Role): NavItem[] {
         : undefined,
     }))
     .filter((item) => {
-      // Keep items without children or items that still have visible children
       if (!item.children || item.children.length === 0) {
         return true;
       }
@@ -223,7 +340,7 @@ function checkItemAccess(items: NavItem[], pageId: string): boolean {
   return false;
 }
 
-// ===== PROJECT TAB ITEMS (للاستخدام داخل المشروع) =====
+// ===== PROJECT TAB ITEMS =====
 export const projectTabItems = [
   { id: "overview", icon: "Eye", labelAr: "نظرة عامة", labelEn: "Overview" },
   { id: "design-stage", icon: "PenTool", labelAr: "مرحلة التصميم", labelEn: "Design Stage" },
@@ -231,6 +348,20 @@ export const projectTabItems = [
   { id: "boq-specs", icon: "Calculator", labelAr: "مقاييس ومواصفات", labelEn: "BOQ & Specs" },
   { id: "contractor-assignment", icon: "HardHat", labelAr: "تعيين مقاول", labelEn: "Contractor Assignment" },
   { id: "supervision", icon: "ClipboardCheck", labelAr: "الإشراف", labelEn: "Supervision" },
+  { id: "tasks", icon: "ListTodo", labelAr: "المهام", labelEn: "Tasks" },
+  { id: "financial", icon: "Wallet", labelAr: "المالية", labelEn: "Financial" },
+  { id: "documents", icon: "FileText", labelAr: "المستندات", labelEn: "Documents" },
+  { id: "workflow", icon: "GitBranch", labelAr: "سير العمل", labelEn: "Workflow" },
+];
+
+// Design Stage Sub-tabs
+export const designSubTabs = [
+  { id: "architectural", icon: "Building2", labelAr: "المعماري", labelEn: "Architectural" },
+  { id: "structural", icon: "HardHat", labelAr: "الإنشائي", labelEn: "Structural" },
+  { id: "mep-electrical", icon: "Zap", labelAr: "الكهرباء", labelEn: "Electrical" },
+  { id: "mep-plumbing", icon: "Droplets", labelAr: "السباكة", labelEn: "Plumbing" },
+  { id: "mep-hvac", icon: "Wind", labelAr: "التكييف", labelEn: "HVAC" },
+  { id: "civil-defense", icon: "Shield", labelAr: "الدفاع المدني", labelEn: "Civil Defense" },
 ];
 
 // Technical Sub-tabs

@@ -73,6 +73,13 @@ import {
   Database,
   MessageCircle,
   ShieldAlert,
+  Bell,
+  Plus,
+  UserRoundPlus,
+  Briefcase,
+  Building,
+  Wrench,
+  Zap,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -890,17 +897,50 @@ export default function Dashboard({ language }: { language: "ar" | "en" }) {
 
   return (
     <div className="space-y-6">
-      {/* Welcome Section */}
-      <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-2">
-        <div>
-          <h2 className="text-2xl font-bold text-slate-900 dark:text-white">
-            {isAr ? `مرحباً، ${user?.name || "مستخدم"}` : `Welcome, ${user?.name || "User"}`}
-          </h2>
+      {/* ===== Welcome Section with Notification Bell & Quick Create ===== */}
+      <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">
+        <div className="flex-1">
+          <div className="flex items-center gap-3">
+            <h2 className="text-2xl font-bold text-slate-900 dark:text-white">
+              {isAr ? `مرحباً، ${user?.name || "مستخدم"}` : `Welcome, ${user?.name || "User"}`}
+            </h2>
+            {/* Notification Bell */}
+            <button
+              onClick={() => setCurrentPage("notifications")}
+              className="relative h-9 w-9 rounded-xl bg-gradient-to-br from-amber-400 to-amber-500 dark:from-amber-500 dark:to-amber-600 flex items-center justify-center shadow-md hover:shadow-lg hover:scale-105 transition-all duration-200 group"
+              title={isAr ? "الإشعارات" : "Notifications"}
+            >
+              <Bell className="h-4 w-4 text-white" />
+              <span className="absolute -top-1 -end-1 h-5 min-w-[20px] rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center px-1 ring-2 ring-white dark:ring-slate-900 shadow-sm">
+                {alerts.length}
+              </span>
+            </button>
+          </div>
           <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
             {isAr
               ? "إليك ملخص نشاطك اليوم ومؤشرات الأداء"
               : "Here's your activity summary and key performance indicators"}
           </p>
+          {/* Quick Create Buttons */}
+          <div className="flex items-center gap-2 mt-3">
+            <Button
+              onClick={() => setCurrentPage("clients")}
+              size="sm"
+              className="h-8 px-3 text-xs gap-1.5 bg-gradient-to-r from-teal-500 to-teal-600 hover:from-teal-600 hover:to-teal-700 text-white shadow-sm rounded-lg"
+            >
+              <UserRoundPlus className="h-3.5 w-3.5" />
+              {isAr ? "عميل جديد" : "New Client"}
+            </Button>
+            <Button
+              onClick={() => setCurrentPage("projects")}
+              size="sm"
+              variant="outline"
+              className="h-8 px-3 text-xs gap-1.5 border-teal-200 dark:border-teal-800 text-teal-700 dark:text-teal-400 hover:bg-teal-50 dark:hover:bg-teal-950/30 rounded-lg"
+            >
+              <Plus className="h-3.5 w-3.5" />
+              {isAr ? "مشروع جديد" : "New Project"}
+            </Button>
+          </div>
         </div>
         <p className="text-xs text-slate-400 dark:text-slate-500">
           {new Date().toLocaleDateString(isAr ? "ar-AE" : "en-US", {
@@ -2094,6 +2134,66 @@ export default function Dashboard({ language }: { language: "ar" | "en" }) {
           </CardContent>
         </Card>
       </div>
+
+      </WidgetSlot>
+      <WidgetSlot widgetId="dept-workload" layout={layout} language={language}>
+      {/* ===== Department Workload Overview ===== */}
+      <Card className="rounded-xl border-slate-200 dark:border-slate-700/50 bg-white dark:bg-slate-900 hover:shadow-md transition-shadow">
+        <CardHeader className="pb-3 border-b border-slate-100 dark:border-slate-800/50 relative">
+          <div className="absolute top-0 start-0 end-0 h-[3px] rounded-t-xl bg-gradient-to-l from-teal-500 to-teal-400" />
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2.5">
+              <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-teal-500 to-cyan-600 flex items-center justify-center shadow-md">
+                <Briefcase className="h-4 w-4 text-white" />
+              </div>
+              <div>
+                <CardTitle className="text-base font-semibold text-slate-900 dark:text-white">
+                  {isAr ? "حمل الأقسام" : "Department Workload"}
+                </CardTitle>
+                <CardDescription className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                  {isAr ? "نظرة عامة على حمل العمل لكل قسم" : "Overview of task load per department"}
+                </CardDescription>
+              </div>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent className="pt-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+            {[
+              { key: "arch", labelAr: "القسم المعماري", labelEn: "Architecture", icon: Building, color: "from-teal-500 to-teal-600", bg: "bg-teal-50 dark:bg-teal-950/20", total: departmentProgress.find(d => d.key === "architectural")?.total || 0, completed: departmentProgress.find(d => d.key === "architectural")?.completed || 0, progress: departmentProgress.find(d => d.key === "architectural")?.progress || 0 },
+              { key: "struct", labelAr: "القسم الإنشائي", labelEn: "Structural", icon: Wrench, color: "from-amber-500 to-amber-600", bg: "bg-amber-50 dark:bg-amber-950/20", total: departmentProgress.find(d => d.key === "structural")?.total || 0, completed: departmentProgress.find(d => d.key === "structural")?.completed || 0, progress: departmentProgress.find(d => d.key === "structural")?.progress || 0 },
+              { key: "mep", labelAr: "الكهروميكانيك", labelEn: "MEP", icon: Zap, color: "from-violet-500 to-violet-600", bg: "bg-violet-50 dark:bg-violet-950/20", total: departmentProgress.find(d => d.key === "mep")?.total || 0, completed: departmentProgress.find(d => d.key === "mep")?.completed || 0, progress: departmentProgress.find(d => d.key === "mep")?.progress || 0 },
+              { key: "pm", labelAr: "إدارة المشاريع", labelEn: "Project Mgmt", icon: FolderKanban, color: "from-blue-500 to-blue-600", bg: "bg-blue-50 dark:bg-blue-950/20", total: stats.activeProjects, completed: stats.completedProjects, progress: stats.totalProjects > 0 ? Math.round((stats.completedProjects / stats.totalProjects) * 100) : 0 },
+              { key: "admin", labelAr: "الإدارة", labelEn: "Administration", icon: ShieldCheck, color: "from-emerald-500 to-emerald-600", bg: "bg-emerald-50 dark:bg-emerald-950/20", total: activeTasksCount, completed: activeTasksCount - overdueTasksCount, progress: activeTasksCount > 0 ? Math.round(((activeTasksCount - overdueTasksCount) / activeTasksCount) * 100) : 0 },
+              { key: "doc", labelAr: "الوثائق", labelEn: "Documentation", icon: FileText, color: "from-rose-500 to-rose-600", bg: "bg-rose-50 dark:bg-rose-950/20", total: invoices.outstandingCount, completed: 0, progress: 0 },
+            ].map((dept) => {
+              const DeptIcon = dept.icon;
+              return (
+                <div
+                  key={dept.key}
+                  className={cn(
+                    "rounded-xl border border-slate-200/80 dark:border-slate-700/50 p-3 transition-all duration-200 hover:shadow-md hover:scale-[1.02] cursor-default",
+                    dept.bg
+                  )}
+                >
+                  <div className="flex items-center gap-2 mb-2.5">
+                    <div className={cn("h-8 w-8 rounded-lg bg-gradient-to-br flex items-center justify-center shadow-sm", dept.color)}>
+                      <DeptIcon className="h-4 w-4 text-white" />
+                    </div>
+                    <MiniProgressRing progress={dept.progress} size={32} strokeWidth={3} />
+                  </div>
+                  <p className="text-xs font-semibold text-slate-800 dark:text-slate-200 truncate">
+                    {isAr ? dept.labelAr : dept.labelEn}
+                  </p>
+                  <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">
+                    {dept.completed}/{dept.total}
+                  </p>
+                </div>
+              );
+            })}
+          </div>
+        </CardContent>
+      </Card>
 
       </WidgetSlot>
       <WidgetSlot widgetId="project-health" layout={layout} language={language}>

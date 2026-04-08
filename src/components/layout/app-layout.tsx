@@ -73,6 +73,12 @@ import {
   Gift,
   UserPlus,
   BookOpen,
+  Plus,
+  CheckCircle2,
+  TrendingUp,
+  TrendingDown,
+  Wallet,
+  Wind,
   type LucideIcon,
 } from "lucide-react";
 import Dashboard from "@/components/pages/dashboard";
@@ -98,6 +104,11 @@ import MobileBottomNav from "@/components/layout/mobile-bottom-nav";
 
 import CommissionsPage from "@/components/pages/commissions";
 import AIAssistantHub from "@/components/pages/ai-assistant-hub";
+import NotificationsPage from "@/components/pages/notifications";
+import ReportsPage from "@/components/pages/reports";
+import FinanceRevenuePage from "@/components/pages/finance-revenue";
+import FinanceExpensesPage from "@/components/pages/finance-expenses";
+import FinanceReportsPage from "@/components/pages/finance-reports";
 import { cn } from "@/lib/utils";
 import { AnimatePresence, motion } from "framer-motion";
 import LogoImage from "@/components/ui/logo-image";
@@ -129,6 +140,12 @@ const iconMap: Record<string, LucideIcon> = {
   User,
   UserPlus,
   BookOpen,
+  Plus,
+  CheckCircle2,
+  TrendingUp,
+  TrendingDown,
+  Wallet,
+  Wind,
 };
 
 function getIcon(iconName: string): LucideIcon {
@@ -538,11 +555,25 @@ export default function AppLayout({ language }: AppLayoutProps) {
               {/* AI Assistant & Knowledge Base */}
               {currentPage === "ai-assistant" && <AIAssistantHub language={language} />}
 
-              {/* Clients */}
-              {currentPage === "clients" && <ClientsPage language={language} />}
+              {/* Clients - list or create */}
+              {(currentPage === "clients" || currentPage === "clients-list" || currentPage === "clients-create") && <ClientsPage language={language} initialTab={currentPage === "clients-create" ? "create" : "list"} />}
+
+              {/* Projects - list or filtered or create */}
+              {currentPage === "projects" && (
+                currentProjectId ? (
+                  <ProjectDetail language={language} />
+                ) : (
+                  <ProjectsList language={language} />
+                )
+              )}
+              {currentPage === "projects-all" && <ProjectsList language={language} />}
+              {currentPage === "projects-active" && <ProjectsList language={language} filter="active" />}
+              {currentPage === "projects-completed" && <ProjectsList language={language} filter="completed" />}
+              {currentPage === "projects-create" && <ProjectsList language={language} showCreate={true} />}
 
               {/* Contractors */}
-              {currentPage === "contractors" && <ContractorsPage language={language} />}
+              {(currentPage === "contractors" || currentPage === "contractors-list" || currentPage === "contractors-create") && <ContractorsPage language={language} initialTab={currentPage === "contractors-create" ? "create" : "list"} />}
+              {currentPage === "contractors-rfqs" && <ContractorsPage language={language} initialTab="rfqs" />}
 
               {/* Employees Section */}
               {(currentPage === "employees" || currentPage === "employees-list") && (
@@ -558,9 +589,28 @@ export default function AppLayout({ language }: AppLayoutProps) {
               {/* Admin */}
               {currentPage === "admin" && <AdminPanel language={language} />}
 
+              {/* Notifications */}
+              {currentPage === "notifications" && <NotificationsPage language={language} />}
+
+              {/* Reports */}
+              {currentPage === "reports" && <ReportsPage language={language} />}
+
+              {/* Finance */}
+              {currentPage === "finance-revenue" && <FinanceRevenuePage language={language} />}
+              {currentPage === "finance-expenses" && <FinanceExpensesPage language={language} />}
+              {currentPage === "finance-reports" && <FinanceReportsPage language={language} />}
+
               {/* Placeholder for undefined pages */}
-              {!["dashboard", "projects", "tenders", "commissions", "ai-assistant", "clients", "contractors", "employees", "employees-list",
-                 "employees-attendance", "employees-leave", "employees-workload", "settings", "admin"].includes(currentPage) && (
+              {!["dashboard", "projects", "projects-all", "projects-active", "projects-completed", "projects-create",
+                 "tenders", "commissions", "ai-assistant",
+                 "clients", "clients-list", "clients-create",
+                 "contractors", "contractors-list", "contractors-create", "contractors-rfqs",
+                 "employees", "employees-list",
+                 "employees-attendance", "employees-leave", "employees-workload",
+                 "settings", "admin",
+                 "notifications", "reports",
+                 "finance-revenue", "finance-expenses", "finance-reports",
+                 ].includes(currentPage) && (
                 <div className="flex flex-col items-center justify-center min-h-[60vh] text-center">
                   <LogoImage size={64} className="mb-4 bg-slate-100 dark:bg-slate-800 [&>div]:opacity-40" />
                   <h2 className="text-xl font-semibold text-slate-900 dark:text-white mb-2">

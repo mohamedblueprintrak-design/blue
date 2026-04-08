@@ -474,64 +474,155 @@ export async function createWorkflowTemplate(data: {
  * Seed default workflow templates for each project type
  */
 export async function seedDefaultWorkflowTemplates() {
+  // Role constants matching organizational structure:
+  // gm          - المدير العام (General Manager) → reviews everything
+  // office_manager - مدير المكتب (Office Manager) → manages administrative work
+  // arch_head    - رئيس القسم المعماري (Architectural Head) → reviews architectural design
+  // struct_head  - رئيس القسم الإنشائي (Structural Head) → reviews structural design
+  // project_manager - مدير مشاريع (Project Manager) → manages projects, assigns tasks
+  // engineer     - المهندسين (Engineers) → do the actual work
+  // secretary    - السكرتارية (Secretary) → handles client creation, documentation
+  // mep_head     - رئيس قسم الكهروميكانيك (MEP Supervisor) → reviews MEP design
+
   const templates = [
     {
-      name: 'قالب فيلا - رأس الخيمة',
-      nameEn: 'Villa Template - RAK',
+      name: 'قالب المشروع المتكامل - رأس الخيمة',
+      nameEn: 'Comprehensive Project Template - RAK',
       projectType: 'villa',
+      description: 'قالب شامل يغطي جميع مراحل المشروع من التسجيل حتى التسليم',
       stages: [
-        { name: 'استلام المشروع', nameEn: 'Project Receipt', order: 1, durationDays: 2, steps: [
-          { name: 'مراجعة المستندات', nameEn: 'Review Documents', order: 1, assignedRole: 'project_manager', daysToComplete: 1 },
-          { name: 'تسجيل المشروع', nameEn: 'Register Project', order: 2, assignedRole: 'secretary', daysToComplete: 1 },
-        ]},
-        { name: 'التسعير', nameEn: 'Pricing', order: 2, durationDays: 3, steps: [
-          { name: 'مراجعة نطاق العمل', nameEn: 'Review Scope', order: 1, assignedRole: 'project_manager', daysToComplete: 1 },
-          { name: 'إعداد التسعيرة', nameEn: 'Prepare Pricing', order: 2, assignedRole: 'engineer', daysToComplete: 2 },
-          { name: 'اعتماد التسعيرة', nameEn: 'Approve Pricing', order: 3, assignedRole: 'admin', requiresApproval: true, daysToComplete: 1 },
-        ]},
-        { name: 'التصميم المعماري', nameEn: 'Architectural Design', order: 3, durationDays: 14, steps: [
-          { name: 'المخططات المبدئية', nameEn: 'Preliminary Plans', order: 1, assignedRole: 'engineer', daysToComplete: 5 },
-          { name: 'تطوير التصميم', nameEn: 'Design Development', order: 2, assignedRole: 'engineer', daysToComplete: 5 },
-          { name: 'مراجعة التصميم', nameEn: 'Design Review', order: 3, assignedRole: 'project_manager', daysToComplete: 2 },
-          { name: 'الموافقة النهائية', nameEn: 'Final Approval', order: 4, assignedRole: 'admin', requiresApproval: true, daysToComplete: 2 },
-        ]},
-        { name: 'التصميم الإنشائي', nameEn: 'Structural Design', order: 4, durationDays: 10, steps: [
-          { name: 'دراسة التربة', nameEn: 'Soil Study', order: 1, assignedRole: 'engineer', daysToComplete: 2 },
-          { name: 'تصميم الأساسات', nameEn: 'Foundation Design', order: 2, assignedRole: 'engineer', daysToComplete: 4 },
-          { name: 'تصميم الهيكل', nameEn: 'Structural Design', order: 3, assignedRole: 'engineer', daysToComplete: 4 },
-        ]},
-        { name: 'التصميم الكهربائي والميكانيكي', nameEn: 'MEP Design', order: 5, durationDays: 7, steps: [
-          { name: 'التصميم الكهربائي', nameEn: 'Electrical Design', order: 1, assignedRole: 'engineer', daysToComplete: 3 },
-          { name: 'التصميم الميكانيكي', nameEn: 'Mechanical Design', order: 2, assignedRole: 'engineer', daysToComplete: 2 },
-          { name: 'تنسيق المخططات', nameEn: 'Drawing Coordination', order: 3, assignedRole: 'project_manager', daysToComplete: 2 },
-        ]},
-        { name: 'الدفاع المدني', nameEn: 'Civil Defense', order: 6, durationDays: 5, steps: [
-          { name: 'مراجعة متطلبات الدفاع المدني', nameEn: 'Review Civil Defense Requirements', order: 1, assignedRole: 'engineer', daysToComplete: 2 },
-          { name: 'تجهيز المستندات', nameEn: 'Prepare Documents', order: 2, assignedRole: 'engineer', daysToComplete: 2 },
-          { name: 'تقديم الطلب', nameEn: 'Submit Request', order: 3, assignedRole: 'project_manager', daysToComplete: 1 },
-        ]},
-        { name: 'البلدية', nameEn: 'Municipality', order: 7, durationDays: 10, steps: [
-          { name: 'تجهيز ملف البلدية', nameEn: 'Prepare Municipality File', order: 1, assignedRole: 'engineer', daysToComplete: 3 },
-          { name: 'مراجعة داخلية', nameEn: 'Internal Review', order: 2, assignedRole: 'project_manager', daysToComplete: 2 },
-          { name: 'تقديم للبلدية', nameEn: 'Submit to Municipality', order: 3, assignedRole: 'secretary', daysToComplete: 1 },
-          { name: 'متابعة الطلب', nameEn: 'Follow Up', order: 4, assignedRole: 'project_manager', daysToComplete: 4 },
-        ]},
-        { name: 'الترخيص', nameEn: 'License', order: 8, durationDays: 5, steps: [
-          { name: 'استلام الموافقة', nameEn: 'Receive Approval', order: 1, assignedRole: 'secretary', daysToComplete: 1 },
-          { name: 'مراجعة الترخيص', nameEn: 'License Review', order: 2, assignedRole: 'project_manager', daysToComplete: 1 },
-          { name: 'إصدار الترخيص', nameEn: 'Issue License', order: 3, assignedRole: 'admin', daysToComplete: 3 },
-        ]},
-        { name: 'الإشراف', nameEn: 'Supervision', order: 9, durationDays: 30, steps: [
-          { name: 'جدول الزيارات', nameEn: 'Visit Schedule', order: 1, assignedRole: 'engineer', daysToComplete: 2 },
-          { name: 'زيارات الموقع', nameEn: 'Site Visits', order: 2, assignedRole: 'engineer', daysToComplete: 20 },
-          { name: 'تقارير الإشراف', nameEn: 'Supervision Reports', order: 3, assignedRole: 'engineer', daysToComplete: 5 },
-          { name: 'الموافقة النهائية', nameEn: 'Final Approval', order: 4, assignedRole: 'admin', daysToComplete: 3 },
-        ]},
-        { name: 'التسليم', nameEn: 'Completion', order: 10, durationDays: 5, steps: [
-          { name: 'مراجعة المخرجات', nameEn: 'Review Deliverables', order: 1, assignedRole: 'project_manager', daysToComplete: 2 },
-          { name: 'تجهيز المستندات النهائية', nameEn: 'Final Documentation', order: 2, assignedRole: 'engineer', daysToComplete: 2 },
-          { name: 'تسليم المشروع', nameEn: 'Project Handover', order: 3, assignedRole: 'admin', daysToComplete: 1 },
-        ]},
+        // ===== 1. Client Registration =====
+        {
+          name: 'تسجيل العميل',
+          nameEn: 'Client Registration',
+          order: 1,
+          durationDays: 1,
+          steps: [
+            { name: 'تسجيل بيانات العميل', nameEn: 'Register Client Data', order: 1, assignedRole: 'secretary', daysToComplete: 1 },
+            { name: 'مراجعة بيانات العميل', nameEn: 'Review Client Data', order: 2, assignedRole: 'office_manager', requiresApproval: true, daysToComplete: 1 },
+          ],
+        },
+        // ===== 2. Project Setup =====
+        {
+          name: 'إعداد المشروع',
+          nameEn: 'Project Setup',
+          order: 2,
+          durationDays: 2,
+          steps: [
+            { name: 'إنشاء ملف المشروع وتعيين الفريق', nameEn: 'Create Project File & Assign Team', order: 1, assignedRole: 'project_manager', daysToComplete: 1 },
+            { name: 'اعتماد إعداد المشروع', nameEn: 'Approve Project Setup', order: 2, assignedRole: 'office_manager', requiresApproval: true, daysToComplete: 1 },
+          ],
+        },
+        // ===== 3. Architectural Design =====
+        {
+          name: 'التصميم المعماري',
+          nameEn: 'Architectural Design',
+          order: 3,
+          durationDays: 14,
+          steps: [
+            { name: 'إعداد المخططات المعمارية', nameEn: 'Prepare Architectural Drawings', order: 1, assignedRole: 'engineer', daysToComplete: 7 },
+            { name: 'مراجعة التصميم المعماري', nameEn: 'Review Architectural Design', order: 2, assignedRole: 'arch_head', requiresApproval: true, daysToComplete: 3 },
+            { name: 'الموافقة النهائية على التصميم المعماري', nameEn: 'Final Approval - Architectural Design', order: 3, assignedRole: 'office_manager', requiresApproval: true, daysToComplete: 2 },
+          ],
+        },
+        // ===== 4. Structural Design =====
+        {
+          name: 'التصميم الإنشائي',
+          nameEn: 'Structural Design',
+          order: 4,
+          durationDays: 10,
+          steps: [
+            { name: 'إعداد التصميم الإنشائي', nameEn: 'Prepare Structural Design', order: 1, assignedRole: 'engineer', daysToComplete: 5 },
+            { name: 'مراجعة التصميم الإنشائي', nameEn: 'Review Structural Design', order: 2, assignedRole: 'struct_head', requiresApproval: true, daysToComplete: 3 },
+            { name: 'الموافقة النهائية على التصميم الإنشائي', nameEn: 'Final Approval - Structural Design', order: 3, assignedRole: 'office_manager', requiresApproval: true, daysToComplete: 2 },
+          ],
+        },
+        // ===== 5. MEP Design =====
+        {
+          name: 'التصميم الكهروميكانيكي',
+          nameEn: 'MEP Design',
+          order: 5,
+          durationDays: 7,
+          steps: [
+            { name: 'إعداد التصميم الكهروميكانيكي', nameEn: 'Prepare MEP Design', order: 1, assignedRole: 'engineer', daysToComplete: 4 },
+            { name: 'مراجعة التصميم الكهروميكانيكي', nameEn: 'Review MEP Design', order: 2, assignedRole: 'mep_head', requiresApproval: true, daysToComplete: 2 },
+            { name: 'الموافقة النهائية على التصميم الكهروميكانيكي', nameEn: 'Final Approval - MEP Design', order: 3, assignedRole: 'office_manager', requiresApproval: true, daysToComplete: 1 },
+          ],
+        },
+        // ===== 6. Civil Defense Review =====
+        {
+          name: 'مراجعة الدفاع المدني',
+          nameEn: 'Civil Defense Review',
+          order: 6,
+          durationDays: 5,
+          steps: [
+            { name: 'إعداد مستندات الدفاع المدني', nameEn: 'Prepare Civil Defense Documents', order: 1, assignedRole: 'engineer', daysToComplete: 2 },
+            { name: 'مراجعة مستندات الدفاع المدني', nameEn: 'Review Civil Defense Documents', order: 2, assignedRole: 'arch_head', requiresApproval: true, daysToComplete: 1 },
+            { name: 'تقديم واعتماد طلب الدفاع المدني', nameEn: 'Submit & Approve Civil Defense Request', order: 3, assignedRole: 'office_manager', requiresApproval: true, daysToComplete: 2 },
+          ],
+        },
+        // ===== 7. Municipality Submission =====
+        {
+          name: 'تقديم البلدية',
+          nameEn: 'Municipality Submission',
+          order: 7,
+          durationDays: 10,
+          steps: [
+            { name: 'تجهيز ملف البلدية', nameEn: 'Prepare Municipality File', order: 1, assignedRole: 'secretary', daysToComplete: 2 },
+            { name: 'مراجعة ملف البلدية', nameEn: 'Review Municipality File', order: 2, assignedRole: 'project_manager', requiresApproval: true, daysToComplete: 1 },
+            { name: 'تقديم الملف للبلدية', nameEn: 'Submit File to Municipality', order: 3, assignedRole: 'office_manager', daysToComplete: 1 },
+            { name: 'متابعة الطلب البلدي', nameEn: 'Follow Up Municipality Request', order: 4, assignedRole: 'project_manager', daysToComplete: 6 },
+          ],
+        },
+        // ===== 8. Specifications & BOQ =====
+        {
+          name: 'المواصفات وجدول الكميات',
+          nameEn: 'Specifications & BOQ',
+          order: 8,
+          durationDays: 7,
+          steps: [
+            { name: 'إعداد المواصفات وجدول الكميات', nameEn: 'Prepare Specs & BOQ', order: 1, assignedRole: 'engineer', daysToComplete: 4 },
+            { name: 'مراجعة المواصفات وجدول الكميات', nameEn: 'Review Specs & BOQ', order: 2, assignedRole: 'project_manager', requiresApproval: true, daysToComplete: 2 },
+            { name: 'اعتماد المواصفات وجدول الكميات', nameEn: 'Approve Specs & BOQ', order: 3, assignedRole: 'office_manager', requiresApproval: true, daysToComplete: 1 },
+          ],
+        },
+        // ===== 9. Contractor Selection =====
+        {
+          name: 'اختيار المقاول',
+          nameEn: 'Contractor Selection',
+          order: 9,
+          durationDays: 7,
+          steps: [
+            { name: 'طلب عروض الأسعار وفرز المقاولين', nameEn: 'Request Quotes & Screen Contractors', order: 1, assignedRole: 'project_manager', daysToComplete: 3 },
+            { name: 'تقييم العروض واختيار المقاول', nameEn: 'Evaluate Bids & Select Contractor', order: 2, assignedRole: 'office_manager', requiresApproval: true, daysToComplete: 2 },
+            { name: 'الموافقة النهائية - اختيار المقاول', nameEn: 'GM Final Approval - Contractor', order: 3, assignedRole: 'gm', requiresApproval: true, daysToComplete: 2 },
+          ],
+        },
+        // ===== 10. Construction Supervision =====
+        {
+          name: 'الإشراف على التنفيذ',
+          nameEn: 'Construction Supervision',
+          order: 10,
+          durationDays: 30,
+          steps: [
+            { name: 'الإشراف الميداني وتقارير الزيارات', nameEn: 'Field Supervision & Visit Reports', order: 1, assignedRole: 'engineer', daysToComplete: 20 },
+            { name: 'مراجعة تقارير الإشراف', nameEn: 'Review Supervision Reports', order: 2, assignedRole: 'project_manager', requiresApproval: true, daysToComplete: 3 },
+            { name: 'اعتماد تقارير الإشراف', nameEn: 'Approve Supervision Reports', order: 3, assignedRole: 'office_manager', requiresApproval: true, daysToComplete: 2 },
+          ],
+        },
+        // ===== 11. Project Handover =====
+        {
+          name: 'تسليم المشروع',
+          nameEn: 'Project Handover',
+          order: 11,
+          durationDays: 5,
+          steps: [
+            { name: 'التحقق من اكتمال الأعمال', nameEn: 'Verify Work Completion', order: 1, assignedRole: 'engineer', daysToComplete: 1 },
+            { name: 'مراجعة ملف التسليم', nameEn: 'Review Handover File', order: 2, assignedRole: 'project_manager', requiresApproval: true, daysToComplete: 1 },
+            { name: 'توقيع التسليم', nameEn: 'Sign Handover', order: 3, assignedRole: 'office_manager', requiresApproval: true, daysToComplete: 1 },
+            { name: 'الموافقة النهائية - إغلاق المشروع', nameEn: 'GM Final Approval - Project Close', order: 4, assignedRole: 'gm', requiresApproval: true, daysToComplete: 2 },
+          ],
+        },
       ],
     },
   ];

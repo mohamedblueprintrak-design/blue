@@ -80,6 +80,13 @@ import {
   ArrowRight,
   RotateCcw,
   Upload,
+  Phone,
+  Download,
+  ChevronDown,
+  UserCheck,
+  ShieldCheck,
+  FileUp,
+  History,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -666,6 +673,149 @@ function getContractorCategoryLabel(category: string, isAr: boolean) {
   return labels[category]?.[isAr ? "ar" : "en"] || category;
 }
 
+// ===== DESIGN STAGE CONSTANTS =====
+interface DesignStep {
+  id: string;
+  nameAr: string;
+  nameEn: string;
+  assignee: string;
+  status: "not-started" | "in-progress" | "submitted" | "approved";
+  date: string | null;
+}
+
+interface DesignDiscipline {
+  id: string;
+  nameAr: string;
+  nameEn: string;
+  icon: React.ElementType;
+  color: string;
+  steps: DesignStep[];
+  supervisor: string;
+}
+
+const DESIGN_DISCIPLINES: DesignDiscipline[] = [
+  {
+    id: "architectural", nameAr: "المعماري", nameEn: "Architectural", icon: Building2, color: "#14b8a6", supervisor: "",
+    steps: [
+      { id: "arch-1", nameAr: "التخطيط المساحي", nameEn: "Space Planning", assignee: "", status: "not-started", date: null },
+      { id: "arch-2", nameAr: "التصميم المبدئي", nameEn: "Preliminary Design", assignee: "", status: "not-started", date: null },
+      { id: "arch-3", nameAr: "تطوير التصميم", nameEn: "Design Development", assignee: "", status: "not-started", date: null },
+      { id: "arch-4", nameAr: "المخططات النهائية", nameEn: "Final Drawings", assignee: "", status: "not-started", date: null },
+      { id: "arch-5", nameAr: "موافقة العميل", nameEn: "Client Approval", assignee: "", status: "not-started", date: null },
+      { id: "arch-6", nameAr: "تقديم البلدية", nameEn: "Municipality Submission", assignee: "", status: "not-started", date: null },
+    ],
+  },
+  {
+    id: "structural", nameAr: "الإنشائي", nameEn: "Structural", icon: HardHat, color: "#f59e0b", supervisor: "",
+    steps: [
+      { id: "str-1", nameAr: "التحليل الإنشائي", nameEn: "Structural Analysis", assignee: "", status: "not-started", date: null },
+      { id: "str-2", nameAr: "تصميم الأساسات", nameEn: "Foundation Design", assignee: "", status: "not-started", date: null },
+      { id: "str-3", nameAr: "تصميم الأعمدة والعتلات", nameEn: "Column/Beam Design", assignee: "", status: "not-started", date: null },
+      { id: "str-4", nameAr: "المخططات الإنشائية النهائية", nameEn: "Final Structural Drawings", assignee: "", status: "not-started", date: null },
+      { id: "str-5", nameAr: "المراجعة والاعتماد", nameEn: "Review & Approval", assignee: "", status: "not-started", date: null },
+    ],
+  },
+  {
+    id: "mep_electrical", nameAr: "MEP الكهرباء", nameEn: "MEP Electrical", icon: Zap, color: "#3b82f6", supervisor: "",
+    steps: [
+      { id: "el-1", nameAr: "تخطيط الكهرباء", nameEn: "Electrical Layout", assignee: "", status: "not-started", date: null },
+      { id: "el-2", nameAr: "توزيع الطاقة", nameEn: "Power Distribution", assignee: "", status: "not-started", date: null },
+      { id: "el-3", nameAr: "تصميم الإضاءة", nameEn: "Lighting Design", assignee: "", status: "not-started", date: null },
+      { id: "el-4", nameAr: "المخططات النهائية", nameEn: "Final Drawings", assignee: "", status: "not-started", date: null },
+      { id: "el-5", nameAr: "الاعتماد", nameEn: "Approval", assignee: "", status: "not-started", date: null },
+    ],
+  },
+  {
+    id: "mep_plumbing", nameAr: "MEP السباكة", nameEn: "MEP Plumbing", icon: Droplets, color: "#06b6d4", supervisor: "",
+    steps: [
+      { id: "pl-1", nameAr: "تخطيط السباكة", nameEn: "Plumbing Layout", assignee: "", status: "not-started", date: null },
+      { id: "pl-2", nameAr: "إمداد المياه", nameEn: "Water Supply", assignee: "", status: "not-started", date: null },
+      { id: "pl-3", nameAr: "تصميم الصرف", nameEn: "Drainage Design", assignee: "", status: "not-started", date: null },
+      { id: "pl-4", nameAr: "المخططات النهائية", nameEn: "Final Drawings", assignee: "", status: "not-started", date: null },
+      { id: "pl-5", nameAr: "الاعتماد", nameEn: "Approval", assignee: "", status: "not-started", date: null },
+    ],
+  },
+  {
+    id: "mep_hvac", nameAr: "MEP التكييف", nameEn: "MEP HVAC", icon: Activity, color: "#8b5cf6", supervisor: "",
+    steps: [
+      { id: "hv-1", nameAr: "حساب الأحمال الحرارية", nameEn: "HVAC Load Calculation", assignee: "", status: "not-started", date: null },
+      { id: "hv-2", nameAr: "تصميم القنوات", nameEn: "Duct Design", assignee: "", status: "not-started", date: null },
+      { id: "hv-3", nameAr: "اختيار المعدات", nameEn: "Equipment Selection", assignee: "", status: "not-started", date: null },
+      { id: "hv-4", nameAr: "المخططات النهائية", nameEn: "Final Drawings", assignee: "", status: "not-started", date: null },
+      { id: "hv-5", nameAr: "الاعتماد", nameEn: "Approval", assignee: "", status: "not-started", date: null },
+    ],
+  },
+  {
+    id: "civil_defense", nameAr: "الدفاع المدني", nameEn: "Civil Defense", icon: ShieldAlert, color: "#ef4444", supervisor: "",
+    steps: [
+      { id: "cd-1", nameAr: "خطة السلامة من الحرائق", nameEn: "Fire Safety Plan", assignee: "", status: "not-started", date: null },
+      { id: "cd-2", nameAr: "طرق الإخلاء", nameEn: "Evacuation Routes", assignee: "", status: "not-started", date: null },
+      { id: "cd-3", nameAr: "نظام إنذار الحريق", nameEn: "Fire Alarm System", assignee: "", status: "not-started", date: null },
+      { id: "cd-4", nameAr: "التقديم النهائي", nameEn: "Final Submission", assignee: "", status: "not-started", date: null },
+      { id: "cd-5", nameAr: "الاعتماد", nameEn: "Approval", assignee: "", status: "not-started", date: null },
+    ],
+  },
+];
+
+const APPROVAL_CHAIN = [
+  { key: "engineer", labelAr: "المهندس", labelEn: "Engineer" },
+  { key: "lead_engineer", labelAr: "المهندس الأول", labelEn: "Lead Engineer" },
+  { key: "dept_head", labelAr: "رئيس القسم", labelEn: "Department Head" },
+  { key: "manager", labelAr: "المدير", labelEn: "Manager" },
+];
+
+const PIPELINE_STAGES = [
+  { key: "design", labelAr: "التصميم", labelEn: "Design", icon: PenTool },
+  { key: "municipality", labelAr: "البلدية", labelEn: "Municipality", icon: Landmark },
+  { key: "boq", labelAr: "كميات", labelEn: "BOQ", icon: Calculator },
+  { key: "contractor", labelAr: "المقاول", labelEn: "Contractor", icon: HardHat },
+  { key: "supervision", labelAr: "الإشراف", labelEn: "Supervision", icon: ClipboardCheck },
+];
+
+const MOCK_TEAM = [
+  { id: "1", name: "أحمد محمد", nameEn: "Ahmed Mohamed", role: "مهندس معماري", roleEn: "Architect", status: "active" },
+  { id: "2", name: "سارة أحمد", nameEn: "Sara Ahmed", role: "مهندسة إنشائية", roleEn: "Structural Eng.", status: "active" },
+  { id: "3", name: "خالد علي", nameEn: "Khalid Ali", role: "مهندس كهرباء", roleEn: "Electrical Eng.", status: "idle" },
+  { id: "4", name: "فاطمة حسن", nameEn: "Fatma Hassan", role: "مصممة داخلي", roleEn: "Interior Designer", status: "active" },
+];
+
+const MOCK_ACTIVITY = [
+  { id: "1", actionAr: "تم تحديث التصميم المعماري", actionEn: "Architectural design updated", time: "2h ago", user: "أحمد محمد" },
+  { id: "2", actionAr: "تم رفع مخططات الأساسات", actionEn: "Foundation drawings uploaded", time: "5h ago", user: "سارة أحمد" },
+  { id: "3", actionAr: "تم اعتماد المرحلة الأولى", actionEn: "Phase 1 approved", time: "1d ago", user: "المدير" },
+  { id: "4", actionAr: "تم إضافة مهمة جديدة", actionEn: "New task added", time: "2d ago", user: "أحمد محمد" },
+  { id: "5", actionAr: "تم تحديث الميزانية", actionEn: "Budget updated", time: "3d ago", user: "المدير" },
+];
+
+const MOCK_DOCUMENTS = [
+  { id: "1", nameAr: "المخطط المعماري النهائي.pdf", nameEn: "Final Architectural Plan.pdf", size: "2.4 MB", date: "2024-01-15" },
+  { id: "2", nameAr: "تقرير التربة.pdf", nameEn: "Soil Report.pdf", size: "1.1 MB", date: "2024-01-10" },
+  { id: "3", nameAr: "مخطط الأساسات.dwg", nameEn: "Foundation Plan.dwg", size: "5.2 MB", date: "2024-01-08" },
+];
+
+const MUNICIPALITY_PREREQUISITES = [
+  { id: "arch", labelAr: "المخططات المعمارية المعتمدة", labelEn: "Approved Architectural Drawings", dependsOn: "architectural" },
+  { id: "struct", labelAr: "المخططات الإنشائية المعتمدة", labelEn: "Approved Structural Drawings", dependsOn: "structural" },
+  { id: "elec", labelAr: "مخططات الكهرباء", labelEn: "Electrical Drawings", dependsOn: "mep_electrical" },
+  { id: "plumb", labelAr: "مخططات السباكة", labelEn: "Plumbing Drawings", dependsOn: "mep_plumbing" },
+  { id: "hvac", labelAr: "مخططات التكييف", labelEn: "HVAC Drawings", dependsOn: "mep_hvac" },
+  { id: "civil_def", labelAr: "خطة الدفاع المدني", labelEn: "Civil Defense Plan", dependsOn: "civil_defense" },
+  { id: "survey", labelAr: "مسح الأرض", labelEn: "Land Survey", dependsOn: "external" },
+  { id: "soil", labelAr: "تقرير التربة", labelEn: "Soil Report", dependsOn: "external" },
+];
+
+const DESIGN_STEP_STATUS_LABELS: Record<string, Record<string, string>> = {
+  ar: { "not-started": "لم يبدأ", "in-progress": "قيد التنفيذ", submitted: "مقدم", approved: "معتمد" },
+  en: { "not-started": "Not Started", "in-progress": "In Progress", submitted: "Submitted", approved: "Approved" },
+};
+
+const DESIGN_STEP_STATUS_COLORS: Record<string, string> = {
+  "not-started": "bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400",
+  "in-progress": "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400",
+  submitted: "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400",
+  approved: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400",
+};
+
 // ===== OVERVIEW TAB CONTENT =====
 function OverviewTab({ project, language }: { project: ProjectData; language: "ar" | "en" }) {
   const isAr = language === "ar";
@@ -934,34 +1084,406 @@ function OverviewTab({ project, language }: { project: ProjectData; language: "a
         </Card>
       </div>
 
-      {/* Team Members */}
-      {project.assignments && project.assignments.length > 0 && (
+      {/* Time Remaining Card */}
+      {project.endDate && (
+        <Card className="border-slate-200 dark:border-slate-700/50" style={{ borderInlineStartWidth: "4px", borderInlineStartColor: project.endDate && new Date(project.endDate) < new Date() ? "#ef4444" : "#3b82f6" }}>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <div className="w-9 h-9 rounded-xl bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
+                  <Clock className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                </div>
+                <div>
+                  <h4 className="font-semibold text-slate-900 dark:text-white text-sm">{t("الوقت المتبقي", "Time Remaining")}</h4>
+                </div>
+              </div>
+              <span className={cn("text-lg font-bold", new Date(project.endDate) < new Date() ? "text-red-500" : "text-blue-600")}>
+                {(() => {
+                  const now = new Date();
+                  const end = new Date(project.endDate!);
+                  const daysLeft = Math.ceil((end.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+                  if (daysLeft < 0) return `${Math.abs(daysLeft)} ${t("يوم متأخر", "days overdue")}`;
+                  return `${daysLeft} ${t("يوم", "days")}`;
+                })()}
+              </span>
+            </div>
+            <Progress
+              value={(() => {
+                if (!project.startDate || !project.endDate) return 0;
+                const start = new Date(project.startDate).getTime();
+                const end = new Date(project.endDate).getTime();
+                const now = Date.now();
+                if (now >= end) return 100;
+                if (now <= start) return 0;
+                return Math.round(((now - start) / (end - start)) * 100);
+              })()}
+              className="h-2 bg-slate-100 dark:bg-slate-800"
+            />
+            <div className="flex justify-between mt-1.5 text-[10px] text-slate-400">
+              <span>{project.startDate ? new Date(project.startDate).toLocaleDateString(isAr ? "ar-AE" : "en-US", { month: "short", day: "numeric" }) : "—"}</span>
+              <span>{project.endDate ? new Date(project.endDate).toLocaleDateString(isAr ? "ar-AE" : "en-US", { month: "short", day: "numeric" }) : "—"}</span>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Financial Summary Bar */}
+      <Card className="border-slate-200 dark:border-slate-700/50">
+        <CardContent className="p-4">
+          <div className="flex items-center gap-2 mb-3">
+            <div className="w-9 h-9 rounded-xl bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center">
+              <Wallet className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+            </div>
+            <h4 className="font-semibold text-slate-900 dark:text-white text-sm">{t("الملخص المالي", "Financial Summary")}</h4>
+          </div>
+          <div className="flex items-center gap-2 mb-2">
+            <div className="flex-1 h-6 rounded-full overflow-hidden flex bg-slate-100 dark:bg-slate-800">
+              {project.budget > 0 && (
+                <>
+                  <div
+                    className="bg-emerald-500 h-full flex items-center justify-center text-[9px] font-bold text-white transition-all"
+                    style={{ width: `${Math.min((totalPaid / project.budget) * 100, 100)}%` }}
+                    title={t("المدفوع", "Paid")}
+                  >
+                    {totalPaid > 0 && `${Math.round((totalPaid / project.budget) * 100)}%`}
+                  </div>
+                  <div
+                    className="bg-blue-400 h-full flex items-center justify-center text-[9px] font-bold text-white transition-all"
+                    style={{ width: `${Math.max(((totalInvoiced - totalPaid) / project.budget) * 100, 0)}%` }}
+                    title={t("مستحق", "Invoiced")}
+                  />
+                  <div
+                    className="bg-slate-200 dark:bg-slate-700 h-full flex-1"
+                    title={t("متبقي", "Remaining")}
+                  />
+                </>
+              )}
+            </div>
+          </div>
+          <div className="flex items-center gap-4 flex-wrap text-xs">
+            <div className="flex items-center gap-1.5">
+              <div className="w-2.5 h-2.5 rounded-full bg-slate-200 dark:bg-slate-700 border border-slate-300" />
+              <span className="text-slate-500">{t("قيمة العقد", "Contract")}: <span className="font-bold text-slate-900 dark:text-white">{project.budget.toLocaleString()} AED</span></span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <div className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
+              <span className="text-slate-500">{t("المدفوع", "Paid")}: <span className="font-bold text-emerald-600">{totalPaid.toLocaleString()} AED</span></span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <div className="w-2.5 h-2.5 rounded-full bg-blue-400" />
+              <span className="text-slate-500">{t("مستحق", "Invoiced")}: <span className="font-bold text-blue-600">{totalInvoiced.toLocaleString()} AED</span></span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <div className="w-2.5 h-2.5 rounded-full bg-slate-300 dark:bg-slate-600" />
+              <span className="text-slate-500">{t("متبقي", "Remaining")}: <span className="font-bold text-slate-900 dark:text-white">{Math.max(project.budget - totalPaid, 0).toLocaleString()} AED</span></span>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* ===== Client & Contractor & Project Info ===== */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {/* Client Info Card — Enhanced with clickable contacts */}
+        <Card className="border-slate-200 dark:border-slate-700/50" style={{ borderInlineStartWidth: "4px", borderInlineStartColor: "#14b8a6" }}>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base flex items-center gap-2">
+              <div className="w-8 h-8 rounded-lg bg-teal-100 dark:bg-teal-900/30 flex items-center justify-center">
+                <Users className="h-4 w-4 text-teal-600 dark:text-teal-400" />
+              </div>
+              <div>
+                <span className="text-slate-900 dark:text-white">{t("العميل", "Client")}</span>
+                <p className="text-[10px] text-slate-400 font-normal">{t("مالك المشروع", "Project Owner")}</p>
+              </div>
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3 text-sm">
+            <div className="flex justify-between">
+              <span className="text-slate-500">{t("الاسم", "Name")}</span>
+              <span className="font-medium text-slate-900 dark:text-white">{project.client?.name || "—"}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-slate-500">{t("الشركة", "Company")}</span>
+              <span className="font-medium text-slate-900 dark:text-white">{project.client?.company || "—"}</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-slate-500">{t("البريد", "Email")}</span>
+              {project.client?.email ? (
+                <a href={`mailto:${project.client.email}`} className="font-medium text-teal-600 dark:text-teal-400 hover:underline">{project.client.email}</a>
+              ) : (
+                <span className="text-slate-400">—</span>
+              )}
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-slate-500">{t("الهاتف", "Phone")}</span>
+              <div className="flex items-center gap-1">
+                {project.client?.phone && (
+                  <>
+                    <a href={`tel:${project.client.phone}`} className="p-1 rounded-md hover:bg-teal-50 dark:hover:bg-teal-900/20 transition-colors" title={t("اتصال", "Call")}>
+                      <Phone className="h-3.5 w-3.5 text-teal-600 dark:text-teal-400" />
+                    </a>
+                    <a href={`https://wa.me/${project.client.phone.replace(/[^0-9]/g, "")}`} target="_blank" rel="noopener noreferrer" className="p-1 rounded-md hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-colors" title="WhatsApp">
+                      <MessageCircle className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
+                    </a>
+                    <span className="font-medium text-slate-900 dark:text-white text-xs" dir="ltr">{project.client.phone}</span>
+                  </>
+                )}
+                {!project.client?.phone && <span className="text-slate-400">—</span>}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Contractor Card — Executor */}
+        <Card className="border-slate-200 dark:border-slate-700/50" style={{ borderInlineStartWidth: "4px", borderInlineStartColor: "#f59e0b" }}>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base flex items-center gap-2">
+              <div className="w-8 h-8 rounded-lg bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center">
+                <HardHat className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+              </div>
+              <div>
+                <span className="text-slate-900 dark:text-white">{t("المقاول", "Contractor")}</span>
+                <p className="text-[10px] text-slate-400 font-normal">{t("المنفذ للمشروع", "Project Executor")}</p>
+              </div>
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3 text-sm">
+            {project.contractor ? (
+              <>
+                <div className="flex justify-between">
+                  <span className="text-slate-500">{t("الشركة", "Company")}</span>
+                  <span className="font-medium text-slate-900 dark:text-white">{project.contractor.companyName || project.contractor.name || "—"}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-500">{t("جهة الاتصال", "Contact")}</span>
+                  <span className="font-medium text-slate-900 dark:text-white">{project.contractor.contactPerson || "—"}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-500">{t("التخصص", "Category")}</span>
+                  <span className="font-medium text-amber-600 dark:text-amber-400">{getContractorCategoryLabel(project.contractor.category, isAr)}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-slate-500">{t("التقييم", "Rating")}</span>
+                  <div className="flex items-center gap-1">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <Star
+                        key={star}
+                        className={cn("h-3 w-3", star <= (project.contractor?.rating || 0) ? "text-amber-400 fill-amber-400" : "text-slate-300 dark:text-slate-600")}
+                      />
+                    ))}
+                  </div>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-500">{t("السجل التجاري", "CR Number")}</span>
+                  <span className="font-medium text-slate-900 dark:text-white" dir="ltr">{project.contractor.crNumber || "—"}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-slate-500">{t("الهاتف", "Phone")}</span>
+                  <div className="flex items-center gap-1">
+                    {project.contractor.phone && (
+                      <>
+                        <a href={`tel:${project.contractor.phone}`} className="p-1 rounded-md hover:bg-amber-50 dark:hover:bg-amber-900/20 transition-colors">
+                          <Phone className="h-3.5 w-3.5 text-amber-600 dark:text-amber-400" />
+                        </a>
+                        <a href={`https://wa.me/${project.contractor.phone.replace(/[^0-9]/g, "")}`} target="_blank" rel="noopener noreferrer" className="p-1 rounded-md hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-colors">
+                          <MessageCircle className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
+                        </a>
+                        <span className="font-medium text-slate-900 dark:text-white text-xs" dir="ltr">{project.contractor.phone}</span>
+                      </>
+                    )}
+                    {!project.contractor.phone && <span className="text-slate-400">—</span>}
+                  </div>
+                </div>
+              </>
+            ) : (
+              <div className="flex flex-col items-center justify-center py-4 text-center">
+                <div className="w-10 h-10 rounded-full bg-amber-50 dark:bg-amber-900/20 flex items-center justify-center mb-2">
+                  <HardHat className="h-5 w-5 text-amber-300 dark:text-amber-600" />
+                </div>
+                <p className="text-xs text-slate-400">{t("لم يتم تحديد مقاول", "No contractor assigned")}</p>
+                <p className="text-[10px] text-slate-300 dark:text-slate-600 mt-0.5">{t("يمكنك تعيين مقاول من صفحة العطاءات", "Assign a contractor from the Bids page")}</p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Project Info Card */}
+        <Card className="border-slate-200 dark:border-slate-700/50" style={{ borderInlineStartWidth: "4px", borderInlineStartColor: "#3b82f6" }}>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base flex items-center gap-2">
+              <div className="w-8 h-8 rounded-lg bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
+                <Building2 className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+              </div>
+              {t("معلومات المشروع", "Project Info")}
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3 text-sm">
+            <div className="flex justify-between">
+              <span className="text-slate-500">{t("رقم المشروع", "Project No.")}</span>
+              <span className="font-medium text-slate-900 dark:text-white">#{project.number}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-slate-500">{t("الموقع", "Location")}</span>
+              <span className="font-medium text-slate-900 dark:text-white">{project.location || "—"}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-slate-500">{t("رقم القطعة", "Plot No.")}</span>
+              <span className="font-medium text-slate-900 dark:text-white">{project.plotNumber || "—"}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-slate-500">{t("النوع", "Type")}</span>
+              <span className="font-medium text-blue-600 dark:text-blue-400">
+                {project.type === "villa" ? t("فيلا", "Villa") :
+                 project.type === "building" ? t("مبنى", "Building") :
+                 project.type === "commercial" ? t("تجاري", "Commercial") :
+                 t("صناعي", "Industrial")}
+              </span>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Pipeline Visualization */}
+      <Card className="border-slate-200 dark:border-slate-700/50">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-sm font-semibold flex items-center gap-2">
+            <GitBranch className="h-4 w-4 text-teal-500" />
+            {t("مراحل المشروع", "Project Lifecycle")}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="overflow-x-auto pb-2">
+            <div className="flex items-center gap-0 min-w-max">
+              {PIPELINE_STAGES.map((stage, idx) => {
+                const isActive = idx === Math.floor((project.progress / 100) * PIPELINE_STAGES.length);
+                const isCompleted = idx < Math.floor((project.progress / 100) * PIPELINE_STAGES.length);
+                return (
+                  <div key={stage.key} className="flex items-center">
+                    <div className="flex flex-col items-center gap-1.5 w-24">
+                      <div className={cn(
+                        "w-10 h-10 rounded-full flex items-center justify-center transition-all",
+                        isCompleted ? "bg-emerald-500 text-white shadow-lg shadow-emerald-500/20" :
+                        isActive ? "bg-teal-500 text-white shadow-lg shadow-teal-500/20 animate-pulse" :
+                        "bg-slate-100 dark:bg-slate-800 text-slate-400"
+                      )}>
+                        {isCompleted ? <CheckCircle2 className="h-5 w-5" /> : <stage.icon className="h-4 w-4" />}
+                      </div>
+                      <span className={cn("text-[10px] text-center font-medium", isActive || isCompleted ? "text-slate-900 dark:text-white" : "text-slate-400")}>
+                        {isAr ? stage.labelAr : stage.labelEn}
+                      </span>
+                    </div>
+                    {idx < PIPELINE_STAGES.length - 1 && (
+                      <div className={cn("w-8 h-1 rounded-full mx-1", isCompleted ? "bg-emerald-400" : "bg-slate-200 dark:bg-slate-700")} />
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Team List with Status */}
+      <Card className="border-slate-200 dark:border-slate-700/50">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base flex items-center gap-2">
+            <UsersRound className="h-4 w-4 text-teal-500" />
+            {t("فريق العمل", "Project Team")}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            {(project.assignments.length > 0 ? project.assignments.map(a => ({ id: a.id, name: a.user?.name || "", role: a.role, status: "active" as const })) : MOCK_TEAM).map((member) => (
+              <div key={member.id} className={cn(
+                "flex items-center gap-3 px-3 py-2.5 rounded-lg border transition-all",
+                member.status === "active" ? "bg-emerald-50/50 dark:bg-emerald-950/10 border-emerald-200/50 dark:border-emerald-800/30" : "bg-slate-50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700"
+              )}>
+                <div className="relative">
+                  <div className={cn("w-9 h-9 rounded-full flex items-center justify-center",
+                    member.status === "active" ? "bg-emerald-100 dark:bg-emerald-900/30" : "bg-slate-100 dark:bg-slate-800"
+                  )}>
+                    <span className={cn("text-xs font-bold", member.status === "active" ? "text-emerald-600 dark:text-emerald-400" : "text-slate-500")}>
+                      {member.name.charAt(0).toUpperCase()}
+                    </span>
+                  </div>
+                  <div className={cn("absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-white dark:border-slate-900",
+                    member.status === "active" ? "bg-emerald-500" : "bg-slate-400"
+                  )} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-slate-900 dark:text-white truncate">{member.name}</p>
+                  <p className="text-xs text-slate-500">{member.role}</p>
+                </div>
+                <Badge variant="outline" className={cn("text-[10px] border-0", member.status === "active"
+                  ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400"
+                  : "bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400"
+                )}>
+                  {member.status === "active" ? t("نشط", "Active") : t("خامل", "Idle")}
+                </Badge>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Bottom Grid: Recent Updates + Quick Documents */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Recent Updates */}
         <Card className="border-slate-200 dark:border-slate-700/50">
           <CardHeader className="pb-3">
             <CardTitle className="text-base flex items-center gap-2">
-              <UsersRound className="h-4 w-4 text-teal-500" />
-              {t("فريق العمل", "Project Team")}
+              <History className="h-4 w-4 text-blue-500" />
+              {t("آخر التحديثات", "Recent Updates")}
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="flex flex-wrap gap-3">
-              {project.assignments.map((assignment) => (
-                <div key={assignment.id} className="flex items-center gap-2 px-3 py-2 rounded-lg bg-slate-50 dark:bg-slate-800/50">
-                  <div className="w-8 h-8 rounded-full bg-teal-100 dark:bg-teal-900/30 flex items-center justify-center">
-                    <span className="text-xs font-bold text-teal-600 dark:text-teal-400">
-                      {assignment.user?.name?.charAt(0)?.toUpperCase() || "?"}
-                    </span>
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium">{assignment.user?.name}</p>
-                    <p className="text-xs text-slate-500">{assignment.role}</p>
+            <div className="space-y-3">
+              {MOCK_ACTIVITY.map((item) => (
+                <div key={item.id} className="flex items-start gap-3">
+                  <div className="w-2 h-2 rounded-full bg-blue-400 mt-1.5 shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs text-slate-700 dark:text-slate-300">{isAr ? item.actionAr : item.actionEn}</p>
+                    <p className="text-[10px] text-slate-400 mt-0.5">{item.user} · {item.time}</p>
                   </div>
                 </div>
               ))}
             </div>
           </CardContent>
         </Card>
-      )}
+
+        {/* Quick Documents */}
+        <Card className="border-slate-200 dark:border-slate-700/50">
+          <CardHeader className="pb-3">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-base flex items-center gap-2">
+                <FileText className="h-4 w-4 text-amber-500" />
+                {t("مستندات سريعة", "Quick Documents")}
+              </CardTitle>
+              <Button variant="ghost" size="sm" className="h-7 text-xs text-teal-600 hover:text-teal-700 gap-1">
+                {t("عرض الكل", "View All")}
+                <ArrowUpRight className="h-3 w-3" />
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              {MOCK_DOCUMENTS.map((doc) => (
+                <div key={doc.id} className="flex items-center gap-3 p-2.5 rounded-lg bg-slate-50 dark:bg-slate-800/50 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors group cursor-pointer">
+                  <div className="w-9 h-9 rounded-lg bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center shrink-0">
+                    <FileText className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-medium text-slate-700 dark:text-slate-300 truncate">{isAr ? doc.nameAr : doc.nameEn}</p>
+                    <p className="text-[10px] text-slate-400">{doc.size} · {doc.date}</p>
+                  </div>
+                  <Button variant="ghost" size="icon" className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <Download className="h-3.5 w-3.5 text-slate-500" />
+                  </Button>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }
@@ -1769,6 +2291,140 @@ export default function ProjectDetail({ language }: ProjectDetailProps) {
             language={language}
           />
           <div className="space-y-4">
+            {/* Approval Chain — shown on all design sub-tabs */}
+            <Card className="border-slate-200 dark:border-slate-700/50 overflow-hidden">
+              <CardHeader className="pb-3"><CardTitle className="text-sm font-semibold flex items-center gap-2"><ShieldCheck className="h-4 w-4 text-teal-500" />{t("سلسلة الاعتماد", "Approval Chain")}</CardTitle></CardHeader>
+              <CardContent>
+                <div className="flex items-center justify-center gap-2 flex-wrap">
+                  {APPROVAL_CHAIN.map((step, idx) => (
+                    <React.Fragment key={step.key}>
+                      <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700">
+                        <div className="w-8 h-8 rounded-full bg-teal-100 dark:bg-teal-900/30 flex items-center justify-center">
+                          <UserCheck className="h-4 w-4 text-teal-600 dark:text-teal-400" />
+                        </div>
+                        <span className="text-xs font-medium text-slate-700 dark:text-slate-300">{isAr ? step.labelAr : step.labelEn}</span>
+                      </div>
+                      {idx < APPROVAL_CHAIN.length - 1 && (
+                        <ArrowRight className="h-4 w-4 text-slate-300 dark:text-slate-600 shrink-0" />
+                      )}
+                    </React.Fragment>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Step Tables per Discipline — shown on all design sub-tabs */}
+            <Card className="border-slate-200 dark:border-slate-700/50">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm font-semibold flex items-center gap-2">
+                  <PenTool className="h-4 w-4 text-teal-500" />
+                  {t("جدول خطوات التخصصات", "Discipline Steps Table")}
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {DESIGN_DISCIPLINES.map((discipline) => {
+                  const DisciplineIcon = discipline.icon;
+                  const completedSteps = discipline.steps.filter(s => s.status === "approved").length;
+                  const totalSteps = discipline.steps.length;
+                  const progressPct = Math.round((completedSteps / totalSteps) * 100);
+
+                  return (
+                    <div key={discipline.id} className="border border-slate-100 dark:border-slate-800 rounded-xl overflow-hidden">
+                      {/* Section Header with Progress */}
+                      <div className="flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-900/50">
+                        <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: `${discipline.color}15`, color: discipline.color }}>
+                          <DisciplineIcon className="h-4 w-4" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <h4 className="text-sm font-semibold text-slate-900 dark:text-white">{isAr ? discipline.nameAr : discipline.nameEn}</h4>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <span className="text-xs text-slate-500">{completedSteps}/{totalSteps}</span>
+                          <div className="w-24">
+                            <Progress value={progressPct} className="h-1.5 bg-slate-200 dark:bg-slate-700" />
+                          </div>
+                          <span className="text-sm font-bold" style={{ color: discipline.color }}>{progressPct}%</span>
+                        </div>
+                      </div>
+
+                      {/* Steps Table */}
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-xs">
+                          <thead>
+                            <tr className="border-b border-slate-100 dark:border-slate-800">
+                              <th className="text-start p-2.5 text-slate-500 font-medium w-8">#</th>
+                              <th className="text-start p-2.5 text-slate-500 font-medium">{t("الخطوة", "Step")}</th>
+                              <th className="text-start p-2.5 text-slate-500 font-medium w-36">{t("المسؤول", "Assignee")}</th>
+                              <th className="text-start p-2.5 text-slate-500 font-medium w-28">{t("الحالة", "Status")}</th>
+                              <th className="text-start p-2.5 text-slate-500 font-medium w-28">{t("التاريخ", "Date")}</th>
+                              <th className="text-start p-2.5 text-slate-500 font-medium w-24">{t("ملفات", "Files")}</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {discipline.steps.map((step, idx) => (
+                              <tr key={step.id} className="border-b border-slate-50 dark:border-slate-800/50 hover:bg-slate-50/50 dark:hover:bg-slate-800/30">
+                                <td className="p-2.5 text-slate-400">{idx + 1}</td>
+                                <td className="p-2.5 font-medium text-slate-800 dark:text-slate-200">{isAr ? step.nameAr : step.nameEn}</td>
+                                <td className="p-2.5">
+                                  <div className="relative">
+                                    <select
+                                      className="w-full text-xs px-2 py-1.5 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 appearance-none cursor-pointer pr-6"
+                                      value={step.assignee}
+                                      onChange={() => {}}
+                                    >
+                                      <option value="">{t("اختر...", "Select...")}</option>
+                                      <option value="ahmed">أحمد محمد</option>
+                                      <option value="sara">سارة أحمد</option>
+                                      <option value="khalid">خالد علي</option>
+                                      <option value="fatma">فاطمة حسن</option>
+                                    </select>
+                                    <ChevronDown className="absolute end-2 top-1/2 -translate-y-1/2 h-3 w-3 text-slate-400 pointer-events-none" />
+                                  </div>
+                                </td>
+                                <td className="p-2.5">
+                                  <select
+                                    className="w-full text-xs px-2 py-1.5 rounded-md border-0 font-medium cursor-pointer"
+                                    style={{ backgroundColor: DESIGN_STEP_STATUS_COLORS[step.status]?.split(' ').find(c => c.startsWith('bg-')) || 'bg-slate-100', color: DESIGN_STEP_STATUS_COLORS[step.status]?.split(' ').find(c => c.startsWith('text-')) || 'text-slate-500' }}
+                                    value={step.status}
+                                    onChange={() => {}}
+                                  >
+                                    <option value="not-started">{isAr ? "لم يبدأ" : "Not Started"}</option>
+                                    <option value="in-progress">{isAr ? "قيد التنفيذ" : "In Progress"}</option>
+                                    <option value="submitted">{isAr ? "مقدم" : "Submitted"}</option>
+                                    <option value="approved">{isAr ? "معتمد" : "Approved"}</option>
+                                  </select>
+                                </td>
+                                <td className="p-2.5 text-slate-400">{step.date || "—"}</td>
+                                <td className="p-2.5">
+                                  <Button variant="ghost" size="sm" className="h-7 w-7 p-0 text-slate-400 hover:text-teal-600">
+                                    <Upload className="h-3.5 w-3.5" />
+                                  </Button>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+
+                      {/* Supervisor Assignment */}
+                      <div className="flex items-center gap-3 p-3 border-t border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/30">
+                        <UserCheck className="h-4 w-4 text-slate-400" />
+                        <span className="text-xs text-slate-500">{t("المشرف:", "Supervisor:")}</span>
+                        <div className="relative flex-1 max-w-[200px]">
+                          <select className="w-full text-xs px-2 py-1.5 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 appearance-none cursor-pointer pr-6">
+                            <option value="">{t("اختر مشرف...", "Select supervisor...")}</option>
+                            <option value="lead1">أحمد محمد</option>
+                            <option value="lead2">سارة أحمد</option>
+                          </select>
+                          <ChevronDown className="absolute end-2 top-1/2 -translate-y-1/2 h-3 w-3 text-slate-400 pointer-events-none" />
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </CardContent>
+            </Card>
+
             {activeSubTab === "architectural" && (
               <>
                 <Card className="border-slate-200 dark:border-slate-700/50">
@@ -1884,31 +2540,147 @@ export default function ProjectDetail({ language }: ProjectDetailProps) {
             onSubTabChange={handleSubTabChange}
             language={language}
           />
-          <div className="border rounded-xl p-4 bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700">
+          <div className="space-y-4">
+            {/* Prerequisites Checklist — shown on license sub-tab */}
             {activeSubTab === "license" && (
               <Card className="border-slate-200 dark:border-slate-700/50">
-                <CardHeader className="pb-3"><CardTitle className="text-sm font-semibold">{t("حالة الرخصة", "License Status")}</CardTitle></CardHeader>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm font-semibold flex items-center gap-2">
+                    <ClipboardCheck className="h-4 w-4 text-teal-500" />
+                    {t("قائمة المتطلبات", "Prerequisites Checklist")}
+                    <Badge variant="outline" className="text-[10px] border-0 bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-400 ms-2">
+                      {(() => {
+                        const checked = MUNICIPALITY_PREREQUISITES.filter(p => {
+                          if (p.dependsOn === "external") return false;
+                          return project.stages?.some(s => s.department === p.dependsOn && s.status === "APPROVED");
+                        }).length;
+                        return `${checked}/${MUNICIPALITY_PREREQUISITES.length}`;
+                      })()}
+                    </Badge>
+                  </CardTitle>
+                </CardHeader>
                 <CardContent>
-                  {project.govApprovals && project.govApprovals.length > 0 ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                      {project.govApprovals.map((approval) => (
-                        <div key={approval.id} className="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700/50">
-                          <div className="flex items-center gap-2">
-                            <Landmark className="h-4 w-4 text-slate-400" />
-                            <span className="text-sm font-medium">{approval.authority}</span>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                    {MUNICIPALITY_PREREQUISITES.map((item) => {
+                      const isChecked = item.dependsOn === "external"
+                        ? false
+                        : project.stages?.some(s => s.department === item.dependsOn && s.status === "APPROVED") || false;
+                      return (
+                        <div key={item.id} className={cn(
+                          "flex items-center gap-3 p-3 rounded-lg border transition-all",
+                          isChecked
+                            ? "bg-emerald-50 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-800/50"
+                            : "bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700"
+                        )}>
+                          <div className={cn(
+                            "w-5 h-5 rounded-md border-2 flex items-center justify-center shrink-0 transition-all",
+                            isChecked
+                              ? "bg-emerald-500 border-emerald-500"
+                              : "border-slate-300 dark:border-slate-600"
+                          )}>
+                            {isChecked && <CheckCircle2 className="h-3.5 w-3.5 text-white" />}
                           </div>
-                          <StatusBadge status={approval.status} language={language} />
+                          <div className="flex-1 min-w-0">
+                            <p className={cn("text-xs font-medium", isChecked ? "text-emerald-700 dark:text-emerald-400" : "text-slate-700 dark:text-slate-300")}>
+                              {isAr ? item.labelAr : item.labelEn}
+                            </p>
+                            <p className="text-[10px] text-slate-400 mt-0.5">
+                              {item.dependsOn === "external" ? t("مطلوب يدوياً", "Manual upload required") : `${t("يعتمد على", "Depends on")} ${DESIGN_DISCIPLINES.find(d => d.id === item.dependsOn)?.nameAr || item.dependsOn}`}
+                            </p>
+                          </div>
                         </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="text-center py-8 text-slate-500"><Landmark className="h-10 w-10 mx-auto text-slate-300 mb-3" /><p>{t("لا توجد موافقات", "No approvals tracked")}</p></div>
-                  )}
+                      );
+                    })}
+                  </div>
                 </CardContent>
               </Card>
             )}
-            {activeSubTab === "correspondence" && <MunicipalityCorrespondencePage language={language} projectId={currentProjectId || undefined} />}
-            {activeSubTab === "approved-drawings" && <DocumentsPage language={language} projectId={currentProjectId || undefined} />}
+
+            <div className="border rounded-xl p-4 bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700">
+              {activeSubTab === "license" && (
+                <>
+                  <Card className="border-slate-200 dark:border-slate-700/50 mb-4">
+                    <CardHeader className="pb-3"><CardTitle className="text-sm font-semibold">{t("حالة الرخصة", "License Status")}</CardTitle></CardHeader>
+                    <CardContent>
+                      {project.govApprovals && project.govApprovals.length > 0 ? (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                          {project.govApprovals.map((approval) => (
+                            <div key={approval.id} className="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700/50">
+                              <div className="flex items-center gap-2">
+                                <Landmark className="h-4 w-4 text-slate-400" />
+                                <span className="text-sm font-medium">{approval.authority}</span>
+                              </div>
+                              <StatusBadge status={approval.status} language={language} />
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="text-center py-8 text-slate-500"><Landmark className="h-10 w-10 mx-auto text-slate-300 mb-3" /><p>{t("لا توجد موافقات", "No approvals tracked")}</p></div>
+                      )}
+                    </CardContent>
+                  </Card>
+
+                  {/* License Stages Table */}
+                  <Card className="border-slate-200 dark:border-slate-700/50">
+                    <CardHeader className="pb-3"><CardTitle className="text-sm font-semibold">{t("مراحل الرخصة البلدية", "Municipality License Stages")}</CardTitle></CardHeader>
+                    <CardContent>
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-xs">
+                          <thead>
+                            <tr className="border-b border-slate-200 dark:border-slate-700">
+                              <th className="text-start p-2.5 text-slate-500 font-medium">{t("المرحلة", "Stage")}</th>
+                              <th className="text-start p-2.5 text-slate-500 font-medium w-28">{t("الحالة", "Status")}</th>
+                              <th className="text-start p-2.5 text-slate-500 font-medium w-28">{t("تاريخ التقديم", "Submitted")}</th>
+                              <th className="text-start p-2.5 text-slate-500 font-medium w-28">{t("تاريخ الاعتماد", "Approved")}</th>
+                              <th className="text-start p-2.5 text-slate-500 font-medium w-20">{t("ملاحظات", "Notes")}</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {[
+                              { stageAr: "تقديم الطلب", stageEn: "Application Submission", status: project.govApprovals?.[0]?.status || "PENDING", submitted: project.govApprovals?.[0]?.submissionDate, approved: project.govApprovals?.[0]?.approvalDate },
+                              { stageAr: "مراجعة البلدية", stageEn: "Municipality Review", status: "PENDING", submitted: null, approved: null },
+                              { stageAr: "الاعتماد / الرفض", stageEn: "Approval / Rejection", status: "NOT_STARTED", submitted: null, approved: null },
+                            ].map((row, idx) => (
+                              <tr key={idx} className="border-b border-slate-50 dark:border-slate-800/50">
+                                <td className="p-2.5 font-medium text-slate-800 dark:text-slate-200">{isAr ? row.stageAr : row.stageEn}</td>
+                                <td className="p-2.5"><StatusBadge status={row.status} language={language} /></td>
+                                <td className="p-2.5 text-slate-400">{row.submitted ? new Date(row.submitted).toLocaleDateString(isAr ? "ar-AE" : "en-US") : "—"}</td>
+                                <td className="p-2.5 text-slate-400">{row.approved ? new Date(row.approved).toLocaleDateString(isAr ? "ar-AE" : "en-US") : "—"}</td>
+                                <td className="p-2.5 text-slate-400">—</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* Document Section */}
+                  <Card className="border-slate-200 dark:border-slate-700/50 mt-4">
+                    <CardHeader className="pb-3">
+                      <div className="flex items-center justify-between">
+                        <CardTitle className="text-sm font-semibold flex items-center gap-2">
+                          <FileUp className="h-4 w-4 text-amber-500" />
+                          {t("مستندات البلدية", "Municipality Documents")}
+                        </CardTitle>
+                        <Button size="sm" variant="outline" className="h-7 gap-1 text-xs">
+                          <Upload className="h-3 w-3" />
+                          {t("رفع مستند", "Upload Document")}
+                        </Button>
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-center py-6 text-slate-400">
+                        <FileText className="h-8 w-8 mx-auto mb-2 text-slate-300" />
+                        <p className="text-xs">{t("لا توجد مستندات مرفوعة", "No documents uploaded")}</p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </>
+              )}
+              {activeSubTab === "correspondence" && <MunicipalityCorrespondencePage language={language} projectId={currentProjectId || undefined} />}
+              {activeSubTab === "approved-drawings" && <DocumentsPage language={language} projectId={currentProjectId || undefined} />}
+            </div>
           </div>
         </TabsContent>
 
@@ -1978,11 +2750,102 @@ export default function ProjectDetail({ language }: ProjectDetailProps) {
             onSubTabChange={handleSubTabChange}
             language={language}
           />
-          <div className="border rounded-xl p-4 bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700">
-            {activeSubTab === "invoices" && <InvoicesPage language={language} projectId={currentProjectId || undefined} />}
-            {activeSubTab === "payments" && <PaymentsPage language={language} projectId={currentProjectId || undefined} />}
-            {activeSubTab === "budgets" && <BudgetsPage language={language} projectId={currentProjectId || undefined} />}
-            {activeSubTab === "proposals" && <ProposalsPage language={language} projectId={currentProjectId || undefined} />}
+          <div className="space-y-4">
+            {/* Contract Value Summary */}
+            <Card className="border-slate-200 dark:border-slate-700/50 overflow-hidden">
+              <div className="bg-gradient-to-r from-emerald-600 to-teal-500 p-4 text-white">
+                <h3 className="text-sm font-semibold mb-3">{t("ملخص قيمة العقد", "Contract Value Summary")}</h3>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div>
+                    <p className="text-xs text-white/70">{t("إجمالي العقد", "Total Contract")}</p>
+                    <p className="text-lg font-bold tabular-nums">{project.budget.toLocaleString()} <span className="text-xs font-normal">AED</span></p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-white/70">{t("إجمالي المدفوع", "Total Paid")}</p>
+                    <p className="text-lg font-bold tabular-nums">{project.invoices?.reduce((s, i) => s + i.paidAmount, 0).toLocaleString() || 0} <span className="text-xs font-normal">AED</span></p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-white/70">{t("المتبقي", "Total Remaining")}</p>
+                    <p className="text-lg font-bold tabular-nums">{Math.max(project.budget - (project.invoices?.reduce((s, i) => s + i.paidAmount, 0) || 0), 0).toLocaleString()} <span className="text-xs font-normal">AED</span></p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-white/70">{t("نسبة التحصيل", "% Collected")}</p>
+                    <div className="flex items-center gap-2">
+                      <p className="text-lg font-bold tabular-nums">{project.budget > 0 ? Math.round(((project.invoices?.reduce((s, i) => s + i.paidAmount, 0) || 0) / project.budget) * 100) : 0}%</p>
+                      <Progress value={project.budget > 0 ? Math.round(((project.invoices?.reduce((s, i) => s + i.paidAmount, 0) || 0) / project.budget) * 100) : 0} className="h-2 bg-white/20 flex-1" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </Card>
+
+            {/* Payment Schedule Table */}
+            <Card className="border-slate-200 dark:border-slate-700/50">
+              <CardHeader className="pb-3">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-sm font-semibold flex items-center gap-2">
+                    <Receipt className="h-4 w-4 text-teal-500" />
+                    {t("جدول الدفعات", "Payment Schedule")}
+                  </CardTitle>
+                  <Button size="sm" className="h-7 gap-1 text-xs bg-teal-600 hover:bg-teal-700 text-white">
+                    <Plus className="h-3 w-3" />
+                    {t("إضافة مرحلة دفع", "Add Payment Milestone")}
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-xs">
+                    <thead>
+                      <tr className="border-b border-slate-200 dark:border-slate-700">
+                        <th className="text-start p-2.5 text-slate-500 font-medium">{t("المرحلة", "Milestone")}</th>
+                        <th className="text-start p-2.5 text-slate-500 font-medium">{t("المبلغ", "Amount")}</th>
+                        <th className="text-start p-2.5 text-slate-500 font-medium">{t("النسبة", "%")}</th>
+                        <th className="text-start p-2.5 text-slate-500 font-medium">{t("تاريخ الاستحقاق", "Due Date")}</th>
+                        <th className="text-start p-2.5 text-slate-500 font-medium">{t("الحالة", "Status")}</th>
+                        <th className="text-start p-2.5 text-slate-500 font-medium">{t("تاريخ الدفع", "Paid Date")}</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {[
+                        { milestoneAr: "دفعة مقدمة", milestoneEn: "Advance Payment", amount: project.budget * 0.2, pct: 20, dueDate: project.startDate, status: "paid", paidDate: project.startDate },
+                        { milestoneAr: "إتمام التصميم", milestoneEn: "Design Completion", amount: project.budget * 0.15, pct: 15, dueDate: null, status: "pending", paidDate: null },
+                        { milestoneAr: "اعتماد البلدية", milestoneEn: "Municipality Approval", amount: project.budget * 0.1, pct: 10, dueDate: null, status: "NOT_STARTED", paidDate: null },
+                        { milestoneAr: "إتمام الهيكل", milestoneEn: "Structure Completion", amount: project.budget * 0.25, pct: 25, dueDate: null, status: "NOT_STARTED", paidDate: null },
+                        { milestoneAr: "التشطيبات", milestoneEn: "Finishing Works", amount: project.budget * 0.2, pct: 20, dueDate: null, status: "NOT_STARTED", paidDate: null },
+                        { milestoneAr: "التسليم النهائي", milestoneEn: "Final Handover", amount: project.budget * 0.1, pct: 10, dueDate: project.endDate, status: "NOT_STARTED", paidDate: null },
+                      ].map((row, idx) => (
+                        <tr key={idx} className="border-b border-slate-50 dark:border-slate-800/50 hover:bg-slate-50/50 dark:hover:bg-slate-800/30">
+                          <td className="p-2.5 font-medium text-slate-800 dark:text-slate-200">{isAr ? row.milestoneAr : row.milestoneEn}</td>
+                          <td className="p-2.5 font-mono text-slate-700 dark:text-slate-300">{row.amount.toLocaleString()} AED</td>
+                          <td className="p-2.5 text-slate-500">{row.pct}%</td>
+                          <td className="p-2.5 text-slate-400">{row.dueDate ? new Date(row.dueDate).toLocaleDateString(isAr ? "ar-AE" : "en-US") : "—"}</td>
+                          <td className="p-2.5">
+                            <StatusBadge status={row.status === "paid" ? "APPROVED" : row.status === "pending" ? "SUBMITTED" : "NOT_STARTED"} language={language} />
+                          </td>
+                          <td className="p-2.5 text-slate-400">{row.paidDate ? new Date(row.paidDate).toLocaleDateString(isAr ? "ar-AE" : "en-US") : "—"}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                    <tfoot>
+                      <tr className="border-t-2 border-slate-200 dark:border-slate-700">
+                        <td className="p-2.5 font-bold text-slate-900 dark:text-white">{t("المجموع", "Total")}</td>
+                        <td className="p-2.5 font-bold font-mono text-slate-900 dark:text-white">{project.budget.toLocaleString()} AED</td>
+                        <td className="p-2.5 font-bold text-slate-900 dark:text-white">100%</td>
+                        <td colSpan={3} />
+                      </tr>
+                    </tfoot>
+                  </table>
+                </div>
+              </CardContent>
+            </Card>
+
+            <div className="border rounded-xl p-4 bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700">
+              {activeSubTab === "invoices" && <InvoicesPage language={language} projectId={currentProjectId || undefined} />}
+              {activeSubTab === "payments" && <PaymentsPage language={language} projectId={currentProjectId || undefined} />}
+              {activeSubTab === "budgets" && <BudgetsPage language={language} projectId={currentProjectId || undefined} />}
+              {activeSubTab === "proposals" && <ProposalsPage language={language} projectId={currentProjectId || undefined} />}
+            </div>
           </div>
         </TabsContent>
 
