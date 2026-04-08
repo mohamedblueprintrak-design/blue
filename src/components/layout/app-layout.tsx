@@ -79,6 +79,9 @@ import {
   TrendingDown,
   Wallet,
   Wind,
+  Headphones,
+  Calendar,
+  BookMarked,
   type LucideIcon,
 } from "lucide-react";
 import Dashboard from "@/components/pages/dashboard";
@@ -94,6 +97,10 @@ import NotificationsPage from "@/components/pages/notifications";
 import SettingsPage from "@/components/pages/settings";
 import AdminPanel from "@/components/pages/admin";
 import FeaturesHub from "@/components/pages/features-hub";
+import AIAssistant from "@/components/pages/ai-assistant";
+import KnowledgePage from "@/components/pages/knowledge";
+import CalendarPage from "@/components/pages/calendar";
+import SearchPage from "@/components/pages/search";
 
 import { useKeyboardShortcuts } from "@/hooks/use-keyboard-shortcuts";
 import Breadcrumbs from "@/components/layout/breadcrumbs";
@@ -139,6 +146,9 @@ const iconMap: Record<string, LucideIcon> = {
   TrendingDown,
   Wallet,
   Wind,
+  Headphones,
+  Calendar,
+  BookMarked,
 };
 
 function getIcon(iconName: string): LucideIcon {
@@ -556,6 +566,12 @@ export default function AppLayout({ language }: AppLayoutProps) {
               {/* Advanced Features Hub */}
               {currentPage === "features-hub" && <FeaturesHub language={language} />}
 
+              {/* Help & AI sub-pages */}
+              {currentPage === "ai-assistant" && <AIAssistant language={language} />}
+              {currentPage === "knowledge" && <KnowledgePage language={language} />}
+              {currentPage === "calendar" && <CalendarPage language={language} />}
+              {currentPage === "search" && <SearchPage language={language} />}
+
               {/* Admin */}
               {currentPage === "admin" && <AdminPanel language={language} />}
 
@@ -572,6 +588,7 @@ export default function AppLayout({ language }: AppLayoutProps) {
    "finance-revenue", "finance-expenses", "finance-reports",
    "employees",
    "features-hub",
+   "ai-assistant", "knowledge", "calendar", "search",
    "admin", "settings", "notifications",
    ].includes(currentPage) && (
                 <div className="flex flex-col items-center justify-center min-h-[60vh] text-center">

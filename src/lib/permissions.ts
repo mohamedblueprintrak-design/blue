@@ -144,6 +144,45 @@ const allNavItems: NavItem[] = [
     roles: ["admin", "manager", "hr"],
   },
 
+  // ───── 7. Help & AI (المساعدة والذكاء الاصطناعي) ─────
+  {
+    id: "help",
+    icon: "Headphones",
+    labelAr: "المساعدة",
+    labelEn: "Help & AI",
+    roles: allRoles,
+    children: [
+      {
+        id: "ai-assistant",
+        icon: "Sparkles",
+        labelAr: "المساعد الذكي",
+        labelEn: "AI Assistant",
+        roles: allRoles,
+      },
+      {
+        id: "knowledge",
+        icon: "BookMarked",
+        labelAr: "قاعدة المعرفة",
+        labelEn: "Knowledge Base",
+        roles: allRoles,
+      },
+      {
+        id: "calendar",
+        icon: "Calendar",
+        labelAr: "التقويم",
+        labelEn: "Calendar",
+        roles: allRoles,
+      },
+      {
+        id: "search",
+        icon: "Search",
+        labelAr: "البحث",
+        labelEn: "Search",
+        roles: allRoles,
+      },
+    ],
+  },
+
   // ───── 8. Advanced Features (المميزات المتقدمة) ─────
   {
     id: "features-hub",
