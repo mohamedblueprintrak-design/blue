@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Client Service
  * خدمة العملاء

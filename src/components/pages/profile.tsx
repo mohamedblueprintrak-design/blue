@@ -59,9 +59,9 @@ export default function ProfilePage({ language }: { language: "ar" | "en" }) {
   const [profileForm, setProfileForm] = useState(() => ({
     name: user?.name || "",
     email: user?.email || "",
-    phone: user?.phone || "",
-    department: user?.department || "",
-    position: user?.position || "",
+    phone: (user as any)?.phone || "",
+    department: (user as any)?.department || "",
+    position: (user as any)?.position || "",
   }));
 
   const [passwordForm, setPasswordForm] = useState({
@@ -88,8 +88,8 @@ export default function ProfilePage({ language }: { language: "ar" | "en" }) {
       updateUser({
         name: data.name,
         email: data.email,
-        phone: data.phone,
-      });
+        phone: (data as any).phone,
+      } as any);
       queryClient.invalidateQueries({ queryKey: ["profile"] });
       toast({
         title: isAr ? "تم بنجاح" : "Success",
@@ -356,7 +356,7 @@ export default function ProfilePage({ language }: { language: "ar" | "en" }) {
                   <p className="text-slate-500 dark:text-slate-400">{profileUser?.email}</p>
                   <div className="flex items-center justify-center md:justify-start gap-2 mt-2">
                     {getRoleBadge(profileUser?.role || "viewer")}
-                    {profileUser?.isActive && (
+                    {(profileUser as any)?.isActive && (
                       <Badge variant="outline" className="text-emerald-500 border-emerald-500/30">
                         {isAr ? "نشط" : "Active"}
                       </Badge>

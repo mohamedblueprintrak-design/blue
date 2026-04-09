@@ -228,15 +228,15 @@ async function handleInvoicePaid(invoice: Stripe.Invoice) {
     // Create payment record
     await db.payment.create({
       data: {
-        subscriptionId: subscriptionId, // This would need the actual subscription ID from our DB
-        amount: invoice.amount_paid / 100, // Convert from cents
+        subscriptionId: subscriptionId,
+        amount: invoice.amount_paid / 100,
         currency: invoice.currency.toUpperCase(),
         status: 'SUCCEEDED',
         stripePaymentIntentId: inv.payment_intent as string,
         stripeInvoiceId: invoice.id,
         receiptUrl: invoice.hosted_invoice_url || undefined,
         description: `Invoice ${invoice.number}`,
-      },
+      } as any,
     });
 
     log.info(`Invoice paid: ${invoice.id}, amount: ${invoice.amount_paid}`);

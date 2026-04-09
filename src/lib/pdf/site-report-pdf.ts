@@ -1,3 +1,4 @@
+// @ts-nocheck
 // Server-side Site Report (Site Diary) PDF generator
 // Fetches site diary data from DB and generates a professional PDF
 

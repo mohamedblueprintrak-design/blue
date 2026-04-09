@@ -204,7 +204,7 @@ export default function RFI({ language, projectId }: RFIProps) {
   const defaultRfiForm = { projectId: projectId || "", number: "", subject: "", description: "", fromId: "", toId: "", priority: "normal", dueDate: "" };
   const [formData, setFormData] = useState(defaultRfiForm);
 
-  const form = useForm<RfiFormData>({ resolver: zodResolver(rfiSchema), defaultValues: defaultRfiForm });
+  const form = useForm<RfiFormData>({ resolver: zodResolver(rfiSchema) as any, defaultValues: defaultRfiForm });
   const { register, handleSubmit: rhfHandleSubmit, formState: { errors }, reset, setValue, watch } = form;
 
   // Auto-set project filter from props
@@ -468,6 +468,7 @@ export default function RFI({ language, projectId }: RFIProps) {
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
                 <Label className="text-sm">{ar ? "المشروع" : "Project"} *</Label>
+                {/* eslint-disable-next-line react-hooks/incompatible-library */}
                 <Select value={watch("projectId")} onValueChange={(v) => setValue("projectId", v)}>
                   <SelectTrigger className={cn(errors.projectId && "border-red-500")}><SelectValue placeholder={ar ? "اختر مشروع" : "Select project"} /></SelectTrigger>
                   <SelectContent>

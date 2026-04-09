@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useSyncExternalStore } from "react";
+import { useState, useEffect, useSyncExternalStore, Fragment } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useTheme } from "next-themes";
 import { useAuthStore } from "@/store/auth-store";
@@ -29,6 +29,7 @@ import {
   SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
+  SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
@@ -173,20 +174,20 @@ function SidebarQuickStats() {
   const overdueTasks = data?.overdueTasksCount ?? 0;
 
   return (
-    <div className="px-2 py-2 space-y-1.5">
-      <div className="flex items-center justify-between text-[11px]">
+    <div className="px-2 py-2 space-y-2">
+      <div className="flex items-center justify-between text-[11px] px-2 py-1 rounded-md bg-slate-50/60 dark:bg-slate-800/30">
         <span className="text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
           <Activity className="h-3 w-3 text-teal-500" />
           {language === "ar" ? "المشاريع النشطة" : "Active Projects"}
         </span>
-        <span className="font-semibold text-teal-600 dark:text-teal-400 tabular-nums">{activeProjects}</span>
+        <span className="font-bold text-teal-600 dark:text-teal-400 tabular-nums">{activeProjects}</span>
       </div>
-      <div className="flex items-center justify-between text-[11px]">
+      <div className="flex items-center justify-between text-[11px] px-2 py-1 rounded-md bg-slate-50/60 dark:bg-slate-800/30">
         <span className="text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
           <AlertTriangle className="h-3 w-3 text-amber-500" />
           {language === "ar" ? "المهام المستحقة" : "Overdue Tasks"}
         </span>
-        <span className={`font-semibold tabular-nums ${overdueTasks > 0 ? "text-amber-600 dark:text-amber-400" : "text-slate-400"}`}>
+        <span className={`font-bold tabular-nums ${overdueTasks > 0 ? "text-amber-600 dark:text-amber-400" : "text-slate-400"}`}>
           {overdueTasks}
         </span>
       </div>
@@ -229,6 +230,21 @@ function useLanguage() {
   return { language, toggleLanguage, t, isAr: language === "ar" };
 }
 
+// ===== NAV SECTION HELPERS =====
+const MAIN_NAV_IDS = ["dashboard", "clients", "projects", "contractors"];
+const BUSINESS_NAV_IDS = ["finance", "employees"];
+const TOOLS_NAV_IDS = ["help", "features-hub"];
+const SYSTEM_NAV_IDS = ["admin"];
+
+function groupNavItems(items: NavItem[]) {
+  return {
+    main: items.filter((i) => MAIN_NAV_IDS.includes(i.id)),
+    business: items.filter((i) => BUSINESS_NAV_IDS.includes(i.id)),
+    tools: items.filter((i) => TOOLS_NAV_IDS.includes(i.id)),
+    system: items.filter((i) => SYSTEM_NAV_IDS.includes(i.id)),
+  };
+}
+
 // ===== SIDEBAR NAV COMPONENT =====
 function AppSidebar() {
   const { user } = useAuthStore();
@@ -241,6 +257,7 @@ function AppSidebar() {
 
   const navItems = getNavItems(user.role as Role);
   const sidebarSide = isAr ? "right" : "left";
+  const groups = groupNavItems(navItems);
 
   const toggleExpanded = (id: string) => {
     setExpandedItems((prev) =>
@@ -256,20 +273,78 @@ function AppSidebar() {
     }
   };
 
+  // Reusable nav item renderer
+  const renderNavItem = (item: NavItem) => {
+    const Icon = getIcon(item.icon);
+    const hasChildren = item.children && item.children.length > 0;
+    const isExpanded = expandedItems.includes(item.id);
+    const isActive = currentPage === item.id || item.children?.some((c) => currentPage === c.id);
+
+    return (
+      <SidebarMenuItem key={item.id}>
+        {hasChildren ? (
+          <>
+            <SidebarMenuButton
+              isActive={isActive}
+              onClick={() => handleNavClick(item)}
+              tooltip={t(item.labelAr, item.labelEn)}
+            >
+              <Icon className="h-[18px] w-[18px]" />
+              <span>{t(item.labelAr, item.labelEn)}</span>
+              <ChevronDown
+                className={cn(
+                  "ms-auto h-4 w-4 shrink-0 transition-transform duration-200",
+                  isExpanded && "rotate-180"
+                )}
+              />
+            </SidebarMenuButton>
+            {isExpanded && (
+              <SidebarMenuSub>
+                {item.children!.map((child) => {
+                  const ChildIcon = getIcon(child.icon);
+                  return (
+                    <SidebarMenuSubItem key={child.id}>
+                      <SidebarMenuSubButton
+                        isActive={currentPage === child.id}
+                        onClick={() => setCurrentPage(child.id)}
+                      >
+                        <ChildIcon className="h-3.5 w-3.5" />
+                        <span>{t(child.labelAr, child.labelEn)}</span>
+                      </SidebarMenuSubButton>
+                    </SidebarMenuSubItem>
+                  );
+                })}
+              </SidebarMenuSub>
+            )}
+          </>
+        ) : (
+          <SidebarMenuButton
+            isActive={currentPage === item.id}
+            onClick={() => setCurrentPage(item.id)}
+            tooltip={t(item.labelAr, item.labelEn)}
+          >
+            <Icon className="h-[18px] w-[18px]" />
+            <span>{t(item.labelAr, item.labelEn)}</span>
+          </SidebarMenuButton>
+        )}
+      </SidebarMenuItem>
+    );
+  };
+
   return (
-    <Sidebar side={sidebarSide} collapsible="icon" className="border-slate-200 dark:border-slate-700">
-      <SidebarHeader className="p-3">
+    <Sidebar side={sidebarSide} collapsible="icon" className="border-slate-200/60 dark:border-slate-700/40 sidebar-enhanced">
+      <SidebarHeader className="p-3 pb-2">
         <div className={cn(
-          "flex items-center gap-3 px-2 py-1",
+          "flex items-center gap-3 px-2 py-1.5",
           state === "collapsed" && "justify-center px-0"
         )}>
-          <LogoImage size={36} className="shrink-0 shadow-md shadow-teal-500/20" />
+          <LogoImage size={38} className="shrink-0 shadow-md shadow-teal-500/20 rounded-lg" />
           {state !== "collapsed" && (
             <div className="flex flex-col">
               <span className="text-lg font-bold text-slate-900 dark:text-white tracking-tight leading-none">
                 BluePrint
               </span>
-              <span className="text-[10px] text-slate-400 dark:text-slate-500 leading-none mt-0.5">
+              <span className="text-[10px] text-slate-400 dark:text-slate-500 leading-none mt-1">
                 {t("نظام إدارة الاستشارات", "Consultancy Management")}
               </span>
             </div>
@@ -277,82 +352,73 @@ function AppSidebar() {
         </div>
       </SidebarHeader>
 
-      <Separator className="mx-3 w-auto" />
+      <Separator className="mx-3 w-auto opacity-60" />
 
-      <SidebarContent className="px-2 py-2">
+      <SidebarContent className="px-2 py-1.5">
+        {/* Main Navigation */}
         <SidebarGroup>
+          <SidebarGroupLabel>
+            {t("الرئيسية", "Main")}
+          </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu className="gap-0.5">
-              {navItems.map((item) => {
-                const Icon = getIcon(item.icon);
-                const hasChildren = item.children && item.children.length > 0;
-                const isExpanded = expandedItems.includes(item.id);
-                const isActive = currentPage === item.id || item.children?.some((c) => currentPage === c.id);
-
-                return (
-                  <SidebarMenuItem key={item.id}>
-                    {hasChildren ? (
-                      <>
-                        <SidebarMenuButton
-                          isActive={isActive}
-                          onClick={() => handleNavClick(item)}
-                          tooltip={t(item.labelAr, item.labelEn)}
-                        >
-                          <Icon className="h-4 w-4" />
-                          <span>{t(item.labelAr, item.labelEn)}</span>
-                          <ChevronDown
-                            className={cn(
-                              "ms-auto h-4 w-4 shrink-0 transition-transform duration-200",
-                              isExpanded && "rotate-180"
-                            )}
-                          />
-                        </SidebarMenuButton>
-                        {isExpanded && (
-                          <SidebarMenuSub>
-                            {item.children!.map((child) => {
-                              const ChildIcon = getIcon(child.icon);
-                              return (
-                                <SidebarMenuSubItem key={child.id}>
-                                  <SidebarMenuSubButton
-                                    isActive={currentPage === child.id}
-                                    onClick={() => setCurrentPage(child.id)}
-                                  >
-                                    <ChildIcon className="h-3.5 w-3.5" />
-                                    <span>{t(child.labelAr, child.labelEn)}</span>
-                                  </SidebarMenuSubButton>
-                                </SidebarMenuSubItem>
-                              );
-                            })}
-                          </SidebarMenuSub>
-                        )}
-                      </>
-                    ) : (
-                      <SidebarMenuButton
-                        isActive={currentPage === item.id}
-                        onClick={() => setCurrentPage(item.id)}
-                        tooltip={t(item.labelAr, item.labelEn)}
-                      >
-                        <Icon className="h-4 w-4" />
-                        <span>{t(item.labelAr, item.labelEn)}</span>
-                      </SidebarMenuButton>
-                    )}
-                  </SidebarMenuItem>
-                );
-              })}
+              {groups.main.map(renderNavItem)}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
+
+        {/* Business Management */}
+        {groups.business.length > 0 && (
+          <SidebarGroup>
+            <SidebarGroupLabel>
+              {t("الإدارة", "Management")}
+            </SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu className="gap-0.5">
+                {groups.business.map(renderNavItem)}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
+
+        {/* Tools & Help */}
+        {groups.tools.length > 0 && (
+          <SidebarGroup>
+            <SidebarGroupLabel>
+              {t("الأدوات", "Tools")}
+            </SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu className="gap-0.5">
+                {groups.tools.map(renderNavItem)}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
+
+        {/* System Admin */}
+        {groups.system.length > 0 && (
+          <SidebarGroup>
+            <SidebarGroupLabel>
+              {t("النظام", "System")}
+            </SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu className="gap-0.5">
+                {groups.system.map(renderNavItem)}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
       </SidebarContent>
 
-      <SidebarFooter className="p-3">
+      <SidebarFooter className="p-3 pt-1">
         {state !== "collapsed" && <SidebarQuickStats />}
         {state !== "collapsed" && <SidebarStats />}
-        <Separator className="mb-3" />
+        <Separator className="my-2 opacity-60" />
         <div className={cn(
-          "flex items-center gap-3 px-2 py-1",
-          state === "collapsed" && "justify-center px-0"
+          "sidebar-user-card flex items-center gap-3 rounded-lg px-2.5 py-2 transition-all duration-200",
+          state === "collapsed" && "justify-center px-0 rounded-none"
         )}>
-          <Avatar className="h-8 w-8 shrink-0">
+          <Avatar className="h-8 w-8 shrink-0 ring-2 ring-teal-200/60 dark:ring-teal-800/60">
             <AvatarImage src={user.avatar} alt={user.name} />
             <AvatarFallback className="bg-teal-100 dark:bg-teal-900 text-teal-700 dark:text-teal-300 text-xs font-semibold">
               {user.name?.charAt(0)?.toUpperCase() || "U"}
@@ -360,7 +426,7 @@ function AppSidebar() {
           </Avatar>
           {state !== "collapsed" && (
             <div className="flex flex-col min-w-0 flex-1">
-              <span className="text-sm font-medium text-slate-900 dark:text-white truncate leading-none">
+              <span className="text-sm font-semibold text-slate-900 dark:text-white truncate leading-none">
                 {user.name}
               </span>
               <span className="text-[10px] text-slate-400 dark:text-slate-500 truncate leading-none mt-0.5">
@@ -375,11 +441,33 @@ function AppSidebar() {
   );
 }
 
+// ===== PAGE TITLE MAPPING =====
+const pageTitleMap: Record<string, { ar: string; en: string }> = {
+  dashboard: { ar: "لوحة التحكم", en: "Dashboard" },
+  projects: { ar: "المشاريع", en: "Projects" },
+  clients: { ar: "العملاء", en: "Clients" },
+  contractors: { ar: "المقاولون", en: "Contractors" },
+  "finance-revenue": { ar: "الإيرادات", en: "Revenue" },
+  "finance-expenses": { ar: "المصروفات", en: "Expenses" },
+  "finance-reports": { ar: "التقارير المالية", en: "Financial Reports" },
+  employees: { ar: "الموظفين", en: "Employees" },
+  "features-hub": { ar: "المميزات المتقدمة", en: "Advanced Features" },
+  "ai-assistant": { ar: "المساعد الذكي", en: "AI Assistant" },
+  knowledge: { ar: "قاعدة المعرفة", en: "Knowledge Base" },
+  calendar: { ar: "التقويم", en: "Calendar" },
+  search: { ar: "البحث", en: "Search" },
+  admin: { ar: "إدارة النظام", en: "System Admin" },
+  settings: { ar: "الإعدادات", en: "Settings" },
+  notifications: { ar: "الإشعارات", en: "Notifications" },
+};
+
 // ===== HEADER COMPONENT =====
 function AppHeader() {
   const { user, logout } = useAuthStore();
+  const { currentPage, setCurrentPage } = useNavStore();
   const { theme, setTheme } = useTheme();
   const { language, toggleLanguage, t, isAr } = useLanguage();
+  const [searchFocused, setSearchFocused] = useState(false);
 
   const { data: notifData } = useQuery({
     queryKey: ["notification-count"],
@@ -392,25 +480,105 @@ function AppHeader() {
   });
   const notifCount = notifData?.count ?? 0;
 
+  const pageTitle = pageTitleMap[currentPage] || { ar: "لوحة التحكم", en: "Dashboard" };
+
   const handleLogout = () => {
     logout();
   };
 
+  // Keyboard shortcut for search (Ctrl+K)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === "k") {
+        e.preventDefault();
+        setCurrentPage("search");
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [setCurrentPage]);
+
   return (
-    <header className="sticky top-0 z-30 flex h-14 items-center gap-3 border-b border-slate-200 dark:border-slate-700/50 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md px-4 lg:px-6">
+    <header className="relative sticky top-0 z-30 flex h-14 items-center gap-3 border-b border-slate-200/60 dark:border-slate-700/40 bg-gradient-to-r from-white/90 via-white/85 to-teal-50/80 dark:from-slate-900/90 dark:via-slate-900/85 dark:to-teal-950/80 backdrop-blur-xl shadow-sm shadow-slate-200/30 dark:shadow-slate-900/30 px-4 lg:px-6">
+      {/* Teal gradient accent line at top */}
+      <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-teal-500 via-cyan-400 to-teal-500 dark:from-teal-400 dark:via-cyan-300 dark:to-teal-400" />
+
       <SidebarTrigger className="-ms-1" />
       <Separator orientation="vertical" className="h-6" />
+
+      {/* Page Title */}
       <h1 className="text-base font-semibold text-slate-900 dark:text-white flex-1 truncate">
-        {t("لوحة التحكم", "Dashboard")}
+        {t(pageTitle.ar, pageTitle.en)}
       </h1>
+
+      {/* Action Buttons */}
       <div className="flex items-center gap-1">
+        {/* Search Bar - Desktop */}
+        <div className={cn(
+          "hidden md:flex items-center relative rounded-lg border overflow-hidden transition-all duration-300 ease-out",
+          searchFocused
+            ? "w-72 border-teal-400/50 bg-white dark:bg-slate-800 search-bar-glow"
+            : "w-48 border-slate-200/80 dark:border-slate-700/50 bg-slate-50/80 dark:bg-slate-800/40 hover:border-slate-300 dark:hover:border-slate-600"
+        )}>
+          <Search className={cn(
+            "absolute start-3 h-3.5 w-3.5 pointer-events-none transition-colors duration-200",
+            searchFocused ? "text-teal-500" : "text-slate-400"
+          )} />
+          <input
+            type="text"
+            placeholder={t("بحث...", "Search...")}
+            className={cn(
+              "h-9 w-full bg-transparent ps-9 pe-16 text-xs text-slate-900 dark:text-white",
+              "placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none",
+              "transition-all duration-200"
+            )}
+            onFocus={() => setSearchFocused(true)}
+            onBlur={() => setSearchFocused(false)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                setCurrentPage("search");
+                (e.target as HTMLInputElement).blur();
+                setSearchFocused(false);
+              }
+            }}
+          />
+          <kbd className={cn(
+            "absolute end-2 pointer-events-none inline-flex h-5 items-center rounded border px-1.5 font-mono text-[10px] font-medium transition-all duration-200",
+            searchFocused
+              ? "border-teal-300 dark:border-teal-700 bg-teal-50 dark:bg-teal-900/30 text-teal-600 dark:text-teal-400 opacity-0"
+              : "border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500"
+          )}>
+            ⌘K
+          </kbd>
+        </div>
+
+        {/* Search Button - Mobile */}
         <TooltipProvider delayDuration={0}>
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-9 w-9 text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200"
+                className="md:hidden h-9 w-9 text-slate-500 hover:text-slate-700 hover:bg-slate-100 dark:text-slate-400 dark:hover:text-slate-200 dark:hover:bg-slate-800/60 transition-all duration-200"
+                onClick={() => setCurrentPage("search")}
+              >
+                <Search className="h-4 w-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="bottom">
+              <p>{t("البحث", "Search")}</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+
+        {/* Language Toggle */}
+        <TooltipProvider delayDuration={0}>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-9 w-9 text-slate-500 hover:text-slate-700 hover:bg-slate-100 dark:text-slate-400 dark:hover:text-slate-200 dark:hover:bg-slate-800/60 transition-all duration-200"
                 onClick={toggleLanguage}
               >
                 <Globe className="h-4 w-4" />
@@ -422,13 +590,14 @@ function AppHeader() {
           </Tooltip>
         </TooltipProvider>
 
+        {/* Theme Toggle */}
         <TooltipProvider delayDuration={0}>
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-9 w-9 text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200"
+                className="h-9 w-9 text-slate-500 hover:text-slate-700 hover:bg-slate-100 dark:text-slate-400 dark:hover:text-slate-200 dark:hover:bg-slate-800/60 transition-all duration-200"
                 onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
               >
                 <Sun className="h-4 w-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
@@ -441,29 +610,77 @@ function AppHeader() {
           </Tooltip>
         </TooltipProvider>
 
+        {/* Notifications Bell with animated badge */}
+        <TooltipProvider delayDuration={0}>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="relative h-9 w-9 text-slate-500 hover:text-slate-700 hover:bg-slate-100 dark:text-slate-400 dark:hover:text-slate-200 dark:hover:bg-slate-800/60 transition-all duration-200"
+                onClick={() => setCurrentPage("notifications")}
+              >
+                <Bell className="h-4 w-4" />
+                {notifCount > 0 && (
+                  <span className="absolute -top-0.5 -end-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold leading-none text-white shadow-sm ring-2 ring-white dark:ring-slate-900 notif-badge-pulse">
+                    {notifCount > 99 ? "99+" : notifCount}
+                  </span>
+                )}
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="bottom">
+              <p>{t("الإشعارات", "Notifications")}{notifCount > 0 && ` (${notifCount})`}</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+
         <Separator orientation="vertical" className="h-6 mx-1" />
 
+        {/* User Dropdown with Online Indicator */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="relative h-9 gap-2 px-2">
-              <Avatar className="h-7 w-7">
-                <AvatarImage src={user?.avatar} alt={user?.name} />
-                <AvatarFallback className="bg-teal-100 dark:bg-teal-900 text-teal-700 dark:text-teal-300 text-xs font-semibold">
-                  {user?.name?.charAt(0)?.toUpperCase() || "U"}
-                </AvatarFallback>
-              </Avatar>
+            <Button variant="ghost" className="relative h-9 gap-2 px-2 hover:bg-slate-100 dark:hover:bg-slate-800/60 transition-all duration-200">
+              <div className="relative">
+                <Avatar className="h-7 w-7 ring-1 ring-slate-200/80 dark:ring-slate-700/60">
+                  <AvatarImage src={user?.avatar} alt={user?.name} />
+                  <AvatarFallback className="bg-teal-100 dark:bg-teal-900 text-teal-700 dark:text-teal-300 text-xs font-semibold">
+                    {user?.name?.charAt(0)?.toUpperCase() || "U"}
+                  </AvatarFallback>
+                </Avatar>
+                {/* Online status green dot */}
+                <span className="absolute -bottom-0.5 -end-0.5 h-2.5 w-2.5 rounded-full bg-emerald-500 ring-2 ring-white dark:ring-slate-900" />
+              </div>
               <span className="hidden md:block text-sm font-medium text-slate-700 dark:text-slate-300 max-w-[120px] truncate">
                 {user?.name}
               </span>
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align={isAr ? "start" : "end"} className="w-56 bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700">
-            <div className="px-3 py-2">
-              <p className="text-sm font-medium text-slate-900 dark:text-white">{user?.name}</p>
-              <p className="text-xs text-slate-500 dark:text-slate-400 truncate">{user?.email}</p>
-              <p className="text-xs text-teal-600 dark:text-teal-400 mt-1">
+            <div className="px-3 py-2.5">
+              <div className="flex items-center gap-2.5">
+                <div className="relative">
+                  <Avatar className="h-10 w-10 ring-2 ring-teal-200/40 dark:ring-teal-800/40">
+                    <AvatarImage src={user?.avatar} alt={user?.name} />
+                    <AvatarFallback className="bg-teal-100 dark:bg-teal-900 text-teal-700 dark:text-teal-300 text-sm font-semibold">
+                      {user?.name?.charAt(0)?.toUpperCase() || "U"}
+                    </AvatarFallback>
+                  </Avatar>
+                  <span className="absolute -bottom-0.5 -end-0.5 h-3 w-3 rounded-full bg-emerald-500 ring-2 ring-white dark:ring-slate-900" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-semibold text-slate-900 dark:text-white truncate">{user?.name}</p>
+                  <div className="flex items-center gap-1.5 mt-0.5">
+                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                    <span className="text-[11px] text-emerald-600 dark:text-emerald-400 font-medium">
+                      {t("متصل", "Online")}
+                    </span>
+                  </div>
+                </div>
+              </div>
+              <p className="text-xs text-slate-500 dark:text-slate-400 truncate mt-2">{user?.email}</p>
+              <Badge variant="secondary" className="mt-1 text-[10px] font-medium bg-teal-50 dark:bg-teal-950/40 text-teal-700 dark:text-teal-400 hover:bg-teal-100 dark:hover:bg-teal-950/60 border-teal-200/60 dark:border-teal-800/40">
                 {roleLabelsAr[(user?.role) as Role] || user?.role}
-              </p>
+              </Badge>
             </div>
             <DropdownMenuSeparator />
             <DropdownMenuItem className="cursor-pointer" onClick={() => useNavStore.getState().setCurrentPage("settings")}>
@@ -528,14 +745,14 @@ export default function AppLayout({ language }: AppLayoutProps) {
         <AppHeader />
         <Breadcrumbs language={language} />
 
-        <main className="flex-1 p-4 lg:p-6 bg-slate-50 dark:bg-slate-950 custom-scrollbar overflow-y-auto">
+        <main className="flex-1 p-4 lg:p-6 bg-slate-50 dark:bg-slate-950 dot-pattern-content custom-scrollbar overflow-y-auto">
           <AnimatePresence mode="wait">
             <motion.div
               key={currentPage}
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -4 }}
-              transition={{ duration: 0.2, ease: "easeOut" }}
+              initial={{ opacity: 0, y: 10, scale: 0.995 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -6, scale: 0.995 }}
+              transition={{ duration: 0.22, ease: [0.25, 0.46, 0.45, 0.94] }}
             >
               {/* Dashboard */}
               {currentPage === "dashboard" && <Dashboard language={language} />}

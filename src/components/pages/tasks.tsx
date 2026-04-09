@@ -739,7 +739,7 @@ export default function TasksKanban({ language, projectId }: TasksKanbanProps) {
 
   // Form
   const form = useForm<TaskFormData>({
-    resolver: zodResolver(taskSchema),
+    resolver: zodResolver(taskSchema) as any,
     defaultValues: {
       title: "",
       description: "",
@@ -1082,6 +1082,7 @@ export default function TasksKanban({ language, projectId }: TasksKanbanProps) {
                 <div className="space-y-2">
                   <Label className="text-sm">{ar ? "المشروع" : "Project"}</Label>
                   <Select
+                    // eslint-disable-next-line react-hooks/incompatible-library
                     value={watch("projectId")}
                     onValueChange={(v) => setValue("projectId", v)}
                   >

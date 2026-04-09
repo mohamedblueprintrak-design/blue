@@ -212,7 +212,7 @@ export default function TaskComments({ taskId, language }: TaskCommentsProps) {
   const comments = data?.comments || [];
 
   // Fetch current user for delete permission
-  const { data: currentUser } = useQuery<{ id: string; role: string }>({
+  const { data: currentUser } = useQuery<{ id: string; role: string } | null>({
     queryKey: ["current-user"],
     queryFn: async () => {
       const res = await fetch("/api/auth/session");

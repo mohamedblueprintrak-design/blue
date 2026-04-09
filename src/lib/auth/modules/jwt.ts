@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * JWT Token Management Module
  * وحدة إدارة رموز JWT

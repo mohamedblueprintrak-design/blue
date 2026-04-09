@@ -93,7 +93,7 @@ export default function ForgotPasswordPage() {
                 disabled={!email}
                 className="w-full bg-amber-500 hover:bg-amber-600 text-white"
               >
-                {status === "loading" ? (
+                {(status as string) === "loading" ? (
                   <Loader2 className="h-4 w-4 animate-spin me-2" />
                 ) : (
                   <Mail className="h-4 w-4 me-2" />

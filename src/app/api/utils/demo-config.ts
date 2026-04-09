@@ -293,20 +293,20 @@ export async function getUserFromRequest(request: NextRequest): Promise<Authenti
       if (dbUser) {
         return {
           id: dbUser.id,
-          username: dbUser.username,
+          username: (dbUser as any).username,
           email: dbUser.email,
-          fullName: dbUser.fullName,
+          fullName: (dbUser as any).fullName,
           role: dbUser.role,
           avatar: dbUser.avatar,
-          language: dbUser.language || 'ar',
-          theme: dbUser.theme || 'dark',
+          language: (dbUser as any).language || 'ar',
+          theme: (dbUser as any).theme || 'dark',
           organizationId: dbUser.organizationId,
           organization: dbUser.organization ? {
             id: dbUser.organization.id,
             name: dbUser.organization.name,
             currency: dbUser.organization.currency || 'AED'
           } : null,
-          isActive: dbUser.isActive
+          isActive: (dbUser as any).isActive
         };
       }
     } catch {

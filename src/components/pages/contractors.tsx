@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -150,6 +150,16 @@ const emptyForm = {
   experience: "", bankName: "", bankAccount: "", iban: "", notes: "",
 };
 
+// ===== Section Header (shared across form sections) =====
+function SectionHeader({ icon: Icon, title }: { icon: React.ElementType; title: string }) {
+  return (
+    <div className="flex items-center gap-2 pb-2 border-b border-slate-200 dark:border-slate-700">
+      <Icon className="h-4 w-4 text-teal-600 dark:text-teal-400" />
+      <h3 className="text-sm font-semibold text-slate-800 dark:text-white">{title}</h3>
+    </div>
+  );
+}
+
 // ===== Full-Page Create Form =====
 function ContractorCreateForm({
   ar,
@@ -168,13 +178,6 @@ function ContractorCreateForm({
 
   const inputCls = "h-9 text-sm rounded-lg border-slate-200 dark:border-slate-700 focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20";
   const labelCls = "text-xs font-medium text-slate-600 dark:text-slate-400";
-
-  const SectionHeader = ({ icon: Icon, title }: { icon: React.ElementType; title: string }) => (
-    <div className="flex items-center gap-2 pb-2 border-b border-slate-200 dark:border-slate-700">
-      <Icon className="h-4 w-4 text-teal-600 dark:text-teal-400" />
-      <h3 className="text-sm font-semibold text-slate-800 dark:text-white">{title}</h3>
-    </div>
-  );
 
   return (
     <div className="space-y-6">
@@ -414,17 +417,6 @@ export default function ContractorsPage({ language, projectId, initialTab }: Con
   const [selectedContractor, setSelectedContractor] = useState<string | null>(null);
   const [formData, setFormData] = useState(emptyForm);
   const [activeView, setActiveView] = useState<"list" | "create" | "rfqs">(initialTab || "list");
-
-  // Sync activeView with initialTab changes
-  useEffect(() => {
-    if (initialTab) {
-      setActiveView(initialTab);
-      if (initialTab === "create") {
-        setFormData(emptyForm);
-        setEditingId(null);
-      }
-    }
-  }, [initialTab]);
 
   const isEditing = !!editingId;
 

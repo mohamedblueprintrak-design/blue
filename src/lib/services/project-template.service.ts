@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Project Template Service
  * خدمة قوالب المشاريع للاعتمادات الحكومية

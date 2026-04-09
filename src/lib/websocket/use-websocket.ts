@@ -164,7 +164,6 @@ export function useWebSocket(options: UseWebSocketOptions): UseWebSocketReturn {
       socket.disconnect();
       socketRef.current = null;
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token, url]);
 
   // ============================================
@@ -257,7 +256,6 @@ export function useGlobalWebSocket(token?: string): {
         globalSocket.disconnect();
         globalSocket = null;
       }
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setIsConnected(false);
     }
 

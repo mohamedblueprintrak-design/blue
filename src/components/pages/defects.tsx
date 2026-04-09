@@ -172,7 +172,7 @@ export default function Defects({ language, projectId }: DefectsProps) {
   const [formData, setFormData] = useState(defaultDefectForm);
 
   const form = useForm<DefectFormData>({
-    resolver: zodResolver(defectSchema),
+    resolver: zodResolver(defectSchema) as any,
     defaultValues: defaultDefectForm,
   });
   const { register, handleSubmit: rhfHandleSubmit, formState: { errors }, reset, setValue, watch } = form;
@@ -456,6 +456,7 @@ export default function Defects({ language, projectId }: DefectsProps) {
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
                 <Label className="text-sm">{ar ? "المشروع" : "Project"} *</Label>
+                {/* eslint-disable-next-line react-hooks/incompatible-library */}
                 <Select value={watch("projectId")} onValueChange={(v) => setValue("projectId", v)}>
                   <SelectTrigger className={cn(errors.projectId && "border-red-500")}><SelectValue placeholder={ar ? "اختر مشروع" : "Select project"} /></SelectTrigger>
                   <SelectContent>

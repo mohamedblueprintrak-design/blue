@@ -167,11 +167,11 @@ export default function AutomationsPage({ language }: Props) {
   });
 
   // Fetch automations
-  const { data: automationsData = [], isLoading } = useQuery<{ data: Automation[] }>({
+  const { data: automationsData, isLoading } = useQuery<{ data: Automation[] }>({
     queryKey: ['automations'],
     queryFn: () => fetch('/api/automations').then((r) => r.json()),
   });
-  const automations = automationsData?.data || (Array.isArray(automationsData) ? automationsData : []);
+  const automations = automationsData?.data || [];
 
   // Toggle automation status
   const toggleStatusMutation = useMutation({

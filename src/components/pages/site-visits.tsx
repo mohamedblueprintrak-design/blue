@@ -140,7 +140,7 @@ export default function SiteVisits({ language, projectId }: SiteVisitsProps) {
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [showDetailDialog, setShowDetailDialog] = useState(false);
   const [selectedVisit, setSelectedVisit] = useState<SiteVisitItem | null>(null);
-  const [filterProject, setFilterProject] = useState<string>("all");
+  const [filterProject, setFilterProject] = useState<string>(projectId || "all");
   const [filterStatus, setFilterStatus] = useState<string>("all");
 
   // Fetch site visits
@@ -194,10 +194,7 @@ export default function SiteVisits({ language, projectId }: SiteVisitsProps) {
     },
   });
 
-  // Auto-set project filter from props
-  useEffect(() => {
-    if (projectId) setFilterProject(projectId);
-  }, [projectId]);
+
 
   const [formData, setFormData] = useState({
     projectId: projectId || "",

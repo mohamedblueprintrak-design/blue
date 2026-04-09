@@ -160,9 +160,7 @@ export default function DocumentsPage({ language, projectId }: DocumentsPageProp
   const [search, setSearch] = useState("");
   const [filterCategory, setFilterCategory] = useState<string>("all");
   const [filterProject, setFilterProject] = useState<string>(projectId || "all");
-  useEffect(() => {
-    if (projectId) setFilterProject(projectId);
-  }, [projectId]);
+
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [showDialog, setShowDialog] = useState(false);
   const [editDoc, setEditDoc] = useState<Document | null>(null);

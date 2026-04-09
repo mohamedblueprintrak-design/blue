@@ -125,11 +125,6 @@ export default function BOQPage({ language, projectId }: BOQPageProps) {
   const queryClient = useQueryClient();
   const toast = useToastFeedback({ ar });
 
-  // Auto-set project filter from props
-  useEffect(() => {
-    if (projectId) setProjectFilter(projectId);
-  }, [projectId]);
-
   // Filter states
   const [searchQuery, setSearchQuery] = useState("");
   const [projectFilter, setProjectFilter] = useState(projectId || "all");

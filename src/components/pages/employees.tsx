@@ -180,7 +180,7 @@ export default function EmployeesPage({ language }: EmployeesPageProps) {
   const [formData, setFormData] = useState(emptyForm);
 
   const form = useForm<EmployeeFormData>({
-    resolver: zodResolver(employeeSchema),
+    resolver: zodResolver(employeeSchema) as any,
     defaultValues: emptyForm,
   });
   const { register, handleSubmit: rhfHandleSubmit, formState: { errors }, reset, setValue, watch } = form;
@@ -670,12 +670,13 @@ export default function EmployeesPage({ language }: EmployeesPageProps) {
             </DialogDescription>
           </DialogHeader>
 
-          <form onSubmit={rhfHandleSubmit(handleSave)} className="space-y-4">
+          <form onSubmit={rhfHandleSubmit(handleSave as any)} className="space-y-4">
             {/* User Select - only for create */}
             {!editEmployee && (
               <div className="space-y-2">
                 <Label className="text-sm">{ar ? "المستخدم" : "User"} *</Label>
                 <Select
+                  // eslint-disable-next-line react-hooks/incompatible-library
                   value={watch("userId")}
                   onValueChange={(v) => setValue("userId", v)}
                 >

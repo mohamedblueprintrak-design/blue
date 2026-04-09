@@ -115,7 +115,7 @@ export default function SiteDiary({ language, projectId }: SiteDiaryProps) {
   const ar = language === "ar";
   const queryClient = useQueryClient();
   const [showAddDialog, setShowAddDialog] = useState(false);
-  const [filterProject, setFilterProject] = useState<string>("all");
+  const [filterProject, setFilterProject] = useState<string>(projectId || "all");
 
   const { data: diaries = [], isLoading } = useQuery<SiteDiaryItem[]>({
     queryKey: ["site-diary", filterProject],
@@ -161,10 +161,7 @@ export default function SiteDiary({ language, projectId }: SiteDiaryProps) {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["site-diary"] }),
   });
 
-  // Auto-set project filter from props
-  useEffect(() => {
-    if (projectId) setFilterProject(projectId);
-  }, [projectId]);
+
 
   const [formData, setFormData] = useState({
     projectId: projectId || "",

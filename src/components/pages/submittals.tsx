@@ -156,7 +156,7 @@ export default function Submittals({ language, projectId }: SubmittalsProps) {
   const defaultSubForm = { projectId: projectId || "", number: "", title: "", type: "", contractor: "", revisionNumber: "1", status: "under_review" };
   const [formData, setFormData] = useState(defaultSubForm);
 
-  const form = useForm<SubmittalFormData>({ resolver: zodResolver(submittalSchema), defaultValues: defaultSubForm });
+  const form = useForm<SubmittalFormData>({ resolver: zodResolver(submittalSchema) as any, defaultValues: defaultSubForm });
   const { register, handleSubmit: rhfHandleSubmit, formState: { errors }, reset, setValue, watch } = form;
 
   // Auto-set project filter from props
@@ -404,6 +404,7 @@ export default function Submittals({ language, projectId }: SubmittalsProps) {
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
                 <Label className="text-sm">{ar ? "المشروع" : "Project"} *</Label>
+                {/* eslint-disable-next-line react-hooks/incompatible-library */}
                 <Select value={watch("projectId")} onValueChange={(v) => setValue("projectId", v)}>
                   <SelectTrigger className={cn(errors.projectId && "border-red-500")}><SelectValue placeholder={ar ? "اختر مشروع" : "Select project"} /></SelectTrigger>
                   <SelectContent>

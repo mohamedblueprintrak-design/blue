@@ -152,7 +152,7 @@ export default function ChangeOrders({ language, projectId }: ChangeOrdersProps)
   const defaultCOForm = { projectId: projectId || "", number: "", type: "change", costImpact: "0", timeImpact: "", description: "", status: "pending" };
   const [formData, setFormData] = useState(defaultCOForm);
 
-  const form = useForm<ChangeOrderFormData>({ resolver: zodResolver(changeOrderSchema), defaultValues: defaultCOForm });
+  const form = useForm<ChangeOrderFormData>({ resolver: zodResolver(changeOrderSchema) as any, defaultValues: defaultCOForm });
   const { register, handleSubmit: rhfHandleSubmit, formState: { errors }, reset, setValue, watch } = form;
 
   // Auto-set project filter from props

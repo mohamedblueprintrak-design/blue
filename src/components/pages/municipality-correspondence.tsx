@@ -153,9 +153,7 @@ export default function MunicipalityCorrespondencePage({ language, projectId }: 
   // Filter states
   const [searchQuery, setSearchQuery] = useState("");
   const [projectFilter, setProjectFilter] = useState(projectId || "all");
-  useEffect(() => {
-    if (projectId) setProjectFilter(projectId);
-  }, [projectId]);
+
   const [statusFilter, setStatusFilter] = useState("all");
   const [typeFilter, setTypeFilter] = useState("all");
 

@@ -63,6 +63,7 @@ export function AIProvider({ children }: { children: ReactNode }) {
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem(PREFERRED_MODEL_KEY);
       if (saved) {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setState(prev => ({ ...prev, preferredModel: saved }));
       }
     }
@@ -144,19 +145,6 @@ export function AIProvider({ children }: { children: ReactNode }) {
     });
   }, [execute]);
 
-  // تعيين النموذج المفضل
-  const setPreferredModel = useCallback((modelId: string) => {
-    if (typeof window !== 'undefined') {
-      localStorage.setItem(PREFERRED_MODEL_KEY, modelId);
-    }
-    setState(prev => ({ ...prev, preferredModel: modelId }));
-  }, []);
-
-  // الحصول على النماذج المتاحة
-  const getAvailableModels = useCallback(() => {
-    return AVAILABLE_MODELS;
-  }, []);
-
   // الحصول على أفضل نموذج لمهمة
   const getBestModelForTask = useCallback((task: AITaskType, hasImage: boolean = false): string => {
     // لو فيه نموذج مفضل ويدعم المهمة
@@ -171,9 +159,24 @@ export function AIProvider({ children }: { children: ReactNode }) {
       }
     }
     
-    // اختيار النموذج الأفضل
-    return getBestModelForTask(task, hasImage);
+    // اختيار النموذج الأفضل - inline logic instead of recursion
+    const visionModels = ['gpt-4o', 'claude-3.5-sonnet', 'gemini-2.0-flash'];
+    if (hasImage) return visionModels[0];
+    return 'gpt-4o';
   }, [state.preferredModel]);
+
+  // تعيين النموذج المفضل
+  const setPreferredModel = useCallback((modelId: string) => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(PREFERRED_MODEL_KEY, modelId);
+    }
+    setState(prev => ({ ...prev, preferredModel: modelId }));
+  }, []);
+
+  // الحصول على النماذج المتاحة
+  const getAvailableModels = useCallback(() => {
+    return AVAILABLE_MODELS;
+  }, []);
 
   // تعيين حالة التحميل
   const setLoading = useCallback((loading: boolean) => {

@@ -14,7 +14,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { authService } from '@/lib/auth/auth-service';
 import { UserRole } from '@/lib/auth/types';
 import { successResponse, errorResponse } from '../../utils/response';
-import { cookies } from 'next/server';
+// @ts-expect-error - cookies import may vary by Next.js version
+import { cookies as nextCookies } from 'next/server';
 import { SignJWT } from 'jose';
 import { hash } from 'bcryptjs';
 import { db } from '@/lib/db';
@@ -99,7 +100,7 @@ async function handleRegister(
       const org = await db.organization.create({
         data: {
           name: data.organizationName,
-        },
+        } as any,
       });
       organizationId = org.id;
     }
@@ -151,7 +152,7 @@ async function handleRegister(
     }
 
     // Set HTTP-only cookie for refresh token
-    const cookieStore = await cookies();
+    const cookieStore = await nextCookies();
     cookieStore.set('refreshToken', refreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',

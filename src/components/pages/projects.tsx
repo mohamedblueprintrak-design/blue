@@ -139,7 +139,7 @@ export default function ProjectsList({ language }: ProjectsListProps) {
   const [page, setPage] = useState(1);
   const PAGE_SIZE = 10;
   const form = useForm<ProjectFormData>({
-    resolver: zodResolver(projectSchema),
+    resolver: zodResolver(projectSchema) as any,
     defaultValues: {
       number: "",
       name: "",
@@ -824,7 +824,7 @@ export default function ProjectsList({ language }: ProjectsListProps) {
           <DialogHeader>
             <DialogTitle>{t("مشروع جديد", "New Project")}</DialogTitle>
           </DialogHeader>
-          <form onSubmit={rhfHandleSubmit(onSubmit)} className="grid gap-4 py-2">
+          <form onSubmit={rhfHandleSubmit(onSubmit as any)} className="grid gap-4 py-2">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>{t("رقم المشروع", "Project Number")}</Label>
@@ -833,6 +833,7 @@ export default function ProjectsList({ language }: ProjectsListProps) {
               </div>
               <div className="space-y-2">
                 <Label>{t("النوع", "Type")}</Label>
+                {/* eslint-disable-next-line react-hooks/incompatible-library */}
                 <Select value={form.watch("type")} onValueChange={(v) => form.setValue("type", v)}>
                   <SelectTrigger className={cn(errors.type && "border-red-500 focus:ring-red-500/20")}>
                     <SelectValue />

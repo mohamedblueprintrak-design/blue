@@ -224,7 +224,7 @@ export default function Meetings({ language, projectId }: MeetingsProps) {
   });
 
   const form = useForm<MeetingFormData>({
-    resolver: zodResolver(meetingSchema),
+    resolver: zodResolver(meetingSchema) as any,
     defaultValues: {
       projectId: projectId || "",
       title: "",
@@ -649,7 +649,7 @@ export default function Meetings({ language, projectId }: MeetingsProps) {
               </DialogDescription>
             </DialogHeader>
 
-            <form onSubmit={rhfHandleSubmit(onSubmit)} className="space-y-4">
+            <form onSubmit={rhfHandleSubmit(onSubmit as any)} className="space-y-4">
               <div className="space-y-2">
                 <Label className="text-sm">{ar ? "عنوان الاجتماع *" : "Meeting Title *"}</Label>
                 <Input {...register("title")} placeholder={ar ? "عنوان الاجتماع" : "Meeting title"} />
@@ -685,6 +685,7 @@ export default function Meetings({ language, projectId }: MeetingsProps) {
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div className="space-y-2">
                   <Label className="text-sm">{ar ? "المشروع" : "Project"}</Label>
+                  {/* eslint-disable-next-line react-hooks/incompatible-library */}
                   <Select value={watch("projectId")} onValueChange={(v) => setValue("projectId", v)}>
                     <SelectTrigger><SelectValue placeholder={ar ? "اختياري" : "Optional"} /></SelectTrigger>
                     <SelectContent>

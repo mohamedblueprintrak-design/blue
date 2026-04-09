@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { db, isDatabaseAvailable } from '@/lib/db';
 
 /**

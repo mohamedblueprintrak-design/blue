@@ -172,7 +172,7 @@ export default function Transmittals({ language, projectId }: TransmittalsProps)
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [showDetailDialog, setShowDetailDialog] = useState(false);
   const [selectedTransmittal, setSelectedTransmittal] = useState<TransmittalItem | null>(null);
-  const [filterProject, setFilterProject] = useState<string>("all");
+  const [filterProject, setFilterProject] = useState<string>(projectId || "all");
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [itemReplies, setItemReplies] = useState<Record<string, { received: boolean; approved: boolean; rejected: boolean; needsRevision: boolean; replyNotes: string }>>({});
 
@@ -253,10 +253,7 @@ export default function Transmittals({ language, projectId }: TransmittalsProps)
     },
   });
 
-  // Auto-set project filter from props
-  useEffect(() => {
-    if (projectId) setFilterProject(projectId);
-  }, [projectId]);
+
 
   const [formData, setFormData] = useState({
     projectId: projectId || "",

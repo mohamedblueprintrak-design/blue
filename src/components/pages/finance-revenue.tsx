@@ -182,7 +182,8 @@ export default function FinanceRevenuePage({ }: Props) {
 
   const outstandingInvoices = filtered.filter((i) => i.status === "sent" || i.status === "partially_paid" || i.status === "overdue");
 
-  // Monthly revenue chart data
+  // Monthly revenue chart data – pre-filter active invoices as a simpler intermediate
+  const activeInvoices = invoices.filter((inv) => inv.status !== "cancelled");
   const monthlyRevenueData = useMemo(() => {
     const months: Record<string, { monthAr: string; monthEn: string; revenue: number; collected: number }> = {};
     const arMonths = ["يناير", "فبراير", "مارس", "أبريل", "مايو", "يونيو", "يوليو", "أغسطس", "سبتمبر", "أكتوبر", "نوفمبر", "ديسمبر"];
@@ -194,8 +195,7 @@ export default function FinanceRevenuePage({ }: Props) {
       months[key] = { monthAr: arMonths[d.getMonth()], monthEn: enMonths[d.getMonth()], revenue: 0, collected: 0 };
     }
 
-    invoices.forEach((inv) => {
-      if (inv.status === "cancelled") return;
+    activeInvoices.forEach((inv) => {
       const d = new Date(inv.issueDate);
       const key = `${d.getFullYear()}-${d.getMonth()}`;
       if (months[key]) {
@@ -205,7 +205,7 @@ export default function FinanceRevenuePage({ }: Props) {
     });
 
     return Object.values(months);
-  }, [invoices]);
+  }, [activeInvoices]);
 
   // Revenue by project
   const revenueByProject = useMemo(() => {

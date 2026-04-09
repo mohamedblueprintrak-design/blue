@@ -366,7 +366,7 @@ export default function ClientsPage({ language, projectId, initialTab }: Clients
     serviceType: "", serviceNotes: "",
   };
   const form = useForm<ClientFormData>({
-    resolver: zodResolver(clientSchema),
+    resolver: zodResolver(clientSchema) as any,
     defaultValues: emptyForm,
   });
   const { register, handleSubmit: rhfHandleSubmit, formState: { errors }, reset, watch, setValue } = form;
@@ -486,22 +486,22 @@ export default function ClientsPage({ language, projectId, initialTab }: Clients
     const payload: Record<string, unknown> = {
       ...data,
       clientType: formClientType,
-      nameEn: watch("nameEn") || "",
-      companyEn: watch("companyEn") || "",
-      idNumber: watch("idNumber") || "",
-      nationality: watch("nationality") || "",
-      whatsapp: watch("whatsapp") || "",
-      extraPhone: watch("extraPhone") || "",
+      nameEn: (watch as any)("nameEn") || "",
+      companyEn: (watch as any)("companyEn") || "",
+      idNumber: (watch as any)("idNumber") || "",
+      nationality: (watch as any)("nationality") || "",
+      whatsapp: (watch as any)("whatsapp") || "",
+      extraPhone: (watch as any)("extraPhone") || "",
       fullAddress: JSON.stringify(formAddress),
       servicesWanted: JSON.stringify(formServices),
       projectType: formProjectType,
-      notes: watch("notes") || "",
+      notes: (watch as any)("notes") || "",
       referralSource: formReferralSource,
-      referralDetail: watch("referralDetail") || "",
-      landLocation: watch("landLocation") || "",
-      landArea: watch("landArea") || "",
-      plotNumber: watch("plotNumber") || "",
-      planNumber: watch("planNumber") || "",
+      referralDetail: (watch as any)("referralDetail") || "",
+      landLocation: (watch as any)("landLocation") || "",
+      landArea: (watch as any)("landArea") || "",
+      plotNumber: (watch as any)("plotNumber") || "",
+      planNumber: (watch as any)("planNumber") || "",
     };
 
     if (editClient) {
@@ -749,7 +749,7 @@ export default function ClientsPage({ language, projectId, initialTab }: Clients
               </DialogDescription>
             </DialogHeader>
 
-            <form onSubmit={rhfHandleSubmit(handleSave)} className="flex-1 overflow-hidden flex flex-col">
+            <form onSubmit={rhfHandleSubmit(handleSave as any)} className="flex-1 overflow-hidden flex flex-col">
               <Tabs defaultValue="basic" dir={ar ? "rtl" : "ltr"} className="flex-1 flex flex-col overflow-hidden">
                 <TabsList className="w-full grid grid-cols-5 shrink-0 h-9 bg-slate-100 dark:bg-slate-800">
                   <TabsTrigger value="basic" className="text-xs gap-1">
@@ -820,7 +820,7 @@ export default function ClientsPage({ language, projectId, initialTab }: Clients
                       <div className="space-y-2">
                         <Label className="text-sm">{ar ? "الاسم (إنجليزي)" : "Name (English)"}</Label>
                         <Input
-                          {...register("nameEn")}
+                          {...(register as any)("nameEn")}
                           placeholder={ar ? "اسم العميل بالإنجليزي" : "Client name in English"}
                           dir="ltr"
                         />
@@ -841,7 +841,7 @@ export default function ClientsPage({ language, projectId, initialTab }: Clients
                         <div className="space-y-2">
                           <Label className="text-sm">{ar ? "اسم الجهة (إنجليزي)" : "Organization (English)"}</Label>
                           <Input
-                            {...register("companyEn")}
+                            {...(register as any)("companyEn")}
                             placeholder={ar ? "اسم الشركة بالإنجليزي" : "Organization in English"}
                             dir="ltr"
                           />
@@ -858,15 +858,15 @@ export default function ClientsPage({ language, projectId, initialTab }: Clients
                             : (ar ? "السجل التجاري" : "Commercial Registration")}
                         </Label>
                         <Input
-                          {...register("idNumber")}
+                          {...(register as any)("idNumber")}
                           placeholder={formClientType === "individual" ? "784-XXXX-XXXXXXX-X" : "CR-XXXXX"}
                         />
                       </div>
                       <div className="space-y-2">
                         <Label className="text-sm">{ar ? "الجنسية" : "Nationality"}</Label>
                         <Select
-                          value={watch("nationality") || ""}
-                          onValueChange={(v) => setValue("nationality", v)}
+                          value={(watch as any)("nationality") || ""}
+                          onValueChange={(v) => setValue("nationality" as any, v)}
                         >
                           <SelectTrigger>
                             <SelectValue placeholder={ar ? "اختر الجنسية..." : "Select nationality..."} />
@@ -897,7 +897,7 @@ export default function ClientsPage({ language, projectId, initialTab }: Clients
                             input.accept = "image/*";
                             input.onchange = () => {
                               if (input.files && input.files[0]) {
-                                setValue("idPhoto", input.files[0].name);
+                                setValue("idPhoto" as any, input.files[0].name);
                               }
                             };
                             input.click();
@@ -906,14 +906,14 @@ export default function ClientsPage({ language, projectId, initialTab }: Clients
                           <Upload className="h-3.5 w-3.5" />
                           {ar ? "اختيار ملف" : "Choose File"}
                         </Button>
-                        {watch("idPhoto") && (
+                        {(watch as any)("idPhoto") && (
                           <span className="text-xs text-slate-500 flex items-center gap-1">
                             <FileText className="h-3 w-3" />
-                            {watch("idPhoto")}
+                            {(watch as any)("idPhoto")}
                           </span>
                         )}
                       </div>
-                      <input type="hidden" {...register("idPhoto")} />
+                      <input type="hidden" {...(register as any)("idPhoto")} />
                     </div>
 
                     {/* Credit Limit & Payment Terms */}
@@ -967,7 +967,7 @@ export default function ClientsPage({ language, projectId, initialTab }: Clients
                           {ar ? "رقم الواتساب" : "WhatsApp Number"}
                         </Label>
                         <Input
-                          {...register("whatsapp")}
+                          {...(register as any)("whatsapp")}
                           placeholder="+971 XX XXX XXXX"
                           dir="ltr"
                         />
@@ -975,7 +975,7 @@ export default function ClientsPage({ language, projectId, initialTab }: Clients
                       <div className="space-y-2">
                         <Label className="text-sm">{ar ? "هاتف إضافي" : "Extra Phone"}</Label>
                         <Input
-                          {...register("extraPhone")}
+                          {...(register as any)("extraPhone")}
                           placeholder="+971 XX XXX XXXX"
                           dir="ltr"
                         />
@@ -1126,7 +1126,7 @@ export default function ClientsPage({ language, projectId, initialTab }: Clients
                     <div className="space-y-2">
                       <Label className="text-sm font-medium">{ar ? "ملاحظات / تفاصيل" : "Notes / Details"}</Label>
                       <textarea
-                        {...register("notes")}
+                        {...(register as any)("notes")}
                         placeholder={ar ? "وصف تفصيلي لما يريد العميل..." : "Describe what the client needs..."}
                         rows={4}
                         className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 resize-none"
@@ -1178,12 +1178,12 @@ export default function ClientsPage({ language, projectId, initialTab }: Clients
                         <div className="grid grid-cols-2 gap-3">
                           <div className="space-y-2">
                             <Label className="text-sm">{ar ? "موقع الأرض" : "Land Location"}</Label>
-                            <Input {...register("landLocation")} placeholder={ar ? "وصف موقع الأرض" : "Land location description"} />
+                            <Input {...(register as any)("landLocation")} placeholder={ar ? "وصف موقع الأرض" : "Land location description"} />
                           </div>
                           <div className="space-y-2">
                             <Label className="text-sm">{ar ? "مساحة الأرض" : "Land Area"}</Label>
                             <div className="flex gap-2">
-                              <Input {...register("landArea")} placeholder={ar ? "المساحة" : "Area"} className="flex-1" />
+                              <Input {...(register as any)("landArea")} placeholder={ar ? "المساحة" : "Area"} className="flex-1" />
                               <Select defaultValue="sqm">
                                 <SelectTrigger className="w-24">
                                   <SelectValue />
@@ -1200,11 +1200,11 @@ export default function ClientsPage({ language, projectId, initialTab }: Clients
                         <div className="grid grid-cols-2 gap-3">
                           <div className="space-y-2">
                             <Label className="text-sm">{ar ? "رقم القطعة" : "Plot Number"}</Label>
-                            <Input {...register("plotNumber")} placeholder={ar ? "رقم القطعة" : "Plot number"} />
+                            <Input {...(register as any)("plotNumber")} placeholder={ar ? "رقم القطعة" : "Plot number"} />
                           </div>
                           <div className="space-y-2">
                             <Label className="text-sm">{ar ? "رقم المخطط" : "Plan Number"}</Label>
-                            <Input {...register("planNumber")} placeholder={ar ? "رقم المخطط" : "Plan number"} />
+                            <Input {...(register as any)("planNumber")} placeholder={ar ? "رقم المخطط" : "Plan number"} />
                           </div>
                         </div>
 
@@ -1317,7 +1317,7 @@ export default function ClientsPage({ language, projectId, initialTab }: Clients
                             : (ar ? "اسم العميل المُحيل" : "Referring Client Name")}
                         </Label>
                         <Input
-                          {...register("referralDetail")}
+                          {...(register as any)("referralDetail")}
                           placeholder={
                             formReferralSource === "other"
                               ? (ar ? "اذكر المصدر..." : "Specify source...")

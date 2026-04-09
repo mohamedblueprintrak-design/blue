@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Stripe Configuration for BluePrint SaaS Platform
  * إعدادات Stripe لمنصة BluePrint

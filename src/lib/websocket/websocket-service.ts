@@ -65,7 +65,6 @@ export function initializeWebSocket(
   });
 
   // Authentication middleware
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   io.use(async (socket: any, next: any) => {
     try {
       const token = socket.handshake.auth.token || socket.handshake.headers.authorization?.replace('Bearer ', '');

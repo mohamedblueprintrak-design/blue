@@ -222,16 +222,13 @@ export default function Supervision({ language, projectId }: SupervisionProps) {
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState("checklists");
   const [selectedStage, setSelectedStage] = useState("all");
-  const [filterProject, setFilterProject] = useState<string>("all");
+  const [filterProject, setFilterProject] = useState<string>(projectId || "all");
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [viewChecklist, setViewChecklist] = useState<SupervisionChecklist | null>(null);
   const [violationFilterStatus, setViolationFilterStatus] = useState<string>("all");
   const [violationFilterSeverity, setViolationFilterSeverity] = useState<string>("all");
 
-  // Auto-set project filter from props
-  useEffect(() => {
-    if (projectId) setFilterProject(projectId);
-  }, [projectId]);
+
 
   // Queries
   const { data: checklists = [], isLoading: checklistsLoading } = useQuery<SupervisionChecklist[]>({

@@ -35,6 +35,7 @@ export interface AuthenticatedUser {
   organization: { id: string; name: string; currency: string } | null;
   isActive?: boolean;
   password?: string;
+  department?: string;
 }
 
 /** API success response type */

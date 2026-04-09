@@ -174,7 +174,7 @@ export default function ContractsPage({ language, projectId }: ContractsPageProp
   const [formData, setFormData] = useState(emptyForm);
 
   const form = useForm<ContractFormData>({
-    resolver: zodResolver(contractSchema),
+    resolver: zodResolver(contractSchema) as any,
     defaultValues: emptyForm,
   });
   const { register, handleSubmit: rhfHandleSubmit, formState: { errors }, reset, setValue, watch } = form;
@@ -614,7 +614,7 @@ export default function ContractsPage({ language, projectId }: ContractsPageProp
             </DialogDescription>
           </DialogHeader>
 
-          <form onSubmit={rhfHandleSubmit(handleSave)} className="space-y-4">
+          <form onSubmit={rhfHandleSubmit(handleSave as any)} className="space-y-4">
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
                 <Label className="text-sm">{ar ? "رقم العقد" : "Contract No."} *</Label>
@@ -639,6 +639,7 @@ export default function ContractsPage({ language, projectId }: ContractsPageProp
               <div className="space-y-2">
                 <Label className="text-sm">{ar ? "العميل" : "Client"} *</Label>
                 <Select
+                  // eslint-disable-next-line react-hooks/incompatible-library
                   value={watch("clientId")}
                   onValueChange={(v) => setValue("clientId", v)}
                 >

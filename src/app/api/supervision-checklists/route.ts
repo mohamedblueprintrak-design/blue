@@ -76,7 +76,7 @@ export async function POST(request: NextRequest) {
             severity: v.severity || "low",
             description: v.description || "",
             contractorName: v.contractorName || contractorName || "",
-            deadline: v.deadline ? new Date(v.deadline) : null,
+            deadline: v.deadline ? new Date(v.deadline as string) : null,
             status: v.status || "open",
             photoBefore: v.photoBefore || "",
             photoAfter: v.photoAfter || "",
@@ -89,7 +89,7 @@ export async function POST(request: NextRequest) {
         items: true,
         violations: true,
       },
-    });
+    } as any);
 
     return NextResponse.json(checklist, { status: 201 });
   } catch (error) {

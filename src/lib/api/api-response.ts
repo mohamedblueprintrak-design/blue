@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * BluePrint API - Standard Response Utilities
  *

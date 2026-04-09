@@ -622,7 +622,7 @@ const financialSubTabs = [
 ];
 
 // ===== SUB-TAB RENDERER =====
-function SubTabsNav<T extends { id: string }>({ 
+function SubTabsNav<T extends { id: string; icon: any; labelAr: string; labelEn: string }>({ 
   tabs, 
   activeSubTab, 
   onSubTabChange, 
@@ -1651,7 +1651,7 @@ function WorkflowTab({ projectId, language }: { projectId: string; language: "ar
                   </p>
                 </div>
               </CardTitle>
-              {getStageStatusBadge(currentStage.status)}
+              {getStepStatusBadge(currentStage.status)}
             </div>
           </CardHeader>
           <CardContent>

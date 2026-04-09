@@ -187,7 +187,7 @@ export default function Risks({ language, projectId }: RisksProps) {
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [showDetailDialog, setShowDetailDialog] = useState(false);
   const [selectedRisk, setSelectedRisk] = useState<RiskItem | null>(null);
-  const [filterProject, setFilterProject] = useState<string>("all");
+  const [filterProject, setFilterProject] = useState<string>(projectId || "all");
   const [filterCategory, setFilterCategory] = useState<string>("all");
 
   // Fetch risks
@@ -282,10 +282,7 @@ export default function Risks({ language, projectId }: RisksProps) {
     },
   });
 
-  // Auto-set project filter from props
-  useEffect(() => {
-    if (projectId) setFilterProject(projectId);
-  }, [projectId]);
+
 
   const [formData, setFormData] = useState({
     projectId: projectId || "",

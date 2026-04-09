@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuthStore } from "@/store/auth-store";
 import { useNavStore } from "@/store/nav-store";
+import { motion } from "framer-motion";
 import {
   Card,
   CardContent,
@@ -190,6 +191,49 @@ interface TeamMember {
   tasksDone: number;
   avatarColor: string;
 }
+
+// ===== Animated Counter Hook =====
+function useAnimatedCounter(target: number, duration: number = 1200) {
+  const [count, setCount] = useState(0);
+  const prevTarget = useRef(target);
+  
+  useEffect(() => {
+    prevTarget.current = target;
+    let startTime: number | null = null;
+    let animationFrame: number;
+    const startVal = 0;
+
+    const animate = (timestamp: number) => {
+      if (!startTime) startTime = timestamp;
+      const progress = Math.min((timestamp - startTime) / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3); // easeOutCubic
+      setCount(Math.floor(eased * (target - startVal) + startVal));
+      if (progress < 1) {
+        animationFrame = requestAnimationFrame(animate);
+      }
+    };
+
+    animationFrame = requestAnimationFrame(animate);
+    return () => cancelAnimationFrame(animationFrame);
+  }, [target, duration]);
+
+  return count;
+}
+
+// ===== Fade In Up Animation Variant =====
+const fadeUp: Record<string, unknown> = {
+  hidden: { opacity: 0, y: 16 },
+  visible: (i: number) => ({
+    opacity: 1,
+    y: 0,
+    transition: { delay: i * 0.06, duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] },
+  }),
+};
+
+const stagger: Record<string, unknown> = {
+  hidden: { opacity: 0 },
+  visible: { opacity: 1, transition: { staggerChildren: 0.06 } },
+};
 
 // ===== Helpers =====
 function formatCurrency(amount: number, locale: string): string {
@@ -420,7 +464,7 @@ function MiniProgressRing({ progress, size = 40, strokeWidth = 3.5, className }:
   const radius = (size - strokeWidth) / 2;
   const circumference = radius * 2 * Math.PI;
   const offset = circumference - (progress / 100) * circumference;
-  const color = progress >= 80 ? "#10b981" : progress >= 50 ? "#133371" : progress >= 25 ? "#f59e0b" : "#ef4444";
+  const color = progress >= 80 ? "#10b981" : progress >= 50 ? "#0d9488" : progress >= 25 ? "#f59e0b" : "#ef4444";
 
   return (
     <svg className={cn("shrink-0 -rotate-90", className)} width={size} height={size}>
@@ -450,8 +494,8 @@ function MiniProgressRing({ progress, size = 40, strokeWidth = 3.5, className }:
 }
 
 // ===== Chart Colors =====
-const CHART_BAR_COLOR = "#133371";
-const CHART_BAR_HOVER_COLOR = "#0e2a5c";
+const CHART_BAR_COLOR = "#0d9488";
+const CHART_BAR_HOVER_COLOR = "#0f766e";
 
 // ===== Custom Chart Tooltip =====
 function ChartTooltip({ active, payload, label, isAr }: {
@@ -804,7 +848,7 @@ export default function Dashboard({ language }: { language: "ar" | "en" }) {
 
   // ===== Mock Chart Data =====
   const projectStatusData = [
-    { name: isAr ? "نشط" : "Active", value: stats.activeProjects, color: "#133371" },
+    { name: isAr ? "نشط" : "Active", value: stats.activeProjects, color: "#0d9488" },
     { name: isAr ? "مكتمل" : "Completed", value: stats.completedProjects, color: "#10b981" },
     { name: isAr ? "متأخر" : "Delayed", value: stats.delayedProjects, color: "#ef4444" },
     { name: isAr ? "معلق" : "On Hold", value: stats.totalProjects - stats.activeProjects - stats.completedProjects - stats.delayedProjects, color: "#f59e0b" },
@@ -955,7 +999,12 @@ export default function Dashboard({ language }: { language: "ar" | "en" }) {
       {/* ===== Stats Cards ===== */}
       <DashboardLayoutManager layout={layout} language={language}>
       <WidgetSlot widgetId="kpi-cards" layout={layout} language={language}>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <motion.div
+        initial="hidden"
+        animate="visible"
+        variants={stagger as any}
+        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"
+      >
         {statCards.map((card, i) => {
           const Icon = card.icon;
           // Deterministic sparkline bar heights based on card index (pure CSS, no logic change)
@@ -971,8 +1020,8 @@ export default function Dashboard({ language }: { language: "ar" | "en" }) {
             : "bg-red-400 dark:bg-red-500";
 
           return (
+            <motion.div key={i} variants={fadeUp as any} custom={i}>
             <Card
-              key={i}
               className={cn(
                 "rounded-xl border-slate-200/80 dark:border-slate-700/50 transition-all duration-300 ease-out",
                 "hover:shadow-xl hover:shadow-slate-200/60 dark:hover:shadow-slate-900/60 hover:scale-[1.02] hover:-translate-y-1",
@@ -1043,9 +1092,10 @@ export default function Dashboard({ language }: { language: "ar" | "en" }) {
                 </div>
               </CardContent>
             </Card>
+            </motion.div>
           );
         })}
-      </div>
+      </motion.div>
 
       </WidgetSlot>
       <WidgetSlot widgetId="quick-overview" layout={layout} language={language}>
@@ -1113,8 +1163,8 @@ export default function Dashboard({ language }: { language: "ar" | "en" }) {
                 <AreaChart data={revenue.monthly} margin={{ top: 8, right: 8, bottom: 0, left: 0 }}>
                   <defs>
                     <linearGradient id="revenueGradient" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#133371" stopOpacity={0.3} />
-                      <stop offset="100%" stopColor="#133371" stopOpacity={0.02} />
+                      <stop offset="0%" stopColor="#0d9488" stopOpacity={0.3} />
+                      <stop offset="100%" stopColor="#0d9488" stopOpacity={0.02} />
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" opacity={0.5} />
@@ -1136,7 +1186,7 @@ export default function Dashboard({ language }: { language: "ar" | "en" }) {
                   <Area
                     type="monotone"
                     dataKey="revenue"
-                    stroke="#133371"
+                    stroke="#0d9488"
                     strokeWidth={2}
                     fill="url(#revenueGradient)"
                   />

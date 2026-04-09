@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
 
     const filename = `blueprint-${type}-export-${Date.now()}.xlsx`;
 
-    return new NextResponse(buffer, {
+    return new NextResponse(buffer as any, {
       status: 200,
       headers: {
         'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',

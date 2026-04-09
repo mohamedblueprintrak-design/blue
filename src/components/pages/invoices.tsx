@@ -148,7 +148,7 @@ export default function InvoicesPage({ language, projectId }: InvoicesPageProps)
   };
 
   const form = useForm<InvoiceFormData>({
-    resolver: zodResolver(invoiceSchema),
+    resolver: zodResolver(invoiceSchema) as any,
     defaultValues: {
       number: "",
       clientId: "",
@@ -724,7 +724,7 @@ export default function InvoicesPage({ language, projectId }: InvoicesPageProps)
               <DialogDescription>{editInvoice ? (ar ? "تعديل بيانات الفاتورة" : "Update invoice details") : (ar ? "إنشاء فاتورة جديدة" : "Create a new invoice")}</DialogDescription>
             </DialogHeader>
 
-            <form onSubmit={rhfHandleSubmit(handleSave)} className="space-y-4">
+            <form onSubmit={rhfHandleSubmit(handleSave as any)} className="space-y-4">
               {/* Top row */}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                 <div className="space-y-1">
@@ -734,6 +734,7 @@ export default function InvoicesPage({ language, projectId }: InvoicesPageProps)
                 </div>
                 <div className="space-y-1">
                   <Label className="text-xs">{ar ? "العميل" : "Client"} *</Label>
+                  {/* eslint-disable-next-line react-hooks/incompatible-library */}
                   <Select value={watch("clientId")} onValueChange={(v) => { setValue("clientId", v); setFormData({ ...formData, clientId: v }); }}>
                     <SelectTrigger className="h-8 text-sm rounded-lg"><SelectValue placeholder={ar ? "اختر عميل" : "Select client"} /></SelectTrigger>
                     <SelectContent>

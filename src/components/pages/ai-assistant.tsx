@@ -322,8 +322,8 @@ function MarkdownRenderer({ content }: { content: string }) {
         pre: ({ children }) => {
           // Extract className from the code child
           const codeChild = children as React.ReactElement;
-          const className = codeChild?.props?.className || "";
-          return <CodeBlock className={className}>{codeChild?.props?.children}</CodeBlock>;
+          const className = (codeChild?.props as any)?.className || "";
+          return <CodeBlock className={className}>{(codeChild?.props as any)?.children}</CodeBlock>;
         },
         // Inline code (but not inside pre)
         code: ({ children, className }) => {

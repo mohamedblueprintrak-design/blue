@@ -21,7 +21,7 @@ export async function POST(
     // Accept single object or array of evaluation criteria
     const criteriaList = Array.isArray(body) ? body : [body];
 
-    const savedEvaluations = [];
+    const savedEvaluations: any[] = [];
 
     for (const item of criteriaList) {
       const { criteria, score, maxScore, weight, notes, evaluatedBy } = item;

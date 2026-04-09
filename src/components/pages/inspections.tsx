@@ -174,9 +174,9 @@ function emptyFinding(): Finding {
 }
 
 // ===== Main Component =====
-interface InspectionsProps { language: "ar" | "en"; }
+interface InspectionsProps { language: "ar" | "en"; projectId?: string; }
 
-export default function Inspections({ language }: InspectionsProps) {
+export default function Inspections({ language, projectId }: InspectionsProps) {
   const ar = language === "ar";
   const queryClient = useQueryClient();
   const toast = useToastFeedback({ ar });

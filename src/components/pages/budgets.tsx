@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -141,12 +141,7 @@ interface BudgetsPageProps { language: "ar" | "en"; projectId?: string; }
 
 export default function BudgetsPage({ language, projectId }: BudgetsPageProps) {
   const ar = language === "ar";
-  const [selectedProject, setSelectedProject] = useState<string>("");
-
-  // Auto-set project from prop when inside a project context
-  useEffect(() => {
-    if (projectId) setSelectedProject(projectId);
-  }, [projectId]);
+  const [selectedProject, setSelectedProject] = useState<string>(projectId || "");
 
   // Fetch projects
   const { data: projects = [] } = useQuery<ProjectOption[]>({
@@ -245,7 +240,7 @@ export default function BudgetsPage({ language, projectId }: BudgetsPageProps) {
             </p>
           </div>
         </div>
-        <Select value={activeProjectId} onValueChange={setSelectedProject} hidden={!!projectId}>
+        <Select value={activeProjectId} onValueChange={setSelectedProject} {...(projectId ? { hidden: true } : {})}>
           <SelectTrigger className={cn("w-[280px] h-9 text-sm rounded-lg", !!projectId && "hidden")}>
             <SelectValue placeholder={ar ? "اختر مشروع" : "Select project"} />
           </SelectTrigger>

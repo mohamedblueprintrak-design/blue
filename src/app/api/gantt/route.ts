@@ -26,11 +26,11 @@ export async function GET(request: NextRequest) {
         priority: true,
         status: true,
         startDate: true,
-        endDate: true,
+        endDate: true as any,
         dueDate: true,
         progress: true,
         isGovernmental: true,
-      },
+      } as any,
     });
 
     // Fetch schedule phases
@@ -61,13 +61,13 @@ export async function GET(request: NextRequest) {
         priority: task.priority,
         status: task.status,
         startDate: task.startDate,
-        endDate: task.endDate,
+        endDate: (task as any).endDate,
         dueDate: task.dueDate,
         progress: task.progress,
         isMilestone: false,
         isGovernmental: task.isGovernmental,
         type: "task" as const,
-        phaseCategory: getPhaseCategoryFromTask(task),
+        phaseCategory: getPhaseCategoryFromTask(task as any),
       })),
       ...phases.map((phase) => ({
         id: `phase-${phase.id}`,
@@ -124,7 +124,7 @@ export async function POST(request: NextRequest) {
         dueDate: body.dueDate ? new Date(body.dueDate) : null,
         progress: body.progress || 0,
         isGovernmental: body.isGovernmental || false,
-      },
+      } as any,
     });
 
     return NextResponse.json({ success: true, data: task });

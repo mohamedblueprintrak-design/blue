@@ -211,7 +211,7 @@ export default function AIAssistantHub({ language }: AIAssistantHubProps) {
     : ["Compare contractor bids", "Project summary", "When is an invoice due?", "How to track design?"];
 
   // Handle send message
-  const handleSend = (text?: string) => {
+  const handleSend = async (text?: string) => {
     const message = text || inputValue.trim();
     if (!message) return;
 

@@ -15,6 +15,7 @@ import {
   Mail,
   MapPin,
   ArrowLeft,
+  ArrowUp,
   Users,
   Award,
   Clock,
@@ -136,20 +137,40 @@ const WHY_US = [
   },
 ];
 
+// ==================== TESTIMONIALS ====================
+const TESTIMONIALS = [
+  {
+    name: "خالد المنصوري",
+    nameEn: "Khalid Al Mansouri",
+    role: "صاحب فيلا",
+    text: "تجربة ممتازة من البداية للنهاية. فريق BluePrint محترف جداً في التصميم والتعامل مع البلدية. تم إنجاز مشروع فيلتي قبل الموعد المحدد بـ أسبوعين.",
+    rating: 5,
+  },
+  {
+    name: "سارة الحربي",
+    nameEn: "Sara Al Harbi",
+    role: "مديرة شركة",
+    text: "نظام إدارة المشاريع الخاص بهم سهل جداً. أقدر أتابع تقدم مشروعي لحظة بلحظة. التطبيق ساعدنا كثيراً في التواصل مع فريق الهندسة.",
+    rating: 5,
+  },
+  {
+    name: "عبدالله الرمحي",
+    nameEn: "Abdullah Al Ramahi",
+    role: "مستثمر عقاري",
+    text: "أفضل مكتب استشارات تعاملت معه في رأس الخيمة. جودة التصميم الإنشائي ممتازة وخدمة ما بعد التسليم مميزة. أنصح بهم بشدة.",
+    rating: 5,
+  },
+];
+
 // ==================== COUNTER HOOK ====================
 function useCounter(end: number, duration: number = 2000, startOnView: boolean = false) {
   const [count, setCount] = useState(0);
-  const [started, setStarted] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   const isInView = useInView(ref, { once: true, amount: 0.3 });
+  const shouldStart = startOnView ? isInView : true;
 
   useEffect(() => {
-    if (startOnView && isInView) setStarted(true);
-    else if (!startOnView) setStarted(true);
-  }, [isInView, startOnView]);
-
-  useEffect(() => {
-    if (!started) return;
+    if (!shouldStart) return;
     let startTime: number | null = null;
     let animationFrame: number;
 
@@ -165,13 +186,14 @@ function useCounter(end: number, duration: number = 2000, startOnView: boolean =
 
     animationFrame = requestAnimationFrame(animate);
     return () => cancelAnimationFrame(animationFrame);
-  }, [started, end, duration]);
+  }, [shouldStart, end, duration]);
 
   return { count, ref };
 }
 
 // ==================== ANIMATION VARIANTS ====================
-const fadeInUp = {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const fadeInUp: any = {
   hidden: { opacity: 0, y: 30 },
   visible: (i: number) => ({
     opacity: 1,
@@ -188,6 +210,11 @@ const staggerContainer = {
   },
 };
 
+// ==================== i18n HELPER (Arabic-only landing page) ====================
+function isAr(ar: string, _en: string): string {
+  return ar;
+}
+
 export default function LandingPage() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [formName, setFormName] = useState("");
@@ -197,6 +224,23 @@ export default function LandingPage() {
   const [formMessage, setFormMessage] = useState("");
   const [formSubmitting, setFormSubmitting] = useState(false);
   const [formSuccess, setFormSuccess] = useState(false);
+  const [showScrollTop, setShowScrollTop] = useState(false);
+
+  // Track scroll position for back-to-top button
+  useEffect(() => {
+    let ticking = false;
+    const handleScroll = () => {
+      if (!ticking) {
+        requestAnimationFrame(() => {
+          setShowScrollTop(window.scrollY > 400);
+          ticking = false;
+        });
+        ticking = true;
+      }
+    };
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   const statsCounter0 = useCounter(STATS[0].value, 2000, true);
   const statsCounter1 = useCounter(STATS[1].value, 2000, true);
@@ -558,6 +602,69 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* ===== TESTIMONIALS ===== */}
+      <section className="py-16 sm:py-24 bg-slate-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+            variants={fadeInUp}
+            custom={0}
+            className="text-center mb-12"
+          >
+            <span className="inline-flex items-center gap-2 bg-teal-100 text-teal-700 rounded-full px-4 py-1.5 text-sm font-medium mb-4">
+              <Star className="w-4 h-4" />
+              آراء العملاء
+            </span>
+            <h2 className="text-3xl sm:text-4xl font-bold text-slate-900">
+              ماذا يقول عملاؤنا عنّا
+            </h2>
+            <p className="mt-3 text-slate-500 max-w-2xl mx-auto">
+              ثقة عملائنا هي أكبر شهادة على جودة خدماتنا الهندسية
+            </p>
+          </motion.div>
+
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+            variants={staggerContainer}
+            className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6"
+          >
+            {TESTIMONIALS.map((testimonial, i) => (
+              <motion.div
+                key={testimonial.name}
+                variants={fadeInUp}
+                custom={i}
+                className="bg-white rounded-2xl border border-slate-200/80 p-6 hover:shadow-xl hover:shadow-teal-500/5 transition-all duration-300 hover:-translate-y-1"
+              >
+                {/* Stars */}
+                <div className="flex items-center gap-1 mb-4">
+                  {Array.from({ length: testimonial.rating }).map((_, j) => (
+                    <Star key={j} className="w-4 h-4 fill-amber-400 text-amber-400" />
+                  ))}
+                </div>
+                {/* Quote */}
+                <p className="text-sm text-slate-600 leading-relaxed mb-6">
+                  &ldquo;{testimonial.text}&rdquo;
+                </p>
+                {/* Author */}
+                <div className="flex items-center gap-3 pt-4 border-t border-slate-100">
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-teal-500 to-cyan-500 flex items-center justify-center text-white text-sm font-bold">
+                    {testimonial.name.charAt(0)}
+                  </div>
+                  <div>
+                    <div className="text-sm font-semibold text-slate-900">{testimonial.name}</div>
+                    <div className="text-xs text-slate-500">{testimonial.role}</div>
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+          </motion.div>
+        </div>
+      </section>
+
       {/* ===== CTA / CONTACT SECTION ===== */}
       <section id="contact" className="py-16 sm:py-24 bg-gradient-to-br from-slate-900 via-slate-800 to-teal-900 relative overflow-hidden">
         <div className="absolute inset-0 opacity-[0.03]">
@@ -768,15 +875,18 @@ export default function LandingPage() {
               </p>
               {/* Social Media */}
               <div className="flex items-center gap-3 mt-4">
-                {[
-                  { label: "واتساب", icon: "WhatsApp" },
-                  { label: "إيميل", icon: "Email" },
-                  { label: "اتصال", icon: "Phone" },
-                ].map((social) => (
-                  <div key={social.label} className="h-8 w-8 rounded-lg bg-slate-800 hover:bg-teal-600 flex items-center justify-center transition-colors cursor-pointer" title={social.label}>
-                    <MessageCircle className="w-3.5 h-3.5 text-slate-400 hover:text-white" />
-                  </div>
-                ))}
+                <a href="https://wa.me/97171234567" target="_blank" rel="noopener noreferrer" className="h-9 w-9 rounded-lg bg-slate-800 hover:bg-emerald-600 flex items-center justify-center transition-all duration-200 hover:scale-110 hover:shadow-lg hover:shadow-emerald-500/20" title="واتساب">
+                  <Phone className="w-4 h-4 text-slate-400 hover:text-white" />
+                </a>
+                <a href="mailto:info@blueprint.ae" className="h-9 w-9 rounded-lg bg-slate-800 hover:bg-blue-600 flex items-center justify-center transition-all duration-200 hover:scale-110 hover:shadow-lg hover:shadow-blue-500/20" title="البريد الإلكتروني">
+                  <Mail className="w-4 h-4 text-slate-400 hover:text-white" />
+                </a>
+                <a href="tel:+97171234567" className="h-9 w-9 rounded-lg bg-slate-800 hover:bg-teal-600 flex items-center justify-center transition-all duration-200 hover:scale-110 hover:shadow-lg hover:shadow-teal-500/20" title="اتصال">
+                  <Phone className="w-4 h-4 text-slate-400 hover:text-white" />
+                </a>
+                <a href="#" className="h-9 w-9 rounded-lg bg-slate-800 hover:bg-sky-600 flex items-center justify-center transition-all duration-200 hover:scale-110 hover:shadow-lg hover:shadow-sky-500/20" title="انستغرام">
+                  <Globe className="w-4 h-4 text-slate-400 hover:text-white" />
+                </a>
               </div>
             </div>
 
@@ -871,23 +981,13 @@ export default function LandingPage() {
       </a>
 
       {/* ===== SCROLL TO TOP ===== */}
-      <motion.button
+      <button
         onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-        className="fixed bottom-6 end-6 z-50 w-12 h-12 bg-teal-600 hover:bg-teal-700 rounded-full flex items-center justify-center shadow-lg shadow-teal-500/20 transition-all duration-300 opacity-0 pointer-events-none"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        whileInView={{ opacity: 1 }}
-        viewport={{ once: false }}
-        id="scroll-top-btn"
+        className={`fixed bottom-6 end-6 z-50 w-12 h-12 bg-teal-600 hover:bg-teal-700 rounded-full flex items-center justify-center shadow-lg shadow-teal-500/20 transition-all duration-300 ${showScrollTop ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4 pointer-events-none"}`}
         aria-label="العودة للأعلى"
       >
         <ChevronDown className="w-5 h-5 text-white rotate-180" />
-      </motion.button>
+      </button>
     </div>
   );
-}
-
-// Helper for bilingual text
-function isAr(ar: string, en: string): string {
-  return ar;
 }

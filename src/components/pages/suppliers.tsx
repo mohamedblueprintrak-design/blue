@@ -139,7 +139,7 @@ export default function SuppliersPage({ language }: SuppliersPageProps) {
   const [formData, setFormData] = useState(emptyForm);
 
   const form = useForm<SupplierFormData>({
-    resolver: zodResolver(supplierSchema),
+    resolver: zodResolver(supplierSchema) as any,
     defaultValues: emptyForm,
   });
   const { register, handleSubmit: rhfHandleSubmit, formState: { errors }, reset, setValue, watch } = form;
@@ -473,7 +473,7 @@ export default function SuppliersPage({ language }: SuppliersPageProps) {
             </DialogDescription>
           </DialogHeader>
 
-          <form onSubmit={rhfHandleSubmit(handleSave)} className="space-y-4">
+          <form onSubmit={rhfHandleSubmit(handleSave as any)} className="space-y-4">
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
                 <Label className="text-sm">{ar ? "الاسم" : "Name"} *</Label>
@@ -487,6 +487,7 @@ export default function SuppliersPage({ language }: SuppliersPageProps) {
               <div className="space-y-2">
                 <Label className="text-sm">{ar ? "التصنيف" : "Category"}</Label>
                 <Select
+                  // eslint-disable-next-line react-hooks/incompatible-library
                   value={watch("category")}
                   onValueChange={(v) => setValue("category", v)}
                 >

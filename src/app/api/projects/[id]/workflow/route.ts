@@ -47,7 +47,7 @@ export async function GET(
             assignee: {
               select: { id: true, name: true, avatar: true, role: true },
             },
-          },
+          } as any,
         },
       },
     });

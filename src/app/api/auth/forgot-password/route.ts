@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { randomBytes } from "crypto";
 import { sendEmail } from "@/lib/email";
-import { ForgotPasswordEmail } from "@/lib/email-templates";
+import { emailTemplates } from "@/lib/email-templates";
 
 export async function POST(request: NextRequest) {
   try {
@@ -42,11 +42,7 @@ export async function POST(request: NextRequest) {
       await sendEmail({
         to: user.email,
         subject: "إعادة تعيين كلمة المرور",
-        html: ForgotPasswordEmail({
-          name: user.name || "المستخدم",
-          resetUrl,
-          language: "ar",
-        }),
+        html: emailTemplates.passwordReset(user.name || "المستخدم", resetUrl).html,
       });
     } catch (emailError) {
       console.error("Failed to send email:", emailError);
