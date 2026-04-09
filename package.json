@@ -5,9 +5,9 @@
   "scripts": {
     "postinstall": "prisma generate",
     "setup": "npx prisma db push && npx tsx prisma/seed.ts",
-    "dev": "next dev -p 3000 2>&1 | tee dev.log",
-    "build": "next build && cp -r .next/static .next/standalone/.next/ && cp -r public .next/standalone/",
-    "start": "NODE_ENV=production bun .next/standalone/server.js 2>&1 | tee server.log",
+    "dev": "next dev -p 3000",
+    "build": "next build",
+    "start": "node .next/standalone/server.js",
     "lint": "eslint .",
     "db:push": "prisma db push",
     "db:seed": "npx tsx prisma/seed.ts",
