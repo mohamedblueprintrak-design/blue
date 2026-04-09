@@ -123,6 +123,7 @@ async function main() {
 
   // ========== Project Assignments ==========
   await db.projectAssignment.createMany({
+    skipDuplicates: true,
     data: [
       { projectId: project1.id, userId: pmUser.id, role: 'project_manager' },
       { projectId: project1.id, userId: engineerUser.id, role: 'team_member' },
@@ -142,6 +143,7 @@ async function main() {
 
   // ========== Tasks ==========
   await db.task.createMany({
+    skipDuplicates: true,
     data: [
       { projectId: project1.id, title: 'إعداد المخططات المعمارية النهائية', description: 'مراجعة وإكمال جميع المخططات', assigneeId: engineerUser.id, priority: 'high', status: 'in_progress', startDate: new Date('2024-04-01'), dueDate: new Date('2024-05-15'), progress: 70 },
       { projectId: project1.id, title: 'تصميم مخططات الأساسات', description: 'تصميم الأساسات بناءً على تقرير التربة', assigneeId: structuralUser.id, priority: 'high', status: 'in_progress', startDate: new Date('2024-03-15'), dueDate: new Date('2024-05-01'), progress: 50 },
@@ -157,6 +159,7 @@ async function main() {
 
   // ========== Invoices ==========
   await db.invoice.createMany({
+    skipDuplicates: true,
     data: [
       { number: 'INV-2024-001', clientId: client1.id, projectId: project1.id, issueDate: new Date('2024-02-01'), dueDate: new Date('2024-03-01'), subtotal: 62500, tax: 3750, total: 66250, paidAmount: 66250, remaining: 0, status: 'paid' },
       { number: 'INV-2024-002', clientId: client1.id, projectId: project1.id, issueDate: new Date('2024-05-01'), dueDate: new Date('2024-06-01'), subtotal: 62500, tax: 3750, total: 66250, paidAmount: 33250, remaining: 33000, status: 'partially_paid' },
