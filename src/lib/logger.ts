@@ -62,6 +62,7 @@ let errorFileTransport: winston.transport | null = null;
 // Only create file transports if winston-daily-rotate-file is available
 try {
   // Dynamic import for winston-daily-rotate-file
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
   const DailyRotateFile = require('winston-daily-rotate-file');
   
   fileRotateTransport = new DailyRotateFile({
