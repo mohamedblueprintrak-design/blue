@@ -149,6 +149,17 @@ model User {
   lastLogin       DateTime?
   organizationId  String?   // SaaS multi-tenant organization
   deletedAt       DateTime? // Soft delete
+  // Email verification
+  emailVerified   DateTime?
+  verifyToken     String?
+  verifyTokenExpiry DateTime?
+  // Password reset
+  resetToken      String?
+  resetTokenExpiry DateTime?
+  // 2FA
+  twoFactorEnabled  Boolean @default(false)
+  twoFactorSecret   String?
+  backupCodes       String? // JSON array of backup codes
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
 
