@@ -1,0 +1,1478 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ==================== USERS & AUTH ====================
+
+model User {
+  id            String   @id @default(cuid())
+  email         String   @unique
+  password      String   @default("hashed_password")
+  name          String   @default("")
+  phone         String   @default("")
+  avatar        String   @default("")
+  role          String   @default("viewer") // admin, manager, project_manager, engineer, draftsman, accountant, hr, secretary, viewer
+  department    String   @default("")
+  position      String   @default("")
+  isActive      Boolean  @default(true)
+  lastLogin     DateTime?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  projects      ProjectAssignment[]
+  tasks         Task[]
+  assignedDefects Defect[]
+  activities    ActivityLog[]
+  leaves        Leave[]
+  createdProjects Project[] @relation("CreatedProjects")
+  rfisFrom      RFI[]  @relation("RFIFrom")
+  rfisTo        RFI[]  @relation("RFITo")
+  riskActions   RiskAction[]
+  meetingAttendee MeetingAttendee[]
+  notifications Notification[]
+  sentTransmittals Transmittal[] @relation("TransmittalFrom")
+  knowledgeArticles KnowledgeArticle[]
+  employee       Employee?
+  approvedPayments Payment[] @relation("PaymentApprover")
+  approvedLeaves Leave[] @relation("LeaveApprover")
+  uploadedDocuments Document[] @relation("DocumentUploader")
+  projectComments ProjectComment[]
+  comments        TaskComment[]
+  tenders         Tender[]  @relation("TenderAssignee")
+  commissions     Commission[]  @relation("CommissionUser")
+  approvedCommissions Commission[]  @relation("CommissionApprover")
+  referrals       Referral[]    @relation("ReferralReferrer")
+}
+
+// ==================== COMPANY SETTINGS ====================
+
+model CompanySettings {
+  id            String   @id @default(cuid())
+  name          String   @default("مكتب الاستشارات الهندسية")
+  nameEn        String   @default("Engineering Consultancy Office")
+  logo          String   @default("")
+  email         String   @default("")
+  phone         String   @default("")
+  address       String   @default("")
+  taxNumber     String   @default("")
+  currency      String   @default("AED")
+  timezone      String   @default("Asia/Dubai")
+  workingDays   String   @default("sat,thu") // comma-separated
+  workingHours  String   @default("08:00-17:00")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+// ==================== PROJECTS ====================
+
+model Project {
+  id            String   @id @default(cuid())
+  number        String   @unique
+  name          String   @default("")
+  nameEn        String   @default("")
+  clientId      String
+  contractorId  String?
+  location      String   @default("")
+  plotNumber    String   @default("")
+  type          String   @default("villa") // villa, building, commercial, industrial
+  status        String   @default("active") // active, completed, delayed, on_hold, cancelled
+  progress      Float    @default(0)
+  budget        Float    @default(0)
+  contractValue  Float    @default(0) // Total contract value
+  paymentMethod  String   @default("") // cash, cheque, transfer, installments
+  paymentSchedule String  @default("") // JSON: [{milestone,amount,percentage,dueDate,status}]
+  expectedDuration Int     @default(0) // Expected duration in days
+  startDate     DateTime?
+  endDate       DateTime?
+  expectedEndDate DateTime? // Expected delivery date
+  description   String   @default("")
+  municipalityChecklist String @default("") // JSON: [{id,label,checked,stage}]
+  createdById   String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  client        Client     @relation(fields: [clientId], references: [id])
+  contractor    Contractor? @relation("ProjectContractor", fields: [contractorId], references: [id])
+  createdBy     User     @relation("CreatedProjects", fields: [createdById], references: [id])
+  assignments   ProjectAssignment[]
+  tasks         Task[]
+  stages        ProjectStage[]
+  muniRejections MunicipalRejection[]
+  govApprovals  GovApproval[]
+  boqItems      BOQItem[]
+  schedulePhases SchedulePhase[]
+  invoices      Invoice[]
+  contracts     Contract[]
+  proposals     Proposal[]
+  bids          Bid[]
+  budgets       Budget[]
+  commissions   Commission[]
+  referrals     Referral[]
+  siteVisits    SiteVisit[]
+  defects       Defect[]
+  siteDiaries   SiteDiary[]
+  rfis          RFI[]
+  submittals    Submittal[]
+  changeOrders  ChangeOrder[]
+  transmittals  Transmittal[]
+  risks         Risk[]
+  meetings      Meeting[]
+  clientInteractions ClientInteraction[]
+  documents     Document[]
+  purchaseOrders PurchaseOrder[]
+  inventoryItems InventoryItem[]
+  payments       Payment[]
+  comments       ProjectComment[]
+  municipalityCorrespondence MunicipalityCorrespondence[]
+  approvals      Approval[]
+  notifications  Notification[]
+  activityLogs   ActivityLog[]
+  knowledgeArticles KnowledgeArticle[]
+  designPhases   DesignPhase[]
+  buildingInspections BuildingInspection[]
+  supervisionChecklists SupervisionChecklist[]
+  violations           Violation[]
+  workflow             ProjectWorkflow?
+}
+
+// ==================== MUNICIPALITY CORRESPONDENCE ====================
+
+model MunicipalityCorrespondence {
+  id                  String   @id @default(cuid())
+  projectId           String
+  referenceNumber     String   @default("")
+  municipality        String   @default("")
+  correspondenceType  String   @default("SUBMISSION") // SUBMISSION, RESPONSE, REJECTION, APPROVAL, INQUIRY, AMENDMENT
+  subject             String   @default("")
+  content             String   @default("")
+  submissionDate      DateTime?
+  responseDate        DateTime?
+  status              String   @default("PENDING") // PENDING, UNDER_REVIEW, APPROVED, REJECTED, AMENDMENT_REQUIRED
+  notes               String   @default("")
+  responseNotes       String   @default("")
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  project             Project  @relation(fields: [projectId], references: [id])
+}
+
+model ProjectComment {
+  id        String   @id @default(cuid())
+  content   String
+  projectId String
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model ProjectAssignment {
+  id            String   @id @default(cuid())
+  projectId     String
+  userId        String
+  role          String   @default("team_member")
+  createdAt     DateTime @default(now())
+
+  project       Project  @relation(fields: [projectId], references: [id])
+  user          User     @relation(fields: [userId], references: [id])
+
+  @@unique([projectId, userId])
+}
+
+// ==================== PROJECT STAGES ====================
+
+model ProjectStage {
+  id            String   @id @default(cuid())
+  projectId     String
+  department    String   // architectural, structural, mep_electrical, mep_plumbing, mep_water, mep_civil_defense, mep_telecom
+  stageName     String   @default("")
+  stageOrder    Int      @default(0)
+  status        String   @default("NOT_STARTED") // NOT_STARTED, IN_PROGRESS, SUBMITTED, APPROVED, REJECTED
+  engineerId    String?
+  notes         String   @default("")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  project       Project  @relation(fields: [projectId], references: [id])
+
+  @@index([projectId, department])
+}
+
+model MunicipalRejection {
+  id            String   @id @default(cuid())
+  projectId     String
+  department    String
+  count         Int      @default(0)
+  notes         String   @default("")
+  lastRejectionDate DateTime?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  project       Project  @relation(fields: [projectId], references: [id])
+
+  @@unique([projectId, department])
+}
+
+// ==================== GOVERNMENT APPROVALS ====================
+
+model GovApproval {
+  id              String   @id @default(cuid())
+  projectId       String
+  authority       String   // MUN, FEWA, ETISALAT, CIVIL_DEFENSE
+  status          String   @default("PENDING") // PENDING, SUBMITTED, APPROVED, REJECTED
+  submissionDate  DateTime?
+  approvalDate    DateTime?
+  rejectionCount  Int      @default(0)
+  notes           String   @default("")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  project         Project  @relation(fields: [projectId], references: [id])
+
+  @@unique([projectId, authority])
+}
+
+// ==================== CLIENTS ====================
+
+model Client {
+  id              String   @id @default(cuid())
+  // Basic Info
+  clientType      String   @default("individual") // individual, company, government
+  name            String   @default("")
+  nameEn          String   @default("")
+  company         String   @default("")
+  companyEn       String   @default("")
+  idNumber        String   @default("") // UAE ID or Commercial Registration
+  nationality      String   @default("")
+  idPhoto         String   @default("") // ID photo file path
+  email           String   @default("")
+  phone           String   @default("")
+  whatsapp        String   @default("") // separate WhatsApp number
+  extraPhone      String   @default("") // additional phone
+  address         String   @default("")
+  fullAddress     String   @default("") // JSON: {emirate,city,area,street,building,unit}
+  taxNumber       String   @default("")
+  creditLimit     Float    @default(0)
+  paymentTerms    String   @default("")
+  // Services & Project Info
+  servicesWanted  String   @default("") // JSON array: ["consultation","design","license",...]
+  projectType     String   @default("") // villa, apartment, commercial, industrial, residential_building, medical
+  serviceType     String?  @default("") // legacy: purpose of visit
+  serviceNotes    String?  // legacy: additional details
+  // Land Details
+  landLocation    String   @default("")
+  landArea        String   @default("")
+  plotNumber      String   @default("")
+  planNumber      String   @default("")
+  landDocuments   String   @default("") // JSON array: [{type:"survey",path:...},...]
+  notes           String   @default("")
+  // Referral
+  referralSource  String   @default("") // social_media, referral, website, walk_in, advertisement, other
+  referralDetail  String   @default("")
+  // Credit & Status
+  creditUsed      Float    @default(0)
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  projects        Project[]
+  invoices        Invoice[]
+  contracts       Contract[]
+  proposals       Proposal[]
+  interactions    ClientInteraction[]
+  buildingInspections BuildingInspection[]
+}
+
+model ClientInteraction {
+  id              String   @id @default(cuid())
+  projectId       String
+  clientId        String
+  type            String   @default("meeting") // meeting, call, email
+  date            DateTime
+  subject         String   @default("")
+  description     String   @default("")
+  outcome         String   @default("")
+  createdAt       DateTime @default(now())
+
+  project         Project  @relation(fields: [projectId], references: [id])
+  client          Client   @relation(fields: [clientId], references: [id])
+
+  @@index([clientId])
+}
+
+// ==================== TASKS ====================
+
+model Task {
+  id              String   @id @default(cuid())
+  projectId       String?
+  title           String   @default("")
+  description     String   @default("")
+  assigneeId      String?
+  priority        String   @default("normal") // normal, medium, high, urgent
+  status          String   @default("todo") // todo, in_progress, review, done, cancelled
+  startDate       DateTime?
+  dueDate         DateTime?
+  progress        Float    @default(0)
+  slaDays         Int?
+  isGovernmental  Boolean  @default(false)
+  parentId        String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  project         Project?  @relation(fields: [projectId], references: [id])
+  assignee        User?     @relation(fields: [assigneeId], references: [id])
+  subtasks        Task[] @relation("TaskSubtask")
+  parent          Task?     @relation("TaskSubtask", fields: [parentId], references: [id])
+  comments        TaskComment[]
+
+  @@index([projectId])
+}
+
+// ==================== TASK COMMENTS ====================
+
+model TaskComment {
+  id        String   @id @default(cuid())
+  content   String
+  taskId    String
+  userId    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  task      Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@index([taskId])
+}
+
+// ==================== CONTRACTS ====================
+
+model Contract {
+  id              String   @id @default(cuid())
+  number          String   @default("")
+  title           String   @default("")
+  clientId        String
+  projectId       String
+  value           Float    @default(0)
+  type            String   @default("engineering_services") // engineering_services, construction, consulting, maintenance
+  status          String   @default("draft") // draft, pending_signature, active, expired, completed
+  signedByName    String   @default("")
+  signedByTitle   String   @default("")
+  signature       String   @default("")
+  startDate       DateTime?
+  endDate         DateTime?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  client          Client   @relation(fields: [clientId], references: [id])
+  project         Project  @relation(fields: [projectId], references: [id])
+  amendments      ContractAmendment[]
+  documents       Document[]
+}
+
+model ContractAmendment {
+  id              String   @id @default(cuid())
+  contractId      String
+  number          String   @default("")
+  description     String   @default("")
+  date            DateTime
+  status          String   @default("pending")
+  createdAt       DateTime @default(now())
+
+  contract        Contract @relation(fields: [contractId], references: [id], onDelete: Cascade)
+}
+
+// ==================== INVOICES ====================
+
+model Invoice {
+  id              String   @id @default(cuid())
+  number          String   @default("")
+  clientId        String
+  projectId       String
+  issueDate       DateTime
+  dueDate         DateTime
+  subtotal        Float    @default(0)
+  tax             Float    @default(0)
+  total           Float    @default(0)
+  paidAmount      Float    @default(0)
+  remaining       Float    @default(0)
+  status          String   @default("draft") // draft, sent, partially_paid, paid, overdue, cancelled
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  client          Client   @relation(fields: [clientId], references: [id])
+  project         Project  @relation(fields: [projectId], references: [id])
+  items           InvoiceItem[]
+}
+
+model InvoiceItem {
+  id              String   @id @default(cuid())
+  invoiceId       String
+  description     String   @default("")
+  quantity        Float    @default(1)
+  unitPrice       Float    @default(0)
+  total           Float    @default(0)
+  boqItemId       String?
+  createdAt       DateTime @default(now())
+
+  invoice         Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+}
+
+// ==================== PAYMENTS ====================
+
+model Payment {
+  id              String   @id @default(cuid())
+  voucherNumber   String   @default("")
+  projectId       String?
+  amount          Float    @default(0)
+  payMethod       String   @default("transfer") // cash, cheque, transfer, online
+  beneficiary     String   @default("")
+  referenceNumber String   @default("")
+  status          String   @default("pending") // pending, approved, completed, cancelled
+  approvedById    String?
+  description     String   @default("")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  approver        User?    @relation("PaymentApprover", fields: [approvedById], references: [id])
+  project         Project? @relation(fields: [projectId], references: [id])
+}
+
+// ==================== PROPOSALS ====================
+
+model Proposal {
+  id              String   @id @default(cuid())
+  number          String   @default("")
+  clientId        String
+  projectId       String?
+  subtotal        Float    @default(0)
+  tax             Float    @default(0)
+  total           Float    @default(0)
+  status          String   @default("draft") // draft, sent, accepted, rejected, expired
+  notes           String   @default("")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  client          Client   @relation(fields: [clientId], references: [id])
+  project         Project? @relation(fields: [projectId], references: [id])
+  items           ProposalItem[]
+}
+
+model ProposalItem {
+  id              String   @id @default(cuid())
+  proposalId      String
+  description     String   @default("")
+  quantity        Float    @default(1)
+  unitPrice       Float    @default(0)
+  total           Float    @default(0)
+  createdAt       DateTime @default(now())
+
+  proposal        Proposal @relation(fields: [proposalId], references: [id], onDelete: Cascade)
+}
+
+// ==================== CONTRACTORS ====================
+
+model Contractor {
+  id              String   @id @default(cuid())
+  name            String   @default("")
+  nameEn          String   @default("")
+  companyName     String   @default("")
+  companyEn       String   @default("")
+  contactPerson   String   @default("")
+  phone           String   @default("")
+  email           String   @default("")
+  address         String   @default("")
+  crNumber        String   @default("") // Commercial Registration
+  licenseNumber   String   @default("")
+  licenseExpiry   DateTime?
+  classification      String?   @default("")  // Contractor classification level (e.g., "الدرجة الثالثة")
+  establishmentDate   DateTime?              // Company establishment date
+  workerCount         Int?      @default(0)  // Number of workers
+  engineerCount       Int?      @default(0)  // Number of engineers
+  tradeLicense        String?   @default("")  // Trade license number
+  tradeLicenseExpiry  DateTime?              // Trade license expiry date
+  vatNumber           String?   @default("")  // VAT registration number
+  category        String   @default("") // civil, electrical, mep, finishing, plumbing, hvac
+   rating          Int      @default(0) // 1-5 stars
+  specialties     String   @default("") // comma-separated specialties
+  experience      String   @default("") // years of experience description
+  bankName        String   @default("")
+  bankAccount     String   @default("")
+  iban            String   @default("")
+  isActive        Boolean  @default(true)
+  notes           String   @default("")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  projects        Project[] @relation("ProjectContractor")
+  bids            Bid[]
+  evaluations    ContractorEvaluation[]
+}
+
+// ==================== CONTRACTOR EVALUATION ====================
+
+model ContractorEvaluation {
+  id              String   @id @default(cuid())
+  contractorId   String
+  projectId       String
+  criteria        String   @default("") // experience, financial, technical, past_performance, resources
+  score           Int      @default(0) // 0-100
+  maxScore        Int      @default(100)
+  weight          Float    @default(1) // percentage weight for this criteria
+  notes           String   @default("")
+  evaluatedBy     String   @default("")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  contractor      Contractor @relation(fields: [contractorId], references: [id], onDelete: Cascade)
+  bid             Bid?      @relation(fields: [bidId], references: [id])
+  bidId           String?
+}
+
+// ==================== BIDS ====================
+
+model Bid {
+  id                String   @id @default(cuid())
+  projectId         String
+  contractorId      String?
+  contractorName    String   @default("")
+  contractorContact String   @default("")
+  amount            Float    @default(0)
+  technicalScore    Int      @default(0)
+  financialScore    Int      @default(0)
+  totalScore        Float    @default(0)
+  status            String   @default("submitted") // submitted, under_review, accepted, rejected
+  deadline          DateTime?
+  notes             String   @default("")
+  evaluationNotes   String   @default("")
+  quoteFile          String   @default("")
+  quoteUploadedAt    DateTime?
+  rfqSentAt          DateTime?
+  rfqStatus          String   @default("pending") // pending, sent, received, reviewing, awarded, rejected
+  aiAnalysis         String   @default("")
+  contractFile       String   @default("")
+  contractSignedAt   DateTime?
+  isAwarded          Boolean  @default(false)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  project           Project    @relation(fields: [projectId], references: [id])
+  contractor        Contractor? @relation(fields: [contractorId], references: [id])
+  evaluations       ContractorEvaluation[]
+}
+
+// ==================== BUDGETS ====================
+
+model Budget {
+  id              String   @id @default(cuid())
+  projectId       String
+  parentId        String?
+  name            String   @default("")
+  category        String   @default("") // overall, architectural, structural, electrical, mep
+  planned         Float    @default(0)
+  actual          Float    @default(0)
+  committed       Float    @default(0)
+  remaining       Float    @default(0)
+  deviation       Float    @default(0)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  project         Project  @relation(fields: [projectId], references: [id])
+  parent          Budget?  @relation("BudgetHierarchy", fields: [parentId], references: [id])
+  children        Budget[] @relation("BudgetHierarchy")
+}
+
+// ==================== SITE MANAGEMENT ====================
+
+model SiteVisit {
+  id              String   @id @default(cuid())
+  projectId       String
+  date            DateTime
+  plotNumber      String   @default("")
+  municipality    String   @default("") // ras_al_khaimah, dubai, abu_dhabi, sharjah, ajman, umm_al_quwain, fujairah
+  gateDescription String   @default("")
+  neighborDesc    String   @default("")
+  buildingDesc    String   @default("")
+  photos          String   @default("") // JSON array of photo URLs
+  status          String   @default("draft") // draft, submitted, approved
+  notes           String   @default("")
+  createdAt       DateTime @default(now())
+
+  project         Project  @relation(fields: [projectId], references: [id])
+}
+
+model Defect {
+  id              String   @id @default(cuid())
+  projectId       String
+  title           String   @default("")
+  severity        String   @default("normal") // normal, medium, high, critical
+  location        String   @default("")
+  photos          String   @default("")
+  assigneeId      String?
+  resolutionNotes String   @default("")
+  status          String   @default("open") // open, in_progress, resolved
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  project         Project  @relation(fields: [projectId], references: [id])
+  assignee        User?    @relation(fields: [assigneeId], references: [id])
+}
+
+model SiteDiary {
+  id              String   @id @default(cuid())
+  projectId       String
+  date            DateTime
+  weather         String   @default("")
+  workerCount     Int      @default(0)
+  workDescription String   @default("")
+  issues          String   @default("")
+  safetyNotes     String   @default("")
+  equipment       String   @default("")
+  materials       String   @default("")
+  photos          String   @default("")
+  createdAt       DateTime @default(now())
+
+  project         Project  @relation(fields: [projectId], references: [id])
+}
+
+// ==================== RFI ====================
+
+model RFI {
+  id              String   @id @default(cuid())
+  projectId       String
+  number          String   @default("")
+  subject         String   @default("")
+  description     String   @default("")
+  fromId          String
+  toId            String
+  priority        String   @default("normal")
+  dueDate         DateTime?
+  response        String   @default("")
+  status          String   @default("open") // open, replied, closed
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  project         Project  @relation(fields: [projectId], references: [id])
+  from            User     @relation("RFIFrom", fields: [fromId], references: [id])
+  to              User     @relation("RFITo", fields: [toId], references: [id])
+}
+
+// ==================== SUBMITTALS ====================
+
+model Submittal {
+  id              String   @id @default(cuid())
+  projectId       String
+  number          String   @default("")
+  title           String   @default("")
+  type            String   @default("")
+  contractor      String   @default("")
+  revisionNumber  Int      @default(1)
+  status          String   @default("under_review") // under_review, approved, rejected, resubmit
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  project         Project  @relation(fields: [projectId], references: [id])
+}
+
+// ==================== CHANGE ORDERS ====================
+
+model ChangeOrder {
+  id              String   @id @default(cuid())
+  projectId       String
+  number          String   @default("")
+  type            String   @default("change") // addition, change, deletion
+  costImpact      Float    @default(0)
+  timeImpact      String   @default("")
+  description     String   @default("")
+  status          String   @default("pending") // pending, approved, rejected
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  project         Project  @relation(fields: [projectId], references: [id])
+}
+
+// ==================== TRANSMITTALS ====================
+
+model Transmittal {
+  id              String   @id @default(cuid())
+  projectId       String
+  number          String   @default("")
+  subject         String   @default("")
+  fromId          String
+  toName          String   @default("")
+  toEmail         String   @default("")
+  toCompany       String   @default("")
+  toPhone         String   @default("")
+  deliveryMethod  String   @default("email") // email, manual, courier
+  status          String   @default("sent")
+  createdAt       DateTime @default(now())
+
+  project         Project  @relation(fields: [projectId], references: [id])
+  from            User     @relation("TransmittalFrom", fields: [fromId], references: [id])
+  items           TransmittalItem[]
+}
+
+model TransmittalItem {
+  id              String   @id @default(cuid())
+  transmittalId   String
+  documentNumber  String   @default("")
+  title           String   @default("")
+  revision        String   @default("")
+  copies          Int      @default(1)
+  purpose         String   @default("review") // review, approval, information, execution
+  received        Boolean  @default(false)
+  approved        Boolean  @default(false)
+  rejected        Boolean  @default(false)
+  needsRevision   Boolean  @default(false)
+  replyNotes      String   @default("")
+  createdAt       DateTime @default(now())
+
+  transmittal     Transmittal @relation(fields: [transmittalId], references: [id], onDelete: Cascade)
+}
+
+// ==================== RISKS ====================
+
+model Risk {
+  id              String   @id @default(cuid())
+  projectId       String
+  title           String   @default("")
+  category        String   @default("technical") // technical, financial, schedule, external, safety, environmental
+  probability     Int      @default(3)
+  impact          Int      @default(3)
+  score           Int      @default(9)
+  mitigationPlan  String   @default("")
+  strategy        String   @default("mitigate") // avoid, mitigate, transfer, accept
+  status          String   @default("open")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  project         Project  @relation(fields: [projectId], references: [id])
+  actions         RiskAction[]
+}
+
+model RiskAction {
+  id              String   @id @default(cuid())
+  riskId          String
+  description     String   @default("")
+  assigneeId      String?
+  dueDate         DateTime?
+  completed       Boolean  @default(false)
+  createdAt       DateTime @default(now())
+
+  risk            Risk     @relation(fields: [riskId], references: [id], onDelete: Cascade)
+  assignee        User?    @relation(fields: [assigneeId], references: [id])
+}
+
+// ==================== MEETINGS ====================
+
+model Meeting {
+  id              String   @id @default(cuid())
+  projectId       String?
+  title           String   @default("")
+  date            DateTime
+  time            String   @default("")
+  duration        Int      @default(60)
+  location        String   @default("")
+  type            String   @default("onsite") // onsite, online
+  notes           String   @default("")
+  createdAt       DateTime @default(now())
+
+  project         Project? @relation(fields: [projectId], references: [id])
+  attendees       MeetingAttendee[]
+  agenda          MeetingAgenda[]
+}
+
+model MeetingAttendee {
+  id              String   @id @default(cuid())
+  meetingId       String
+  userId          String
+  role            String   @default("attendee")
+
+  meeting         Meeting  @relation(fields: [meetingId], references: [id], onDelete: Cascade)
+  user            User     @relation(fields: [userId], references: [id])
+
+  @@unique([meetingId, userId])
+}
+
+model MeetingAgenda {
+  id              String   @id @default(cuid())
+  meetingId       String
+  topic           String   @default("")
+  duration        Int      @default(15)
+  createdAt       DateTime @default(now())
+
+  meeting         Meeting  @relation(fields: [meetingId], references: [id], onDelete: Cascade)
+}
+
+// ==================== BOQ ====================
+
+model BOQItem {
+  id              String   @id @default(cuid())
+  projectId       String
+  code            String   @default("")
+  description     String   @default("")
+  unit            String   @default("")
+  quantity        Float    @default(0)
+  unitPrice       Float    @default(0)
+  total           Float    @default(0)
+  category        String   @default("civil") // civil, structural, electrical, finishing
+
+  project         Project  @relation(fields: [projectId], references: [id])
+}
+
+// ==================== SCHEDULE ====================
+
+model SchedulePhase {
+  id              String   @id @default(cuid())
+  projectId       String
+  section         String   @default("architectural") // architectural, structural, electrical, governmental
+  phaseOrder      Int      @default(0)
+  phaseName       String   @default("")
+  duration        Int      @default(0)
+  maxDuration     Int      @default(50)
+  status          String   @default("NOT_STARTED") // NOT_STARTED, IN_PROGRESS, COMPLETED
+  startDate       DateTime?
+  endDate         DateTime?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  project         Project  @relation(fields: [projectId], references: [id])
+
+  @@index([projectId, section])
+}
+
+// ==================== HR ====================
+
+model Employee {
+  id              String   @id @default(cuid())
+  userId          String   @unique
+  department      String   @default("")
+  position        String   @default("")
+  salary          Float    @default(0)
+  employmentStatus String @default("active") // active, on_leave, terminated
+  hireDate        DateTime?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  user            User     @relation(fields: [userId], references: [id])
+  attendance      Attendance[]
+}
+
+model Attendance {
+  id              String   @id @default(cuid())
+  employeeId      String
+  date            DateTime
+  checkIn         String   @default("")
+  checkOut        String   @default("")
+  status          String   @default("present") // present, absent, late, leave
+  workHours       Float    @default(0)
+  overtimeHours   Float    @default(0)
+  createdAt       DateTime @default(now())
+
+  employee        Employee @relation(fields: [employeeId], references: [id])
+
+  @@index([employeeId, date])
+}
+
+model Leave {
+  id              String   @id @default(cuid())
+  employeeId      String
+  type            String   @default("annual") // annual, sick, emergency, unpaid
+  startDate       DateTime
+  endDate         DateTime
+  days            Int      @default(1)
+  reason          String   @default("")
+  status          String   @default("pending") // pending, approved, rejected
+  approvedById    String?
+  createdAt       DateTime @default(now())
+
+  employee        User     @relation(fields: [employeeId], references: [id])
+  approver        User?    @relation("LeaveApprover", fields: [approvedById], references: [id])
+}
+
+// ==================== PROCUREMENT ====================
+
+model Supplier {
+  id              String   @id @default(cuid())
+  name            String   @default("")
+  category        String   @default("materials") // materials, equipment, services, subcontractors
+  email           String   @default("")
+  phone           String   @default("")
+  address         String   @default("")
+  rating          Int      @default(0)
+  creditLimit     Float    @default(0)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  purchaseOrders  PurchaseOrder[]
+}
+
+model InventoryItem {
+  id              String   @id @default(cuid())
+  projectId       String?
+  name            String   @default("")
+  quantity        Float    @default(0)
+  unit            String   @default("")
+  price           Float    @default(0)
+  location        String   @default("")
+  minimumLevel    Float    @default(0)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  project         Project? @relation(fields: [projectId], references: [id])
+}
+
+model PurchaseOrder {
+  id              String   @id @default(cuid())
+  number          String   @default("")
+  supplierId      String
+  projectId       String?
+  amount          Float    @default(0)
+  status          String   @default("draft") // draft, submitted, approved, received, cancelled
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  supplier        Supplier @relation(fields: [supplierId], references: [id])
+  project         Project? @relation(fields: [projectId], references: [id])
+  items           PurchaseOrderItem[]
+}
+
+model PurchaseOrderItem {
+  id              String   @id @default(cuid())
+  purchaseOrderId String
+  itemName        String   @default("")
+  quantity        Float    @default(1)
+  unitPrice       Float    @default(0)
+  total           Float    @default(0)
+  createdAt       DateTime @default(now())
+
+  purchaseOrder   PurchaseOrder @relation(fields: [purchaseOrderId], references: [id], onDelete: Cascade)
+}
+
+model Equipment {
+  id              String   @id @default(cuid())
+  name            String   @default("")
+  type            String   @default("")
+  model           String   @default("")
+  serialNumber    String   @default("")
+  status          String   @default("available") // available, in_use, maintenance, retired
+  location        String   @default("")
+  dailyRate       Float    @default(0)
+  lastMaintenance DateTime?
+  nextMaintenance DateTime?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+// ==================== DOCUMENTS ====================
+
+model Document {
+  id              String   @id @default(cuid())
+  projectId       String?
+  contractId      String?
+  name            String   @default("")
+  fileType        String   @default("")
+  fileSize        Float    @default(0)
+  category        String   @default("general") // general, contract, drawings, report, invoice, transmittal, specs, calculations, photos
+  version         Int      @default(1)
+  filePath        String   @default("")
+  uploadedById    String?
+  createdAt       DateTime @default(now())
+
+  project         Project? @relation(fields: [projectId], references: [id])
+  contract        Contract? @relation(fields: [contractId], references: [id])
+  uploader        User?    @relation("DocumentUploader", fields: [uploadedById], references: [id])
+}
+
+// ==================== KNOWLEDGE BASE ====================
+
+model KnowledgeArticle {
+  id              String   @id @default(cuid())
+  title           String   @default("")
+  content         String   @default("")
+  category        String   @default("guide") // guide, faq, policy, template
+  tags            String   @default("") // comma-separated
+  views           Int      @default(0)
+  authorId        String?
+  projectId       String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  author          User?    @relation(fields: [authorId], references: [id])
+  project         Project? @relation(fields: [projectId], references: [id])
+}
+
+// ==================== NOTIFICATIONS ====================
+
+model Notification {
+  id              String   @id @default(cuid())
+  userId          String
+  projectId       String?
+  type            String   @default("") // task_due, invoice_overdue, approval_needed, etc.
+  title           String   @default("")
+  message         String   @default("")
+  isRead          Boolean  @default(false)
+  relatedEntityType String @default("")
+  relatedEntityId String   @default("")
+  createdAt       DateTime @default(now())
+
+  user            User     @relation(fields: [userId], references: [id])
+  project         Project? @relation(fields: [projectId], references: [id])
+
+  @@index([userId, isRead])
+}
+
+// ==================== ACTIVITY LOG ====================
+
+model ActivityLog {
+  id              String   @id @default(cuid())
+  userId          String
+  projectId       String?
+  action          String   @default("") // create, update, delete, approve, reject
+  entityType      String   @default("")
+  entityId        String   @default("")
+  details         String   @default("")
+  metadata        String?  // JSON string for extra details
+  createdAt       DateTime @default(now())
+
+  user            User     @relation(fields: [userId], references: [id])
+  project         Project? @relation(fields: [projectId], references: [id])
+
+  @@index([userId, createdAt])
+  @@index([entityType, entityId])
+}
+
+// ==================== APPROVALS ====================
+
+model Approval {
+  id          String   @id @default(cuid())
+  projectId   String?
+  entityType  String   // 'invoice', 'payment', 'purchase_order', 'change_order', 'leave'
+  entityId    String
+  title       String
+  description String   @default("")
+  status      String   @default("pending") // pending, approved, rejected, cancelled
+  requestedBy String
+  assignedTo  String
+  step        Int      @default(1)    // current step in approval chain
+  totalSteps  Int      @default(1)    // total steps
+  amount      Float    @default(0)    // relevant financial amount if any
+  notes       String   @default("")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  project     Project? @relation(fields: [projectId], references: [id])
+}
+
+// ==================== BUILDING INSPECTION ====================
+
+model BuildingInspection {
+  id              String   @id @default(cuid())
+  inspectionNumber String  @default("")
+  projectId       String?
+  clientId        String?
+  buildingName    String   @default("")
+  buildingAddress String   @default("")
+  inspectionType  String   @default("")
+  riskLevel       String   @default("green")
+  inspectionDate  DateTime
+  nextInspectionDate DateTime?
+  inspectorName   String   @default("")
+  summary         String   @default("")
+  recommendations String   @default("")
+  repairEstimate  Float    @default(0)
+  status          String   @default("draft")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  client          Client?  @relation(fields: [clientId], references: [id])
+  project         Project? @relation(fields: [projectId], references: [id])
+  findings        InspectionFinding[]
+  photos          InspectionPhoto[]
+}
+
+model InspectionFinding {
+  id              String   @id @default(cuid())
+  inspectionId    String
+  location        String   @default("")
+  description     String   @default("")
+  severity        String   @default("low")
+  category        String   @default("")
+  photos          String   @default("")
+  remediation     String   @default("")
+  estimatedCost   Float    @default(0)
+  status          String   @default("open")
+  createdAt       DateTime @default(now())
+
+  inspection      BuildingInspection @relation(fields: [inspectionId], references: [id], onDelete: Cascade)
+}
+
+model InspectionPhoto {
+  id              String   @id @default(cuid())
+  inspectionId    String
+  url             String   @default("")
+  caption         String   @default("")
+  findingId       String?
+  createdAt       DateTime @default(now())
+
+  inspection      BuildingInspection @relation(fields: [inspectionId], references: [id], onDelete: Cascade)
+}
+
+// ==================== PUBLIC QUOTE REQUESTS ====================
+
+model QuoteRequest {
+  id            String   @id @default(cuid())
+  name          String   @default("")
+  phone         String   @default("")
+  email         String   @default("")
+  serviceType   String   @default("")
+  buildingType  String   @default("")
+  area          String   @default("")
+  floors        Int      @default(1)
+  location      String   @default("")
+  message       String   @default("")
+  status        String   @default("new") // new, contacted, quoted, converted, lost
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+// ==================== DESIGN MANAGEMENT ====================
+
+model DesignPhase {
+  id              String   @id @default(cuid())
+  projectId       String
+  phase           String   @default("concept") // concept, schematic, development, construction_docs, as_built
+  phaseNameAr     String   @default("")
+  phaseNameEn     String   @default("")
+  status          String   @default("not_started") // not_started, in_progress, under_review, approved, revision
+  designerId      String?
+  startDate       DateTime?
+  dueDate         DateTime?
+  completedDate   DateTime?
+  revisionCount   Int      @default(0)
+  notes           String   @default("")
+  clientApproval  Boolean  @default(false)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  project         Project  @relation(fields: [projectId], references: [id])
+  drawings        DesignDrawing[]
+}
+
+model DesignDrawing {
+  id              String   @id @default(cuid())
+  designPhaseId   String
+  title           String   @default("")
+  drawingNumber   String   @default("")
+  discipline      String   @default("") // architectural, structural, electrical, plumbing, hvac, fire
+  version         Int      @default(1)
+  filePath        String   @default("")
+  fileSize        Float    @default(0)
+  status          String   @default("draft") // draft, under_review, approved, rejected, superseded
+  reviewedBy      String?
+  reviewNotes     String   @default("")
+  reviewedAt      DateTime?
+  clashDetected   Boolean  @default(false)
+  clashNotes      String   @default("")
+  uploadedById    String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  designPhase     DesignPhase @relation(fields: [designPhaseId], references: [id], onDelete: Cascade)
+  revisions       DesignRevision[]
+}
+
+model DesignRevision {
+  id              String   @id @default(cuid())
+  drawingId       String
+  version         Int      @default(1)
+  filePath        String   @default("")
+  changeNotes     String   @default("")
+  uploadedById    String?
+  createdAt       DateTime @default(now())
+
+  drawing         DesignDrawing @relation(fields: [drawingId], references: [id], onDelete: Cascade)
+}
+
+// ==================== TENDER MANAGEMENT ====================
+
+model Tender {
+  id              String   @id @default(cuid())
+  tenderNumber    String   @default("")
+  title           String   @default("")
+  authority       String   @default("") // RAK Municipality, RAK Properties, Al Hamra, Marjan, RAKEZ, Private
+  projectType     String   @default("") // villa, building, infrastructure, road, landscape
+  description     String   @default("")
+  estimatedBudget Float    @default(0)
+  currency        String   @default("AED")
+  closingDate     DateTime?
+  submissionDate  DateTime?
+  qualifications  String   @default("") // comma-separated required qualifications
+  requiredDocs    String   @default("") // comma-separated required documents
+  status          String   @default("identified") // identified, preparing, submitted, qualified, won, lost
+  winnerName      String   @default("")
+  lostReason      String   @default("")
+  competitorAnalysis String @default("") // JSON or text
+  notes           String   @default("")
+  source          String   @default("") // website, referral, direct
+  sourceUrl       String   @default("")
+  assignedTo      String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  assignedUser    User?    @relation("TenderAssignee", fields: [assignedTo], references: [id])
+  documents       TenderDocument[]
+}
+
+model TenderDocument {
+  id          String   @id @default(cuid())
+  tenderId    String
+  name        String   @default("")
+  fileType    String   @default("")
+  filePath    String   @default("")
+  uploadedAt  DateTime @default(now())
+
+  tender      Tender   @relation(fields: [tenderId], references: [id], onDelete: Cascade)
+}
+
+// ==================== SITE SUPERVISION ====================
+
+model SupervisionChecklist {
+  id              String   @id @default(cuid())
+  projectId       String
+  stage           String   @default("")
+  title           String   @default("")
+  visitDate       DateTime
+  engineerId      String?
+  weather         String   @default("")
+  temperature     String   @default("")
+  workerCount     Int      @default(0)
+  contractorName  String   @default("")
+  progressOverall Float    @default(0)
+  notes           String   @default("")
+  status          String   @default("draft")
+  approvedById    String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  project         Project  @relation(fields: [projectId], references: [id])
+  items           ChecklistItem[]
+  violations      Violation[]
+}
+
+model ChecklistItem {
+  id                String   @id @default(cuid())
+  checklistId       String
+  category          String   @default("")
+  description       String   @default("")
+  specification     String   @default("")
+  isChecked         Boolean  @default(false)
+  compliant         Boolean  @default(true)
+  notes             String   @default("")
+  photoUrl          String   @default("")
+  createdAt         DateTime @default(now())
+
+  checklist         SupervisionChecklist @relation(fields: [checklistId], references: [id], onDelete: Cascade)
+}
+
+model Violation {
+  id              String   @id @default(cuid())
+  checklistId     String
+  projectId       String
+  type            String   @default("")
+  severity        String   @default("low")
+  description     String   @default("")
+  contractorName  String   @default("")
+  deadline        DateTime?
+  status          String   @default("open")
+  photoBefore     String   @default("")
+  photoAfter      String   @default("")
+  resolutionNotes String   @default("")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  checklist       SupervisionChecklist @relation(fields: [checklistId], references: [id], onDelete: Cascade)
+  project         Project  @relation(fields: [projectId], references: [id])
+}
+
+// ==================== COMMISSIONS & REFERRALS ====================
+
+model Commission {
+  id              String   @id @default(cuid())
+  userId          String
+  projectId       String?
+  type            String   @default("project_referral")
+  amount          Float    @default(0)
+  currency        String   @default("AED")
+  percentage      Float    @default(0)
+  baseAmount      Float    @default(0)
+  status          String   @default("pending")
+  periodStart     DateTime?
+  periodEnd       DateTime?
+  description     String   @default("")
+  approvedById    String?
+  paidDate        DateTime?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  user            User     @relation("CommissionUser", fields: [userId], references: [id])
+  project         Project? @relation(fields: [projectId], references: [id])
+  approver        User?    @relation("CommissionApprover", fields: [approvedById], references: [id])
+}
+
+model Referral {
+  id              String   @id @default(cuid())
+  referrerId      String
+  referredName    String   @default("")
+  referredPhone   String   @default("")
+  referredEmail   String   @default("")
+  projectId       String?
+  status          String   @default("pending")
+  discountGiven   Float    @default(0)
+  rewardAmount    Float    @default(0)
+  notes           String   @default("")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  referrer        User     @relation("ReferralReferrer", fields: [referrerId], references: [id])
+  project         Project? @relation(fields: [projectId], references: [id])
+}
+
+model MarketingCampaign {
+  id              String   @id @default(cuid())
+  name            String   @default("")
+  type            String   @default("")
+  budget          Float    @default(0)
+  spent           Float    @default(0)
+  leads           Int      @default(0)
+  conversions     Int      @default(0)
+  startDate       DateTime?
+  endDate         DateTime?
+  status          String   @default("active")
+  notes           String   @default("")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+// ==================== WORKFLOW MANAGEMENT ====================
+
+model WorkflowTemplate {
+  id              String   @id @default(cuid())
+  name            String   @default("")
+  nameEn          String   @default("")
+  projectType     String   @default("")
+  description     String   @default("")
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  stages          WorkflowTemplateStage[]
+  projects        ProjectWorkflow[]
+}
+
+model WorkflowTemplateStage {
+  id              String   @id @default(cuid())
+  templateId      String
+  name            String   @default("")
+  nameEn          String   @default("")
+  order           Int      @default(0)
+  durationDays    Int      @default(0)
+  isParallel      Boolean  @default(false)
+  isOptional      Boolean  @default(false)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  template        WorkflowTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
+  steps           WorkflowTemplateStep[]
+
+  @@index([templateId, order])
+}
+
+model WorkflowTemplateStep {
+  id                String   @id @default(cuid())
+  stageId           String
+  name              String   @default("")
+  nameEn            String   @default("")
+  order             Int      @default(0)
+  assignedRole      String   @default("")
+  isRequired        Boolean  @default(true)
+  requiresApproval  Boolean  @default(false)
+  autoComplete      Boolean  @default(false)
+  onCompleteAction  String   @default("next_step")
+  daysToComplete    Int      @default(0)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  stage             WorkflowTemplateStage @relation(fields: [stageId], references: [id], onDelete: Cascade)
+
+  @@index([stageId, order])
+}
+
+model ProjectWorkflow {
+  id              String   @id @default(cuid())
+  projectId       String   @unique
+  templateId      String?
+  currentStageId  String?
+  status          String   @default("active")
+  progress        Float    @default(0)
+  startedAt       DateTime @default(now())
+  completedAt     DateTime?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  project         Project  @relation(fields: [projectId], references: [id])
+  template        WorkflowTemplate? @relation(fields: [templateId], references: [id])
+  stages          WorkflowStage[]
+}
+
+model WorkflowStage {
+  id              String   @id @default(cuid())
+  workflowId      String
+  templateStageId String?
+  name            String   @default("")
+  nameEn          String   @default("")
+  order           Int      @default(0)
+  status          String   @default("pending")
+  startDate       DateTime?
+  dueDate         DateTime?
+  completedDate   DateTime?
+  assigneeId      String?
+  notes           String   @default("")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  workflow        ProjectWorkflow @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  steps           WorkflowStep[]
+
+  @@index([workflowId, order])
+}
+
+model WorkflowStep {
+  id              String   @id @default(cuid())
+  stageId         String
+  templateStepId  String?
+  name            String   @default("")
+  nameEn          String   @default("")
+  order           Int      @default(0)
+  status          String   @default("locked")
+  assigneeId      String?
+  assignedRole    String   @default("")
+  startDate       DateTime?
+  dueDate         DateTime?
+  completedDate   DateTime?
+  action          String   @default("")
+  notes           String   @default("")
+  returnReason     String   @default("")
+  severity        String   @default("normal")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  stage           WorkflowStage @relation(fields: [stageId], references: [id], onDelete: Cascade)
+
+  @@index([stageId, order])
+}
