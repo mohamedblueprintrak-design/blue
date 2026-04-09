@@ -141,7 +141,7 @@ export default function LoginPage({ language }: LoginPageProps) {
         name: data.name,
         role: data.role,
         avatar: data.avatar,
-      });
+      }, data.token);
     } catch {
       setError(isAr ? "حدث خطأ في الاتصال" : "Connection error");
     } finally {

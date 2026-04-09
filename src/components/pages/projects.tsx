@@ -96,16 +96,16 @@ interface ProjectRow {
 }
 
 // ===== STATUS CONFIGS =====
-const statusConfig: Record<string, { ar: string; en: string; variant: "default" | "secondary" | "destructive" | "outline"; className: string }> = {
-  active: { ar: "نشط", en: "Active", variant: "default", className: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 border-emerald-200" },
-  completed: { ar: "مكتمل", en: "Completed", variant: "default", className: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 border-blue-200" },
-  delayed: { ar: "متأخر", en: "Delayed", variant: "destructive", className: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 border-red-200" },
-  on_hold: { ar: "معلق", en: "On Hold", variant: "secondary", className: "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 border-amber-200" },
-  cancelled: { ar: "ملغى", en: "Cancelled", variant: "destructive", className: "bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400 border-slate-200" },
-  design: { ar: "تصميم", en: "Design", variant: "default", className: "bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-400 border-violet-200" },
-  submission: { ar: "تقديم", en: "Submission", variant: "default", className: "bg-sky-100 text-sky-700 dark:bg-sky-900/30 dark:text-sky-400 border-sky-200" },
-  approval: { ar: "اعتماد", en: "Approval", variant: "default", className: "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 border-amber-200" },
-  construction: { ar: "تنفيذ", en: "Construction", variant: "default", className: "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400 border-orange-200" },
+const statusConfig: Record<string, { ar: string; en: string; variant: "default" | "secondary" | "destructive" | "outline"; className: string; dotColor: string }> = {
+  active: { ar: "نشط", en: "Active", variant: "default", className: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 border-emerald-200", dotColor: "bg-emerald-500" },
+  completed: { ar: "مكتمل", en: "Completed", variant: "default", className: "bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-400 border-teal-200", dotColor: "bg-teal-500" },
+  delayed: { ar: "متأخر", en: "Delayed", variant: "destructive", className: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 border-red-200", dotColor: "bg-red-500" },
+  on_hold: { ar: "معلق", en: "On Hold", variant: "secondary", className: "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 border-amber-200", dotColor: "bg-amber-500" },
+  cancelled: { ar: "ملغى", en: "Cancelled", variant: "destructive", className: "bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400 border-slate-200", dotColor: "bg-slate-400" },
+  design: { ar: "تصميم", en: "Design", variant: "default", className: "bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-400 border-violet-200", dotColor: "bg-violet-500" },
+  submission: { ar: "تقديم", en: "Submission", variant: "default", className: "bg-sky-100 text-sky-700 dark:bg-sky-900/30 dark:text-sky-400 border-sky-200", dotColor: "bg-sky-500" },
+  approval: { ar: "اعتماد", en: "Approval", variant: "default", className: "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 border-amber-200", dotColor: "bg-amber-500" },
+  construction: { ar: "تنفيذ", en: "Construction", variant: "default", className: "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400 border-orange-200", dotColor: "bg-orange-500" },
 };
 
 const typeConfig: Record<string, { ar: string; en: string; color: string }> = {
@@ -274,9 +274,19 @@ export default function ProjectsList({ language }: ProjectsListProps) {
     <div className="space-y-4">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <h2 className="text-xl font-bold text-slate-900 dark:text-white">
-          {t("المشاريع", "Projects")}
-        </h2>
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-teal-500 to-cyan-500 flex items-center justify-center shadow-md shadow-teal-500/20">
+            <Building2 className="h-5 w-5 text-white" />
+          </div>
+          <div>
+            <h2 className="text-xl font-bold text-slate-900 dark:text-white">
+              {t("المشاريع", "Projects")}
+            </h2>
+            <p className="text-[11px] text-slate-500 dark:text-slate-400">
+              {allProjects.length} {t("مشروع", "projects")}
+            </p>
+          </div>
+        </div>
         <div className="flex items-center gap-2">
           {selectedIds.size >= 2 && selectedIds.size <= MAX_COMPARE && (
             <Button
@@ -342,18 +352,19 @@ export default function ProjectsList({ language }: ProjectsListProps) {
       </div>
 
       {/* Filters */}
-      <div className="flex flex-col sm:flex-row gap-3">
-        <div className="relative flex-1 max-w-sm">
-          <Search className="absolute start-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-          <Input
-            placeholder={t("بحث في المشاريع...", "Search projects...")}
-            value={search}
-            onChange={(e) => { setSearch(e.target.value); setPage(1); }}
-            className="ps-9"
-          />
-        </div>
-        {/* Pill-style Status Filter Chips */}
-        <div className="flex items-center gap-1.5 flex-wrap">
+      <div className="rounded-xl border border-slate-200/80 dark:border-slate-700/50 bg-white/80 dark:bg-slate-900/50 backdrop-blur-sm p-3">
+        <div className="flex flex-col sm:flex-row gap-3">
+          <div className="relative flex-1 max-w-sm">
+            <Search className="absolute start-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+            <Input
+              placeholder={t("بحث في المشاريع...", "Search projects...")}
+              value={search}
+              onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+              className="ps-9 bg-slate-50/50 dark:bg-slate-800/30 border-slate-200/80 dark:border-slate-700/50 focus:border-teal-300 dark:focus:border-teal-700"
+            />
+          </div>
+          {/* Pill-style Status Filter Chips */}
+          <div className="flex items-center gap-1.5 flex-wrap">
           {(["all", "active", "completed", "delayed", "on_hold", "design", "submission", "approval", "construction"] as const).map((s) => {
             const isActive = statusFilter === s;
             const labels: Record<string, { ar: string; en: string; dotColor: string }> = {
@@ -385,7 +396,7 @@ export default function ProjectsList({ language }: ProjectsListProps) {
             );
           })}
         </div>
-        {/* Type filter - keep select for compactness */}
+          {/* Type filter - keep select for compactness */}
         <Select value={typeFilter} onValueChange={(v) => { setTypeFilter(v); setPage(1); }}>
           <SelectTrigger className="w-full sm:w-40">
             <SelectValue placeholder={t("النوع", "Type")} />
@@ -399,7 +410,7 @@ export default function ProjectsList({ language }: ProjectsListProps) {
           </SelectContent>
         </Select>
         {/* View Mode Toggle */}
-        <div className="flex items-center rounded-lg border border-slate-200 dark:border-slate-700 p-0.5">
+        <div className="flex items-center rounded-lg border border-slate-200 dark:border-slate-700 p-0.5 bg-slate-50/50 dark:bg-slate-800/30">
           <button
             onClick={() => setViewMode("table")}
             className={cn(
@@ -422,6 +433,7 @@ export default function ProjectsList({ language }: ProjectsListProps) {
           >
             <LayoutGrid className="h-4 w-4" />
           </button>
+        </div>
         </div>
       </div>
 
@@ -462,10 +474,15 @@ export default function ProjectsList({ language }: ProjectsListProps) {
               ))
             ) : projects.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={10} className="text-center py-12">
-                  <div className="flex flex-col items-center gap-2 text-slate-400">
-                    <Building2 className="h-10 w-10" />
-                    <span>{t("لا توجد مشاريع", "No projects found")}</span>
+                <TableCell colSpan={10} className="text-center py-16">
+                  <div className="flex flex-col items-center gap-3 text-slate-400 dark:text-slate-500">
+                    <div className="w-16 h-16 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
+                      <Building2 className="h-8 w-8" />
+                    </div>
+                    <div className="text-center">
+                      <span className="font-medium text-sm">{t("لا توجد مشاريع", "No projects found")}</span>
+                      <p className="text-xs mt-1 text-slate-400 dark:text-slate-600">{t("أضف مشروعاً جديداً للبدء", "Add a new project to get started")}</p>
+                    </div>
                   </div>
                 </TableCell>
               </TableRow>
@@ -553,6 +570,7 @@ export default function ProjectsList({ language }: ProjectsListProps) {
                     </TableCell>
                     <TableCell>
                       <Badge variant="outline" className={cn("text-xs font-medium", st.className)}>
+                        <span className={cn("w-1.5 h-1.5 rounded-full me-1.5 inline-block", st.dotColor, "animate-pulse")} />
                         {t(st.ar, st.en)}
                       </Badge>
                     </TableCell>
@@ -565,14 +583,16 @@ export default function ProjectsList({ language }: ProjectsListProps) {
                               key={i}
                               className={cn(
                                 "w-[3px] rounded-full transition-all",
-                                h >= 75 ? "bg-emerald-400" : h >= 40 ? "bg-teal-400" : "bg-amber-400"
+                                h >= 75 ? "bg-teal-400" : h >= 40 ? "bg-teal-300" : "bg-amber-400"
                               )}
                               style={{ height: `${Math.min(h, 100) * 0.16}px` }}
                             />
                           ))}
                         </div>
-                        <Progress value={project.progress} className="h-2 flex-1" />
-                        <span className="text-xs font-medium text-slate-600 dark:text-slate-400 w-10 text-end">
+                        <div className="flex-1 h-2 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
+                          <div className="h-full rounded-full bg-gradient-to-l from-teal-500 to-cyan-400 transition-all duration-500" style={{ width: `${project.progress}%` }} />
+                        </div>
+                        <span className="text-xs font-semibold text-slate-600 dark:text-slate-400 w-10 text-end tabular-nums">
                           {Math.round(project.progress)}%
                         </span>
                       </div>
@@ -661,7 +681,7 @@ export default function ProjectsList({ language }: ProjectsListProps) {
       </div>
       ) : (
       /* Grid View */
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {isLoading ? (
           Array.from({ length: 6 }).map((_, i) => (
             <div key={i} className="rounded-xl border border-slate-200 dark:border-slate-700/50 p-4">
@@ -671,9 +691,14 @@ export default function ProjectsList({ language }: ProjectsListProps) {
             </div>
           ))
         ) : projects.length === 0 ? (
-          <div className="col-span-full flex flex-col items-center gap-2 text-slate-400 py-12">
-            <Building2 className="h-10 w-10" />
-            <span>{t("لا توجد مشاريع", "No projects found")}</span>
+          <div className="col-span-full flex flex-col items-center gap-3 text-slate-400 dark:text-slate-500 py-16">
+            <div className="w-16 h-16 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
+              <Building2 className="h-8 w-8" />
+            </div>
+            <div className="text-center">
+              <span className="font-medium text-sm">{t("لا توجد مشاريع", "No projects found")}</span>
+              <p className="text-xs mt-1 text-slate-400 dark:text-slate-600">{t("أضف مشروعاً جديداً للبدء", "Add a new project to get started")}</p>
+            </div>
           </div>
         ) : (
           projects.map((project: ProjectRow) => {
@@ -690,42 +715,58 @@ export default function ProjectsList({ language }: ProjectsListProps) {
             return (
               <div
                 key={project.id}
-                className="rounded-xl border border-slate-200 dark:border-slate-700/50 bg-white dark:bg-slate-900 p-4 cursor-pointer transition-all duration-200 hover:scale-[1.005] hover:shadow-lg hover:border-teal-200 dark:hover:border-teal-800"
+                className="rounded-xl border border-slate-200/70 dark:border-slate-700/40 bg-white dark:bg-slate-900/80 backdrop-blur-sm overflow-hidden cursor-pointer transition-all duration-300 ease-out hover:shadow-xl hover:shadow-teal-500/5 hover:-translate-y-1 hover:border-teal-200 dark:hover:border-teal-800/60 group"
                 onClick={() => handleRowClick(project.id)}
               >
-                <div className="flex items-start justify-between mb-3">
-                  <div className="flex items-center gap-2 min-w-0">
-                    <span className={cn("w-2 h-2 rounded-full ring-2 shrink-0", healthColor, healthRing)} />
-                    <div className="font-medium text-slate-900 dark:text-white truncate">{isAr ? project.name : project.nameEn || project.name}</div>
+                {/* Gradient header */}
+                <div className="bg-gradient-to-l from-teal-500/10 via-cyan-500/5 to-transparent dark:from-teal-500/5 dark:via-cyan-500/5 dark:to-transparent px-4 pt-4 pb-2">
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-center gap-2 min-w-0 flex-1">
+                      <span className={cn("w-2.5 h-2.5 rounded-full ring-2 shrink-0", healthColor, healthRing)} />
+                      <div className="font-semibold text-slate-900 dark:text-white truncate">{isAr ? project.name : project.nameEn || project.name}</div>
+                    </div>
+                    <span className={cn("shrink-0 text-[10px] font-semibold px-2.5 py-1 rounded-full ms-2", st.className)}>
+                      <span className={cn("w-1.5 h-1.5 rounded-full me-1 inline-block", st.dotColor)} />
+                      {t(st.ar, st.en)}
+                    </span>
                   </div>
-                  <span className={cn("shrink-0 text-[10px] font-medium px-2 py-0.5 rounded-full", st.className)}>{t(st.ar, st.en)}</span>
                 </div>
-                <div className="text-xs text-slate-500 dark:text-slate-400 mb-3 font-mono">{project.number}</div>
-                {project.plotNumber && (
-                  <div className="text-[10px] text-teal-600 dark:text-teal-400 font-medium mb-3 flex items-center gap-1">
-                    <MapPin className="h-2.5 w-2.5" />
-                    {project.plotNumber}
+                <div className="px-4 pb-4 pt-2">
+                  <div className="text-xs text-slate-500 dark:text-slate-400 mb-3 font-mono">{project.number}</div>
+                  {project.plotNumber && (
+                    <div className="text-[10px] text-teal-600 dark:text-teal-400 font-medium mb-3 flex items-center gap-1">
+                      <MapPin className="h-2.5 w-2.5" />
+                      {project.plotNumber}
+                    </div>
+                  )}
+                  {/* Progress */}
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="flex items-end gap-[2px] h-4">
+                      {sparkline.map((h, i) => (
+                        <div key={i} className={cn("w-[3px] rounded-full", h >= 75 ? "bg-teal-400" : h >= 40 ? "bg-teal-300" : "bg-amber-400")} style={{ height: `${Math.min(h, 100) * 0.16}px` }} />
+                      ))}
+                    </div>
+                    <div className="flex-1 h-1.5 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
+                      <div className="h-full rounded-full bg-gradient-to-l from-teal-500 to-cyan-400 transition-all duration-500" style={{ width: `${project.progress}%` }} />
+                    </div>
+                    <span className="text-[10px] font-semibold text-slate-500 dark:text-slate-400 tabular-nums">{Math.round(project.progress)}%</span>
                   </div>
-                )}
-                <div className="flex items-center gap-2 mb-3">
-                  <div className="flex items-end gap-[2px] h-4">
-                    {sparkline.map((h, i) => (
-                      <div key={i} className={cn("w-[3px] rounded-full", h >= 75 ? "bg-emerald-400" : h >= 40 ? "bg-teal-400" : "bg-amber-400")} style={{ height: `${Math.min(h, 100) * 0.16}px` }} />
-                    ))}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-1.5">
+                      <MapPin className="h-3 w-3 text-slate-400" />
+                      <span className="text-[10px] text-slate-400 truncate max-w-[100px]">{project.location}</span>
+                    </div>
+                    <span className="text-[10px] font-semibold text-slate-600 dark:text-slate-300">{project.budget.toLocaleString()} AED</span>
                   </div>
-                  <Progress value={project.progress} className="h-1.5 flex-1" />
-                  <span className="text-[10px] font-medium text-slate-500 dark:text-slate-400">{Math.round(project.progress)}%</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-1.5">
-                    <MapPin className="h-3 w-3 text-slate-400" />
-                    <span className="text-[10px] text-slate-400 truncate max-w-[100px]">{project.location}</span>
+                  <div className="flex items-center gap-1.5 mt-2 pt-2 border-t border-slate-100 dark:border-slate-800/60">
+                    <Badge variant="outline" className={cn("text-[9px] border-0", tp.color)}>{t(tp.ar, tp.en)}</Badge>
+                    <span className="text-[9px] text-slate-400">{project.client?.name || "—"}</span>
+                    <div className="flex-1" />
+                    <div className="flex items-center gap-1 text-[9px] text-slate-400">
+                      <CheckCircle2 className="h-3 w-3" />
+                      {project._count?.tasks || 0}
+                    </div>
                   </div>
-                  <span className="text-[10px] font-medium text-slate-600 dark:text-slate-300">{project.budget.toLocaleString()} AED</span>
-                </div>
-                <div className="flex items-center gap-1.5 mt-2">
-                  <Badge variant="outline" className={cn("text-[9px] border-0", tp.color)}>{t(tp.ar, tp.en)}</Badge>
-                  <span className="text-[9px] text-slate-400">{project.client?.name || "—"}</span>
                 </div>
               </div>
             );

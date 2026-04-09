@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useTheme } from "next-themes";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
@@ -22,7 +23,6 @@ import {
   Globe,
   Sun,
   Moon,
-  Monitor,
   Check,
   Clock,
   Smartphone,
@@ -79,6 +79,7 @@ function SectionHeader({
 export default function SettingsPage({ language: lang }: Props) {
   const isAr = lang === "ar";
   const queryClient = useQueryClient();
+  const { theme, setTheme } = useTheme();
 
   const { data: settings, isLoading } = useQuery({
     queryKey: ["company-settings"],
@@ -437,30 +438,33 @@ export default function SettingsPage({ language: lang }: Props) {
                 </Label>
                 <div className="grid grid-cols-3 gap-3">
                   {[
-                    { key: "light", icon: Sun, label: isAr ? "فاتح" : "Light", color: "bg-white border-slate-200", selected: false },
-                    { key: "dark", icon: Moon, label: isAr ? "داكن" : "Dark", color: "bg-slate-900 border-slate-700", selected: false },
-                    { key: "auto", icon: Monitor, label: isAr ? "تلقائي" : "Auto", color: "bg-gradient-to-r from-white to-slate-900", selected: true },
-                  ].map((theme) => (
-                    <button
-                      key={theme.key}
-                      className={cn(
-                        "flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all hover:shadow-sm",
-                        theme.selected
-                          ? "border-teal-500 bg-teal-50/50 dark:bg-teal-950/20 shadow-sm shadow-teal-500/10"
-                          : "border-slate-200 dark:border-slate-700 hover:border-teal-300"
-                      )}
-                    >
-                      <div className={cn("w-14 h-10 rounded-lg border flex items-center justify-center", theme.color)}>
-                        <theme.icon className="h-5 w-5 text-slate-600 dark:text-slate-300" />
-                      </div>
-                      <span className="text-sm font-medium text-slate-900 dark:text-white">{theme.label}</span>
-                      {theme.selected && (
-                        <Badge className="bg-teal-100 text-teal-700 dark:bg-teal-900 dark:text-teal-300 text-[10px] h-5 px-1.5 border-0">
-                          {isAr ? "نشط" : "Active"}
-                        </Badge>
-                      )}
-                    </button>
-                  ))}
+                    { key: "light", icon: Sun, label: isAr ? "فاتح" : "Light", color: "bg-white border-slate-200 dark:border-slate-600" },
+                    { key: "dark", icon: Moon, label: isAr ? "داكن" : "Dark", color: "bg-slate-900 border-slate-700" },
+                  ].map((themeOption) => {
+                    const isActive = theme === themeOption.key;
+                    return (
+                      <button
+                        key={themeOption.key}
+                        onClick={() => setTheme(themeOption.key)}
+                        className={cn(
+                          "flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all hover:shadow-sm cursor-pointer",
+                          isActive
+                            ? "border-teal-500 bg-teal-50/50 dark:bg-teal-950/20 shadow-sm shadow-teal-500/10"
+                            : "border-slate-200 dark:border-slate-700 hover:border-teal-300"
+                        )}
+                      >
+                        <div className={cn("w-14 h-10 rounded-lg border flex items-center justify-center", themeOption.color)}>
+                          <themeOption.icon className={cn("h-5 w-5", isActive ? "text-teal-500" : "text-slate-600 dark:text-slate-300")} />
+                        </div>
+                        <span className="text-sm font-medium text-slate-900 dark:text-white">{themeOption.label}</span>
+                        {isActive && (
+                          <Badge className="bg-teal-100 text-teal-700 dark:bg-teal-900 dark:text-teal-300 text-[10px] h-5 px-1.5 border-0">
+                            {isAr ? "نشط" : "Active"}
+                          </Badge>
+                        )}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
 

@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import bcrypt from "bcryptjs";
+import crypto from "crypto";
+
+const COOKIE_NAME = "blueprint-auth-token";
 
 export async function POST(request: Request) {
   try {
@@ -62,7 +65,11 @@ export async function POST(request: Request) {
       data: { lastLogin: new Date() },
     });
 
-    return NextResponse.json({
+    // Generate auth token
+    const token = crypto.randomUUID();
+
+    // Build the response with the Set-Cookie header
+    const response = NextResponse.json({
       id: user.id,
       email: user.email,
       name: user.name,
@@ -71,7 +78,17 @@ export async function POST(request: Request) {
       position: user.position,
       avatar: user.avatar,
       isActive: user.isActive,
+      token,
     });
+
+    response.cookies.set(COOKIE_NAME, token, {
+      path: "/",
+      maxAge: 60 * 60 * 24 * 7, // 7 days
+      httpOnly: false, // readable by client JS so Zustand can check
+      sameSite: "lax",
+    });
+
+    return response;
   } catch (error) {
     console.error("Login error:", error);
     return NextResponse.json(

@@ -15,7 +15,6 @@ import {
   CheckCircle,
   Clock,
   AlertTriangle,
-  FileText,
   CalendarDays,
   MapPin,
   CheckCheck,
@@ -27,13 +26,12 @@ import {
   X,
   Eye,
   BellOff,
-  Trash2,
-  ListChecks,
-  FolderKanban,
-  LayoutList,
   MonitorCheck,
   Layers,
   ArrowRight,
+  Sparkles,
+  PartyPopper,
+  FolderKanban,
 } from "lucide-react";
 
 // ===== Types =====
@@ -57,54 +55,77 @@ const typeConfig: Record<string, {
   ar: string;
   en: string;
   tab: string;
+  borderColor: string;
 }> = {
   project_update: {
-    icon: Building2, color: "text-teal-600 dark:text-teal-400", bg: "bg-teal-50 dark:bg-teal-900/30",
-    dot: "bg-teal-500", ar: "تحديث مشروع", en: "Project Update", tab: "all",
+    icon: Building2, color: "text-teal-600 dark:text-teal-400",
+    bg: "bg-gradient-to-br from-teal-100 to-teal-50 dark:from-teal-900/40 dark:to-teal-950/30",
+    dot: "bg-teal-500", ar: "تحديث مشروع", en: "Project Update", tab: "projects",
+    borderColor: "border-s-teal-400 dark:border-s-teal-600",
   },
   task_due: {
-    icon: CheckSquare, color: "text-blue-600 dark:text-blue-400", bg: "bg-blue-50 dark:bg-blue-900/30",
-    dot: "bg-blue-500", ar: "مهمة مستحقة", en: "Task Due", tab: "tasks",
+    icon: CheckSquare, color: "text-cyan-600 dark:text-cyan-400",
+    bg: "bg-gradient-to-br from-cyan-100 to-cyan-50 dark:from-cyan-900/40 dark:to-cyan-950/30",
+    dot: "bg-cyan-500", ar: "مهمة مستحقة", en: "Task Due", tab: "tasks",
+    borderColor: "border-s-cyan-400 dark:border-s-cyan-600",
   },
   task_assigned: {
-    icon: CheckSquare, color: "text-blue-600 dark:text-blue-400", bg: "bg-blue-50 dark:bg-blue-900/30",
-    dot: "bg-blue-500", ar: "تعيين مهمة", en: "Task Assigned", tab: "tasks",
+    icon: CheckSquare, color: "text-cyan-600 dark:text-cyan-400",
+    bg: "bg-gradient-to-br from-cyan-100 to-cyan-50 dark:from-cyan-900/40 dark:to-cyan-950/30",
+    dot: "bg-cyan-500", ar: "تعيين مهمة", en: "Task Assigned", tab: "tasks",
+    borderColor: "border-s-cyan-400 dark:border-s-cyan-600",
   },
   task_completed: {
-    icon: CheckCircle, color: "text-emerald-600 dark:text-emerald-400", bg: "bg-emerald-50 dark:bg-emerald-900/30",
+    icon: CheckCircle, color: "text-emerald-600 dark:text-emerald-400",
+    bg: "bg-gradient-to-br from-emerald-100 to-emerald-50 dark:from-emerald-900/40 dark:to-emerald-950/30",
     dot: "bg-emerald-500", ar: "إتمام مهمة", en: "Task Completed", tab: "tasks",
+    borderColor: "border-s-emerald-400 dark:border-s-emerald-600",
   },
   invoice_overdue: {
-    icon: Wallet, color: "text-amber-600 dark:text-amber-400", bg: "bg-amber-50 dark:bg-amber-900/30",
-    dot: "bg-amber-500", ar: "فاتورة متأخرة", en: "Invoice Overdue", tab: "all",
+    icon: Wallet, color: "text-amber-600 dark:text-amber-400",
+    bg: "bg-gradient-to-br from-amber-100 to-amber-50 dark:from-amber-900/40 dark:to-amber-950/30",
+    dot: "bg-amber-500", ar: "فاتورة متأخرة", en: "Invoice Overdue", tab: "finance",
+    borderColor: "border-s-amber-400 dark:border-s-amber-600",
   },
   approval_needed: {
-    icon: Bell, color: "text-violet-600 dark:text-violet-400", bg: "bg-violet-50 dark:bg-violet-900/30",
-    dot: "bg-violet-500", ar: "موافقة مطلوبة", en: "Approval Needed", tab: "approvals",
+    icon: Bell, color: "text-violet-600 dark:text-violet-400",
+    bg: "bg-gradient-to-br from-violet-100 to-violet-50 dark:from-violet-900/40 dark:to-violet-950/30",
+    dot: "bg-violet-500", ar: "موافقة مطلوبة", en: "Approval Needed", tab: "projects",
+    borderColor: "border-s-violet-400 dark:border-s-violet-600",
   },
   approval_status: {
-    icon: CheckCircle, color: "text-violet-600 dark:text-violet-400", bg: "bg-violet-50 dark:bg-violet-900/30",
-    dot: "bg-violet-500", ar: "حالة موافقة", en: "Approval Status", tab: "approvals",
+    icon: CheckCircle, color: "text-violet-600 dark:text-violet-400",
+    bg: "bg-gradient-to-br from-violet-100 to-violet-50 dark:from-violet-900/40 dark:to-violet-950/30",
+    dot: "bg-violet-500", ar: "حالة موافقة", en: "Approval Status", tab: "projects",
+    borderColor: "border-s-violet-400 dark:border-s-violet-600",
   },
   meeting_reminder: {
-    icon: CalendarDays, color: "text-violet-600 dark:text-violet-400", bg: "bg-violet-50 dark:bg-violet-900/30",
-    dot: "bg-violet-500", ar: "تذكير اجتماع", en: "Meeting Reminder", tab: "all",
+    icon: CalendarDays, color: "text-rose-600 dark:text-rose-400",
+    bg: "bg-gradient-to-br from-rose-100 to-rose-50 dark:from-rose-900/40 dark:to-rose-950/30",
+    dot: "bg-rose-500", ar: "تذكير اجتماع", en: "Meeting Reminder", tab: "all",
+    borderColor: "border-s-rose-400 dark:border-s-rose-600",
   },
   site_visit: {
-    icon: MapPin, color: "text-teal-600 dark:text-teal-400", bg: "bg-teal-50 dark:bg-teal-900/30",
-    dot: "bg-teal-500", ar: "زيارة موقع", en: "Site Visit", tab: "all",
+    icon: MapPin, color: "text-teal-600 dark:text-teal-400",
+    bg: "bg-gradient-to-br from-teal-100 to-teal-50 dark:from-teal-900/40 dark:to-teal-950/30",
+    dot: "bg-teal-500", ar: "زيارة موقع", en: "Site Visit", tab: "projects",
+    borderColor: "border-s-teal-400 dark:border-s-teal-600",
   },
   system: {
-    icon: MonitorCheck, color: "text-slate-600 dark:text-slate-400", bg: "bg-slate-50 dark:bg-slate-900/30",
+    icon: MonitorCheck, color: "text-slate-600 dark:text-slate-400",
+    bg: "bg-gradient-to-br from-slate-100 to-slate-50 dark:from-slate-800/40 dark:to-slate-900/30",
     dot: "bg-slate-400", ar: "نظام", en: "System", tab: "system",
+    borderColor: "border-s-slate-300 dark:border-s-slate-600",
   },
 };
 
+// Enhanced tabs with new categories
 const tabConfig: Record<string, { types: string[]; ar: string; en: string; icon: typeof Bell }> = {
   all: { types: [], ar: "الكل", en: "All", icon: Layers },
   unread: { types: [], ar: "غير مقروء", en: "Unread", icon: Eye },
-  tasks: { types: ["task_due", "task_assigned", "task_completed"], ar: "المهام", en: "Tasks", icon: CheckSquare },
-  approvals: { types: ["approval_needed", "approval_status"], ar: "الموافقات", en: "Approvals", icon: Bell },
+  tasks: { types: ["task_due", "task_assigned", "task_completed"], ar: "مهام", en: "Tasks", icon: CheckSquare },
+  projects: { types: ["project_update", "approval_needed", "approval_status", "site_visit"], ar: "مشاريع", en: "Projects", icon: FolderKanban },
+  finance: { types: ["invoice_overdue"], ar: "مالية", en: "Finance", icon: Wallet },
   system: { types: ["system"], ar: "النظام", en: "System", icon: MonitorCheck },
 };
 
@@ -284,7 +305,7 @@ export default function NotificationsPage({ projectId }: Props) {
           </div>
         </div>
         <div className="flex gap-2">
-          {[1, 2, 3, 4, 5].map((i) => <Skeleton key={i} className="h-9 flex-1 rounded-lg" />)}
+          {[1, 2, 3, 4, 5, 6].map((i) => <Skeleton key={i} className="h-9 flex-1 rounded-lg" />)}
         </div>
         <div className="space-y-2">
           {[1, 2, 3, 4, 5].map((i) => (
@@ -304,20 +325,31 @@ export default function NotificationsPage({ projectId }: Props) {
 
   return (
     <div className="max-w-5xl mx-auto space-y-4">
-      {/* Header */}
+      {/* Header with notification count badge */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-teal-100 dark:bg-teal-900/30 flex items-center justify-center">
-            <Bell className="h-5 w-5 text-teal-600 dark:text-teal-400" />
+          <div className="relative w-10 h-10 rounded-xl bg-gradient-to-br from-teal-500 to-cyan-500 flex items-center justify-center shadow-lg shadow-teal-500/20">
+            <Bell className="h-5 w-5 text-white" />
+            {liveUnreadCount > 0 && (
+              <span className="absolute -top-1 -end-1 flex h-4.5 min-w-[18px] items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold leading-none text-white shadow-sm ring-2 ring-white dark:ring-slate-900">
+                {liveUnreadCount > 99 ? "99+" : liveUnreadCount}
+              </span>
+            )}
           </div>
           <div>
-            <h2 className="text-xl font-bold text-slate-900 dark:text-white">
+            <h2 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
               {isAr ? "الإشعارات" : "Notifications"}
+              {liveUnreadCount > 0 && (
+                <Badge className="h-5 px-1.5 text-[10px] font-bold bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 border-red-200 dark:border-red-800/40">
+                  {liveUnreadCount}
+                </Badge>
+              )}
             </h2>
-            {liveUnreadCount > 0 && (
-              <p className="text-xs text-slate-500 dark:text-slate-400">
-                {liveUnreadCount} {isAr ? "إشعار غير مقروء" : "unread notification"}
-                {liveUnreadCount > 1 ? (isAr ? "" : "s") : ""}
+            {rawNotifications.length > 0 && (
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                {isAr
+                  ? `${rawNotifications.length} إشعار في المجموع`
+                  : `${rawNotifications.length} total notifications`}
               </p>
             )}
           </div>
@@ -358,7 +390,7 @@ export default function NotificationsPage({ projectId }: Props) {
         </div>
       </div>
 
-      {/* Filter Tabs */}
+      {/* Enhanced Filter Tabs */}
       <div className="flex items-center bg-slate-100 dark:bg-slate-800 rounded-xl p-1 gap-0.5 overflow-x-auto">
         {Object.entries(tabConfig).map(([key, cfg]) => {
           const Icon = cfg.icon;
@@ -396,18 +428,46 @@ export default function NotificationsPage({ projectId }: Props) {
 
       {/* Notifications List */}
       {notifications.length === 0 ? (
-        <Card className="p-12 text-center border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
-          <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-800 dark:to-slate-700 flex items-center justify-center mx-auto mb-4">
-            <BellOff className="h-10 w-10 text-slate-300 dark:text-slate-600" />
+        <Card className="p-12 text-center border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 overflow-hidden relative">
+          {/* Decorative background elements */}
+          <div className="absolute inset-0 overflow-hidden pointer-events-none">
+            <div className="absolute -top-10 -end-10 w-40 h-40 rounded-full bg-gradient-to-br from-teal-50 to-cyan-50 dark:from-teal-950/20 dark:to-cyan-950/10 opacity-60" />
+            <div className="absolute -bottom-10 -start-10 w-32 h-32 rounded-full bg-gradient-to-br from-cyan-50 to-teal-50 dark:from-cyan-950/20 dark:to-teal-950/10 opacity-60" />
           </div>
-          <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-2">
-            {isAr ? "ممتاز! كل شيء جاهز" : "All caught up!"}
-          </h3>
-          <p className="text-sm text-slate-500 dark:text-slate-400 max-w-sm mx-auto">
-            {activeTab === "unread"
-              ? isAr ? "جميع الإشعارات تمت قراءتها." : "All notifications have been read."
-              : isAr ? "لا توجد إشعارات حالياً." : "No notifications right now."}
-          </p>
+
+          <div className="relative z-10">
+            <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-teal-50 via-cyan-50 to-teal-50 dark:from-teal-900/30 dark:via-cyan-900/20 dark:to-teal-900/30 flex items-center justify-center mx-auto mb-4 shadow-sm">
+              {activeTab === "unread" ? (
+                <PartyPopper className="h-10 w-10 text-teal-400 dark:text-teal-500" />
+              ) : (
+                <BellOff className="h-10 w-10 text-slate-300 dark:text-slate-600" />
+              )}
+            </div>
+            <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">
+              {activeTab === "unread"
+                ? (isAr ? "ممتاز! تم قراءة الكل" : "All caught up!")
+                : (isAr ? "لا توجد إشعارات" : "No notifications")}
+            </h3>
+            <p className="text-sm text-slate-500 dark:text-slate-400 max-w-sm mx-auto leading-relaxed">
+              {activeTab === "unread"
+                ? (isAr ? "جميع الإشعارات تمت قراءتها. أنت محدّث بالكامل!" : "All notifications have been read. You're all caught up!")
+                : activeTab === "all"
+                  ? (isAr ? "لا توجد إشعارات حالياً. سنقوم بإشعارك بأي تحديث جديد." : "No notifications right now. We'll notify you of any updates.")
+                  : (isAr ? `لا توجد إشعارات في فئة "${isAr ? tabConfig[activeTab]?.ar : tabConfig[activeTab]?.en}".` : `No notifications in "${tabConfig[activeTab]?.en}" category.`)
+              }
+            </p>
+            {activeTab !== "all" && activeTab !== "unread" && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="mt-4 text-xs border-teal-200 dark:border-teal-800 text-teal-600 dark:text-teal-400 hover:bg-teal-50 dark:hover:bg-teal-950/30"
+                onClick={() => setActiveTab("all")}
+              >
+                <Layers className="h-3.5 w-3.5 me-1.5" />
+                {isAr ? "عرض جميع الإشعارات" : "View all notifications"}
+              </Button>
+            )}
+          </div>
         </Card>
       ) : (
         <ScrollArea className="max-h-[calc(100vh-14rem)]">
@@ -415,8 +475,10 @@ export default function NotificationsPage({ projectId }: Props) {
             {notifications.map((notif, index) => {
               const config = typeConfig[notif.type] || {
                 icon: Bell, color: "text-slate-500 dark:text-slate-400",
-                bg: "bg-slate-50 dark:bg-slate-800", dot: "bg-slate-400",
+                bg: "bg-gradient-to-br from-slate-100 to-slate-50 dark:from-slate-800/40 dark:to-slate-900/30",
+                dot: "bg-slate-400",
                 ar: notif.type, en: notif.type, tab: "system",
+                borderColor: "border-s-slate-300 dark:border-s-slate-600",
               };
               const Icon = config.icon;
 
@@ -428,58 +490,66 @@ export default function NotificationsPage({ projectId }: Props) {
                 >
                   <div
                     className={cn(
-                      "flex items-start gap-3 p-3 rounded-xl transition-all duration-150 cursor-pointer",
+                      "group flex items-start gap-3 p-4 rounded-xl transition-all duration-200 cursor-pointer border",
                       notif.isRead
-                        ? "bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50"
-                        : "bg-teal-50/30 dark:bg-teal-950/10 border border-teal-100 dark:border-teal-900/30 hover:bg-teal-50/50 dark:hover:bg-teal-950/20"
+                        ? "bg-white dark:bg-slate-900 border-slate-100 dark:border-slate-800 hover:bg-slate-50/80 dark:hover:bg-slate-800/50 hover:shadow-md hover:shadow-slate-100 dark:hover:shadow-slate-900/50"
+                        : cn(
+                            "bg-gradient-to-e from-teal-50/50 to-white dark:from-teal-950/15 dark:to-slate-900",
+                            "border-s-teal-200 dark:border-s-teal-800",
+                            "hover:shadow-md hover:shadow-teal-100/50 dark:hover:shadow-teal-900/20",
+                            config.borderColor
+                          )
                     )}
                     onClick={() => handleNotificationClick(notif)}
                   >
-                    {/* Type Icon */}
+                    {/* Type Icon with gradient background */}
                     <div className={cn(
-                      "h-10 w-10 rounded-full flex items-center justify-center shrink-0",
+                      "h-10 w-10 rounded-xl flex items-center justify-center shrink-0 shadow-sm transition-transform duration-200 group-hover:scale-110",
                       config.bg
                     )}>
-                      <Icon className={cn("h-4 w-4", config.color)} />
+                      <Icon className={cn("h-4.5 w-4.5", config.color)} />
                     </div>
 
                     {/* Content */}
                     <div className="flex-1 min-w-0">
-                      <p className={cn(
-                        "text-sm font-medium leading-snug",
-                        notif.isRead
-                          ? "text-slate-600 dark:text-slate-400"
-                          : "text-slate-900 dark:text-white"
-                      )}>
-                        {notif.title}
-                      </p>
-                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 line-clamp-2 leading-relaxed">
-                        {notif.message}
-                      </p>
-                      <div className="flex items-center gap-2 mt-1.5">
-                        <span className="text-[10px] text-slate-400 dark:text-slate-500">
-                          {formatTimeAgo(notif.createdAt)}
-                        </span>
+                      <div className="flex items-start justify-between gap-2">
+                        <p className={cn(
+                          "text-sm leading-snug",
+                          notif.isRead
+                            ? "font-medium text-slate-600 dark:text-slate-400"
+                            : "font-bold text-slate-900 dark:text-white"
+                        )}>
+                          {notif.title}
+                        </p>
                         {!notif.isRead && (
-                          <span className="relative flex h-2 w-2">
+                          <span className="relative flex h-2.5 w-2.5 shrink-0 mt-1">
                             <span className={cn("animate-ping absolute inline-flex h-full w-full rounded-full opacity-75", config.dot)} />
-                            <span className={cn("relative inline-flex rounded-full h-2 w-2", config.dot)} />
+                            <span className={cn("relative inline-flex rounded-full h-2.5 w-2.5 ring-2 ring-white dark:ring-slate-900", config.dot)} />
                           </span>
                         )}
+                      </div>
+                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 line-clamp-2 leading-relaxed">
+                        {notif.message}
+                      </p>
+                      <div className="flex items-center gap-2 mt-2">
+                        <span className="text-[10px] text-slate-400 dark:text-slate-500 flex items-center gap-1">
+                          <Clock className="h-3 w-3" />
+                          {formatTimeAgo(notif.createdAt)}
+                        </span>
                         {notif.relatedEntityType && (
-                          <Badge variant="outline" className="text-[9px] h-4 px-1.5 font-normal text-slate-400 dark:text-slate-500 border-slate-200 dark:border-slate-700">
-                            {notif.relatedEntityType}
+                          <Badge variant="outline" className="text-[9px] h-4 px-1.5 font-medium text-slate-400 dark:text-slate-500 border-slate-200 dark:border-slate-700 rounded-md">
+                            {isAr ? (typeConfig[notif.type]?.ar || notif.relatedEntityType) : (typeConfig[notif.type]?.en || notif.relatedEntityType)}
                           </Badge>
                         )}
                       </div>
                     </div>
 
                     {/* Actions */}
-                    <div className="flex items-center gap-1 shrink-0 self-center">
+                    <div className="flex items-center gap-0.5 shrink-0 self-center opacity-0 group-hover:opacity-100 transition-opacity duration-200">
                       {!notif.isRead && (
                         <button
                           onClick={(e) => { e.stopPropagation(); markReadMutation.mutate(notif.id); }}
-                          className="p-1.5 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                          className="p-1.5 rounded-lg hover:bg-teal-50 dark:hover:bg-teal-900/30 transition-colors"
                           title={isAr ? "تعيين كمقروء" : "Mark as read"}
                         >
                           <Eye className="h-3.5 w-3.5 text-slate-400 hover:text-teal-500 dark:hover:text-teal-400" />
@@ -488,15 +558,15 @@ export default function NotificationsPage({ projectId }: Props) {
                       {notif.relatedEntityType && notif.relatedEntityId && (
                         <button
                           onClick={(e) => { e.stopPropagation(); handleNotificationClick(notif); }}
-                          className="p-1.5 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                          className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
                           title={isAr ? "فتح" : "Open"}
                         >
-                          <ArrowRight className="h-3.5 w-3.5 text-slate-400" />
+                          <ArrowRight className="h-3.5 w-3.5 text-slate-400 hover:text-teal-500 dark:hover:text-teal-400" />
                         </button>
                       )}
                       <button
                         onClick={(e) => { e.stopPropagation(); deleteMutation.mutate(notif.id); }}
-                        className="p-1.5 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                        className="p-1.5 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
                         title={isAr ? "إزالة" : "Dismiss"}
                       >
                         <X className="h-3.5 w-3.5 text-slate-300 dark:text-slate-600 hover:text-red-500 dark:hover:text-red-400" />

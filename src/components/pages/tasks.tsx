@@ -130,11 +130,11 @@ interface UserOption {
 
 // ===== Kanban Columns =====
 const COLUMNS = [
-  { id: "todo", borderAccent: "border-s-slate-400", bg: "bg-slate-50/80 dark:bg-slate-800/40", border: "border-slate-200 dark:border-slate-700" },
-  { id: "in_progress", borderAccent: "border-s-amber-400", bg: "bg-amber-50/60 dark:bg-amber-950/20", border: "border-amber-200/80 dark:border-amber-800/60" },
-  { id: "review", borderAccent: "border-s-blue-400", bg: "bg-blue-50/60 dark:bg-blue-950/20", border: "border-blue-200/80 dark:border-blue-800/60" },
-  { id: "done", borderAccent: "border-s-emerald-400", bg: "bg-emerald-50/60 dark:bg-emerald-950/20", border: "border-emerald-200/80 dark:border-emerald-800/60" },
-  { id: "cancelled", borderAccent: "border-s-red-400", bg: "bg-red-50/60 dark:bg-red-950/20", border: "border-red-200/80 dark:border-red-800/60" },
+  { id: "todo", borderAccent: "border-t-slate-400", bg: "bg-slate-50/70 dark:bg-slate-800/30 backdrop-blur-sm", border: "border-slate-200/60 dark:border-slate-700/40", headerBg: "bg-gradient-to-b from-slate-100/80 to-transparent dark:from-slate-800/60 dark:to-transparent" },
+  { id: "in_progress", borderAccent: "border-t-amber-400", bg: "bg-amber-50/50 dark:bg-amber-950/10 backdrop-blur-sm", border: "border-amber-200/60 dark:border-amber-800/40", headerBg: "bg-gradient-to-b from-amber-100/60 to-transparent dark:from-amber-950/30 dark:to-transparent" },
+  { id: "review", borderAccent: "border-t-teal-400", bg: "bg-teal-50/50 dark:bg-teal-950/10 backdrop-blur-sm", border: "border-teal-200/60 dark:border-teal-800/40", headerBg: "bg-gradient-to-b from-teal-100/60 to-transparent dark:from-teal-950/30 dark:to-transparent" },
+  { id: "done", borderAccent: "border-t-emerald-400", bg: "bg-emerald-50/50 dark:bg-emerald-950/10 backdrop-blur-sm", border: "border-emerald-200/60 dark:border-emerald-800/40", headerBg: "bg-gradient-to-b from-emerald-100/60 to-transparent dark:from-emerald-950/30 dark:to-transparent" },
+  { id: "cancelled", borderAccent: "border-t-red-400", bg: "bg-red-50/40 dark:bg-red-950/10 backdrop-blur-sm", border: "border-red-200/60 dark:border-red-800/40", headerBg: "bg-gradient-to-b from-red-100/60 to-transparent dark:from-red-950/30 dark:to-transparent" },
 ] as const;
 
 function getColumnLabel(colId: string, ar: boolean) {
@@ -149,11 +149,11 @@ function getColumnLabel(colId: string, ar: boolean) {
 }
 
 function getPriorityConfig(priority: string) {
-  const configs: Record<string, { label: string; labelEn: string; color: string; topBorder: string; gradient: string }> = {
-    normal: { label: "عادي", labelEn: "Normal", color: "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300", topBorder: "border-t-slate-400", gradient: "" },
-    medium: { label: "متوسط", labelEn: "Medium", color: "bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-300", topBorder: "border-t-amber-400", gradient: "bg-gradient-to-b from-amber-50/50 to-white dark:from-amber-950/10 dark:to-slate-900" },
-    high: { label: "عالي", labelEn: "High", color: "bg-orange-100 text-orange-700 dark:bg-orange-900/50 dark:text-orange-300", topBorder: "border-t-orange-500", gradient: "bg-gradient-to-b from-orange-50/50 to-white dark:from-orange-950/10 dark:to-slate-900" },
-    urgent: { label: "عاجل", labelEn: "Urgent", color: "bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-300", topBorder: "border-t-red-500", gradient: "bg-gradient-to-b from-red-50/50 to-white dark:from-red-950/10 dark:to-slate-900" },
+  const configs: Record<string, { label: string; labelEn: string; color: string; leftBorder: string; dotColor: string; gradient: string }> = {
+    normal: { label: "عادي", labelEn: "Normal", color: "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300", leftBorder: "border-s-slate-300 dark:border-s-slate-600", dotColor: "bg-slate-400", gradient: "" },
+    medium: { label: "متوسط", labelEn: "Medium", color: "bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-300", leftBorder: "border-s-amber-400 dark:border-s-amber-500", dotColor: "bg-amber-500", gradient: "bg-gradient-to-l from-amber-50/30 to-white dark:from-amber-950/10 dark:to-slate-900" },
+    high: { label: "عالي", labelEn: "High", color: "bg-orange-100 text-orange-700 dark:bg-orange-900/50 dark:text-orange-300", leftBorder: "border-s-orange-500 dark:border-s-orange-500", dotColor: "bg-orange-500", gradient: "bg-gradient-to-l from-orange-50/30 to-white dark:from-orange-950/10 dark:to-slate-900" },
+    urgent: { label: "عاجل", labelEn: "Urgent", color: "bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-300", leftBorder: "border-s-red-500 dark:border-s-red-500", dotColor: "bg-red-500", gradient: "bg-gradient-to-l from-red-50/30 to-white dark:from-red-950/10 dark:to-slate-900" },
   };
   return configs[priority] || configs.normal;
 }
@@ -204,16 +204,16 @@ function DroppableColumn({
     <div
       ref={setNodeRef}
       className={cn(
-        "flex-shrink-0 w-[300px] md:w-[320px] rounded-xl border-s-4 border transition-all",
+        "flex-shrink-0 w-[300px] md:w-[320px] rounded-xl border-t-4 border transition-all duration-300",
         col.borderAccent,
         col.bg,
         col.border,
         "shadow-sm",
-        isOver && "ring-2 ring-teal-400/50 scale-[1.01] shadow-md"
+        isOver && "ring-2 ring-teal-400/50 scale-[1.01] shadow-lg shadow-teal-500/10"
       )}
     >
-      {/* Column Header */}
-      <div className="flex items-center gap-2 px-3 py-3">
+      {/* Column Header with gradient accent */}
+      <div className={cn("flex items-center gap-2 px-3 py-3 rounded-t-[9px]", col.headerBg)}>
         {bulkMode && (
           <button
             onClick={onToggleSelectAll}
@@ -226,12 +226,12 @@ function DroppableColumn({
             />
           </button>
         )}
-        <h3 className="text-sm font-semibold text-slate-900 dark:text-white flex-1">
+        <h3 className="text-sm font-bold text-slate-800 dark:text-white flex-1">
           {getColumnLabel(id, ar)}
         </h3>
         <Badge
           variant="secondary"
-          className="text-[10px] h-5 min-w-[20px] justify-center bg-slate-200/80 dark:bg-slate-700/80 text-slate-600 dark:text-slate-300"
+          className="text-[10px] h-5 min-w-[20px] justify-center bg-white/70 dark:bg-slate-700/60 text-slate-600 dark:text-slate-300 backdrop-blur-sm font-semibold"
         >
           {taskCount}
         </Badge>
@@ -240,7 +240,7 @@ function DroppableColumn({
             <TooltipTrigger asChild>
               <button
                 onClick={() => onAddTask(id)}
-                className="h-5 w-5 rounded-md flex items-center justify-center text-slate-400 hover:text-teal-600 hover:bg-teal-50 dark:hover:bg-teal-900/30 transition-colors"
+                className="h-6 w-6 rounded-md flex items-center justify-center text-slate-400 hover:text-teal-600 hover:bg-teal-100 dark:hover:bg-teal-900/40 transition-all duration-200 hover:scale-110"
               >
                 <Plus className="h-3.5 w-3.5" />
               </button>
@@ -260,9 +260,11 @@ function DroppableColumn({
             <SortableTaskCard key={task.id} task={task} ar={ar} bulkMode={bulkMode} selected={selectedIds?.has(task.id) || false} onToggle={onToggleSelect} onOpenComments={onOpenComments} />
           ))}
           {tasks.length === 0 && (
-            <div className="flex flex-col items-center justify-center h-20 text-xs text-slate-400 dark:text-slate-500 gap-1">
-              <LayoutList className="h-5 w-5" />
-              <span>{ar ? "لا توجد مهام" : "No tasks"}</span>
+            <div className="flex flex-col items-center justify-center h-24 text-xs text-slate-400 dark:text-slate-500 gap-2 opacity-60">
+              <div className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
+                <LayoutList className="h-5 w-5" />
+              </div>
+              <span className="font-medium">{ar ? "لا توجد مهام" : "No tasks"}</span>
             </div>
           )}
         </div>
@@ -280,8 +282,9 @@ function SortableTaskCard({ task, ar, bulkMode, selected, onToggle, onOpenCommen
 
   const style = {
     transform: CSS.Transform.toString(transform),
-    transition,
-    opacity: isDragging ? 0.4 : 1,
+    transition: transition || "transform 200ms cubic-bezier(0.2, 0, 0, 1)",
+    opacity: isDragging ? 0.5 : 1,
+    zIndex: isDragging ? 50 : undefined,
   };
 
   const priorityConfig = getPriorityConfig(task.priority);
@@ -311,11 +314,12 @@ function SortableTaskCard({ task, ar, bulkMode, selected, onToggle, onOpenCommen
       style={style}
       onClick={() => !bulkMode && onOpenComments?.(task)}
       className={cn(
-        "py-0 gap-0 border-slate-200 dark:border-slate-700/50 bg-white dark:bg-slate-900",
-        "hover:shadow-md hover:-translate-y-0.5 transition-all cursor-pointer group",
-        "border-t-2",
-        priorityConfig.topBorder,
-        priorityConfig.gradient || "bg-white dark:bg-slate-900",
+        "py-0 gap-0 border-slate-200/70 dark:border-slate-700/40 bg-white dark:bg-slate-900/80 backdrop-blur-sm",
+        "hover:shadow-lg hover:shadow-slate-200/50 dark:hover:shadow-slate-900/50 hover:-translate-y-0.5 transition-all duration-300 ease-out cursor-pointer group",
+        "border-s-3",
+        priorityConfig.leftBorder,
+        priorityConfig.gradient || "bg-white dark:bg-slate-900/80",
+        "rounded-lg",
         bulkMode && selected && "ring-2 ring-teal-400 ring-offset-1 dark:ring-offset-slate-900"
       )}
     >
@@ -332,14 +336,14 @@ function SortableTaskCard({ task, ar, bulkMode, selected, onToggle, onOpenCommen
         )}
         {/* Top: Priority + Government + Actions */}
         <div className="flex items-center gap-1.5 mb-2">
-          <Badge variant="secondary" className={cn("text-[10px] h-5 px-1.5", priorityConfig.color)}>
+          <Badge variant="secondary" className={cn("text-[10px] h-5 px-1.5 rounded-md font-semibold", priorityConfig.color)}>
             {ar ? priorityConfig.label : priorityConfig.labelEn}
           </Badge>
           {task.isGovernmental && (
             <Badge
               variant="secondary"
               className={cn(
-                "text-[10px] h-5 px-1.5 bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-300",
+                "text-[10px] h-5 px-1.5 rounded-md bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-300 font-medium",
                 slaApproaching && !slaOverdue && "animate-pulse"
               )}
             >
@@ -352,7 +356,7 @@ function SortableTaskCard({ task, ar, bulkMode, selected, onToggle, onOpenCommen
           )}
           <div className="flex-1" />
           <button
-            className="opacity-0 group-hover:opacity-100 transition-opacity p-0.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
+            className="opacity-0 group-hover:opacity-100 transition-all duration-200 p-1 rounded-md text-slate-400 hover:text-teal-600 hover:bg-teal-50 dark:hover:text-teal-400 dark:hover:bg-teal-900/30 cursor-grab active:cursor-grabbing"
             {...attributes}
             {...listeners}
           >
@@ -1258,14 +1262,14 @@ export default function TasksKanban({ language, projectId }: TasksKanbanProps) {
 function TaskCardOverlay({ task, ar }: { task: TaskItem; ar: boolean }) {
   const priorityConfig = getPriorityConfig(task.priority);
   return (
-    <Card className="py-0 gap-0 border-slate-200 dark:border-slate-700/50 bg-white dark:bg-slate-900 shadow-xl rotate-2 w-[300px] border-t-2 border-white dark:border-slate-900">
+    <Card className={cn("py-0 gap-0 border-slate-200/70 dark:border-slate-700/40 bg-white dark:bg-slate-900/95 shadow-2xl rotate-2 w-[300px] rounded-lg border-s-3", priorityConfig.leftBorder, priorityConfig.gradient || "bg-white dark:bg-slate-900/95")}>
       <div className="p-3">
         <div className="flex items-center gap-1.5 mb-2">
-          <Badge variant="secondary" className={cn("text-[10px] h-5 px-1.5", priorityConfig.color)}>
+          <Badge variant="secondary" className={cn("text-[10px] h-5 px-1.5 rounded-md font-semibold", priorityConfig.color)}>
             {ar ? priorityConfig.label : priorityConfig.labelEn}
           </Badge>
           {task.isGovernmental && (
-            <Badge variant="secondary" className="text-[10px] h-5 px-1.5 bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-300">
+            <Badge variant="secondary" className="text-[10px] h-5 px-1.5 rounded-md bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-300">
               <Landmark className="h-3 w-3 me-1" />
               {ar ? "حكومي" : "Gov"}
             </Badge>

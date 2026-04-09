@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useSyncExternalStore, Fragment } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { useTheme } from "next-themes";
 import { useAuthStore } from "@/store/auth-store";
 import { useNavStore } from "@/store/nav-store";
 import { getNavItems, roleLabelsAr, type NavItem, type Role } from "@/lib/permissions";
@@ -46,8 +45,6 @@ import {
 import {
   Search,
   Bell,
-  Sun,
-  Moon,
   Globe,
   LogOut,
   User,
@@ -110,6 +107,9 @@ import WelcomeModal from "@/components/layout/welcome-modal";
 import ShortcutsOverlay from "@/components/layout/shortcuts-overlay";
 import SidebarStats from "@/components/layout/sidebar-stats";
 import MobileBottomNav from "@/components/layout/mobile-bottom-nav";
+import NotificationDropdown from "@/components/notification-dropdown";
+import WelcomeNotification from "@/components/welcome-notification";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { cn } from "@/lib/utils";
 import { AnimatePresence, motion } from "framer-motion";
 import LogoImage from "@/components/ui/logo-image";
@@ -465,7 +465,6 @@ const pageTitleMap: Record<string, { ar: string; en: string }> = {
 function AppHeader() {
   const { user, logout } = useAuthStore();
   const { currentPage, setCurrentPage } = useNavStore();
-  const { theme, setTheme } = useTheme();
   const { language, toggleLanguage, t, isAr } = useLanguage();
   const [searchFocused, setSearchFocused] = useState(false);
 
@@ -591,42 +590,13 @@ function AppHeader() {
         </TooltipProvider>
 
         {/* Theme Toggle */}
-        <TooltipProvider delayDuration={0}>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-9 w-9 text-slate-500 hover:text-slate-700 hover:bg-slate-100 dark:text-slate-400 dark:hover:text-slate-200 dark:hover:bg-slate-800/60 transition-all duration-200"
-                onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-              >
-                <Sun className="h-4 w-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-                <Moon className="absolute h-4 w-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent side="bottom">
-              <p>{t("الوضع الليلي", "Dark Mode")}</p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
+        <ThemeToggle label={t("الوضع الليلي", "Dark Mode")} />
 
-        {/* Notifications Bell with animated badge */}
+        {/* Notifications Dropdown Bell */}
         <TooltipProvider delayDuration={0}>
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="relative h-9 w-9 text-slate-500 hover:text-slate-700 hover:bg-slate-100 dark:text-slate-400 dark:hover:text-slate-200 dark:hover:bg-slate-800/60 transition-all duration-200"
-                onClick={() => setCurrentPage("notifications")}
-              >
-                <Bell className="h-4 w-4" />
-                {notifCount > 0 && (
-                  <span className="absolute -top-0.5 -end-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold leading-none text-white shadow-sm ring-2 ring-white dark:ring-slate-900 notif-badge-pulse">
-                    {notifCount > 99 ? "99+" : notifCount}
-                  </span>
-                )}
-              </Button>
+              <NotificationDropdown />
             </TooltipTrigger>
             <TooltipContent side="bottom">
               <p>{t("الإشعارات", "Notifications")}{notifCount > 0 && ` (${notifCount})`}</p>
@@ -825,6 +795,7 @@ export default function AppLayout({ language }: AppLayoutProps) {
 
       <QuickActions language={language} />
       {currentPage === "dashboard" && <WelcomeModal language={language} />}
+      <WelcomeNotification />
       <ShortcutsOverlay language={language} open={showShortcuts} onOpenChange={setShowShortcuts} />
       <MobileBottomNav language={language} />
     </SidebarProvider>
