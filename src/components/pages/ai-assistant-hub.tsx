@@ -226,19 +226,38 @@ export default function AIAssistantHub({ language }: AIAssistantHubProps) {
     setInputValue("");
     setIsTyping(true);
 
-    // Simulate AI response
-    setTimeout(() => {
+    // Call real AI API instead of simulating
+    try {
+      const res = await fetch("/api/ai/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          message,
+          conversationId: "hub-" + Date.now(),
+          language: ar ? "ar" : "en",
+        }),
+      });
+      const data = await res.json();
       const aiResponse: ChatMessage = {
         id: (Date.now() + 1).toString(),
         role: "assistant",
-        content: ar
-          ? `شكراً لسؤالك. بناءً على تحليل البيانات المتاحة:\n\n📋 **تحليل سريع:**\n- هذا السؤال يتعلق بـ "${message.substring(0, 30)}..."\n- يوجد ${Math.floor(Math.random() * 10) + 2} مشاريع نشطة مرتبطة\n- يمكنني تقديم تحليل أكثر تفصيلاً إذا حددت مشروع معين\n\n💡 **اقتراح:** جرب تحديد مشروع من القائمة للحصول على إجابات مخصصة لسياق المشروع.`
-          : `Thanks for your question. Based on available data:\n\n📋 **Quick Analysis:**\n- This relates to "${message.substring(0, 30)}..."\n- There are ${Math.floor(Math.random() * 10) + 2} active related projects\n- I can provide more detailed analysis if you specify a project\n\n💡 **Suggestion:** Try selecting a specific project for context-aware answers.`,
+        content: data.message || data.error || (ar ? "عذراً، لم أتمكن من معالجة طلبك." : "Sorry, I could not process your request."),
         timestamp: new Date(),
       };
       setMessages((prev) => [...prev, aiResponse]);
+    } catch {
+      const fallbackMsg: ChatMessage = {
+        id: (Date.now() + 1).toString(),
+        role: "assistant",
+        content: ar
+          ? "عذراً، حدث خطأ في الاتصال بالمساعد الذكي. يرجى التأكد من أن الخدمة متاحة والمحاولة مرة أخرى."
+          : "Sorry, there was an error connecting to the AI assistant. Please ensure the service is available and try again.",
+        timestamp: new Date(),
+      };
+      setMessages((prev) => [...prev, fallbackMsg]);
+    } finally {
       setIsTyping(false);
-    }, 1500);
+    }
   };
 
   // Filter knowledge articles

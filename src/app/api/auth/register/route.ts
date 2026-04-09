@@ -14,7 +14,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { authService } from '@/lib/auth/auth-service';
 import { UserRole } from '@/lib/auth/types';
 import { successResponse, errorResponse } from '../../utils/response';
-import { cookies } from 'next/next/server';
+import { cookies } from 'next/server';
 import { SignJWT } from 'jose';
 import { hash } from 'bcryptjs';
 import { db } from '@/lib/db';
@@ -104,12 +104,11 @@ async function handleRegister(
       organizationId = org.id;
     }
 
-    // Determine role
-    const role = organizationId 
-      ? UserRole.ADMIN 
-      : (data.role && Object.values(UserRole).includes(data.role as UserRole) 
-          ? data.role 
-          : UserRole.VIEWER);
+    // Determine role - SECURITY FIX: Only admin-created orgs get admin role
+    // Regular registration always gets VIEWER role (no privilege escalation)
+    const role = organizationId
+      ? UserRole.ADMIN
+      : UserRole.VIEWER;
 
     // Create user
     const user = await db.user.create({

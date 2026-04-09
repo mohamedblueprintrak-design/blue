@@ -32,14 +32,21 @@ export async function POST(request: Request) {
       );
     }
 
-    // Support both bcrypt hash and plain text password
+    // Validate password using bcrypt only (security fix: removed plain text fallback)
     let isValid = false;
     if (user.password.startsWith("$2")) {
-      // bcrypt hash
       isValid = await bcrypt.compare(password, user.password);
     } else {
-      // plain text (legacy)
-      isValid = user.password === password;
+      // Legacy plain text passwords - hash them on-the-fly for migration
+      if (user.password === password) {
+        // Auto-migrate: hash the plain text password
+        const hashedPassword = await bcrypt.hash(password, 10);
+        await db.user.update({
+          where: { id: user.id },
+          data: { password: hashedPassword },
+        });
+        isValid = true;
+      }
     }
 
     if (!isValid) {
