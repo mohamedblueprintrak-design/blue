@@ -3,11 +3,9 @@
  * أنواع المصادقة والتفويض
  */
 
-// Re-export Prisma's UserRole as both type and value (needed for computed keys like [UserRole.ADMIN])
-import { UserRole } from '@prisma/client';
-export { UserRole };
-
-// Role values for permission mapping (using Prisma enum values)
+// Role values for permission mapping (string constants, client-safe)
+// NOTE: These are plain strings, not Prisma enums, so they work on both
+// server and client. The Prisma UserRole enum is only available server-side.
 export const UserRoleValues = {
   ADMIN: 'ADMIN',
   MANAGER: 'MANAGER',
@@ -195,7 +193,7 @@ export interface JwtPayload {
   userId: string;
   email: string;
   username: string;
-  role: UserRole;
+  role: string;
   organizationId?: string;
   department?: string;
   iat?: number;
@@ -234,7 +232,7 @@ export interface AuthUser {
   email: string;
   username: string;
   fullName: string | null;
-  role: UserRole;
+  role: string;
   avatar: string | null;
   organizationId: string | null;
   organization?: {

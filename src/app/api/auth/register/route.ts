@@ -12,7 +12,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { authService } from '@/lib/auth/auth-service';
-import { UserRole } from '@/lib/auth/types';
+import { UserRoleValues } from '@/lib/auth/types';
 import { successResponse, errorResponse } from '../../utils/response';
 // @ts-expect-error - cookies import may vary by Next.js version
 import { cookies as nextCookies } from 'next/server';
@@ -108,8 +108,8 @@ async function handleRegister(
     // Determine role - SECURITY FIX: Only admin-created orgs get admin role
     // Regular registration always gets VIEWER role (no privilege escalation)
     const role = organizationId
-      ? UserRole.ADMIN
-      : UserRole.VIEWER;
+      ? UserRoleValues.ADMIN
+      : UserRoleValues.VIEWER;
 
     // Create user
     const user = await db.user.create({
@@ -133,7 +133,7 @@ async function handleRegister(
       userId: user.id,
       email: user.email,
       username: user.name, // Using name as username
-      role: user.role as UserRole,
+      role: user.role as string,
       organizationId: user.organizationId || undefined,
     });
 
@@ -188,7 +188,7 @@ async function generateAccessToken(payload: {
   userId: string;
   email: string;
   username: string;
-  role: UserRole;
+  role: string;
   organizationId?: string;
 }): Promise<string> {
   const secret = getJWTSecret();

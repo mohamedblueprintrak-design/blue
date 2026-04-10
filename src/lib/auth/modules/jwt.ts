@@ -7,7 +7,7 @@
  */
 
 import { SignJWT, jwtVerify } from 'jose';
-import { UserRole } from './types';
+import type { JwtPayload as JwtPayloadType } from './types';
 
 // ============================================
 // Constants
@@ -28,7 +28,7 @@ export interface JwtPayload {
   userId: string;
   email: string;
   username: string;
-  role: UserRole;
+  role: string;
   organizationId?: string;
   type?: TokenType;
   iat?: number;
@@ -184,7 +184,7 @@ export async function verifyToken(token: string): Promise<JwtPayload | null> {
       userId: payload.userId as string,
       email: payload.email as string,
       username: payload.username as string,
-      role: payload.role as UserRole,
+      role: payload.role as string,
       organizationId: payload.organizationId as string | undefined,
       type: payload.type as TokenType | undefined,
       iat: payload.iat,

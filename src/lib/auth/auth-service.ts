@@ -23,7 +23,6 @@ import { db } from '@/lib/db';
 import { env } from '@/lib/env';
 import { log } from '@/lib/logger';
 import { 
-  UserRole, 
   Permission, 
   ROLE_PERMISSIONS, 
   JwtPayload, 
@@ -33,6 +32,7 @@ import {
   PasswordChangeRequest,
   PasswordResetRequest,
   PasswordResetConfirm,
+  UserRoleValues,
 } from './types';
 import { logAudit } from '@/lib/services/audit.service';
 import { sendEmail } from '@/lib/email';
@@ -177,7 +177,7 @@ class AuthenticationService {
         userId: payload.userId as string,
         email: payload.email as string,
         username: payload.username as string,
-        role: payload.role as UserRole,
+        role: payload.role as string,
         organizationId: payload.organizationId as string | undefined,
         iat: payload.iat,
         exp: payload.exp,
@@ -242,8 +242,9 @@ class AuthenticationService {
    */
   async login(data: LoginRequest): Promise<AuthResponse> {
     try {
-      // Find user by email
-      const user = await db.user.findUnique({
+      // Find user by email OR name (username)
+      let user;
+      user = await db.user.findUnique({
         where: { email: data.email.toLowerCase() },
         include: {
           organization: {
@@ -251,6 +252,16 @@ class AuthenticationService {
           },
         },
       });
+      if (!user) {
+        user = await db.user.findFirst({
+          where: { name: data.email },
+          include: {
+            organization: {
+              select: { id: true, name: true },
+            },
+          },
+        });
+      }
       
       if (!user) {
         return {
@@ -292,7 +303,7 @@ class AuthenticationService {
         userId: user.id,
         email: user.email,
         username: user.name, // Using name as username
-        role: user.role as UserRole,
+        role: user.role as string,
         organizationId: user.organizationId || undefined,
       });
       
@@ -321,7 +332,7 @@ class AuthenticationService {
           email: user.email,
           username: user.name, // Using name as username
           fullName: user.name,
-          role: user.role as UserRole,
+          role: user.role as string,
           avatar: user.avatar,
           organizationId: user.organizationId,
           organization: user.organization,
@@ -376,6 +387,7 @@ class AuthenticationService {
         const org = await db.organization.create({
           data: {
             name: data.organizationName,
+            slug: data.organizationName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''),
           },
         });
         organizationId = org.id;
@@ -387,7 +399,7 @@ class AuthenticationService {
           email: data.email.toLowerCase(),
           password: hashedPassword,
           name: data.fullName, // Using name field
-          role: (organizationId ? UserRole.ADMIN : (data.role && Object.values(UserRole).includes(data.role as UserRole) ? data.role : UserRole.VIEWER)) as string,
+          role: (organizationId ? UserRoleValues.ADMIN : (data.role && Object.values(UserRoleValues).includes(data.role as any) ? data.role : UserRoleValues.VIEWER)) as string,
           department: data.department || '',
           organizationId,
         },
@@ -403,7 +415,7 @@ class AuthenticationService {
         userId: user.id,
         email: user.email,
         username: user.name, // Using name as username
-        role: user.role as UserRole,
+        role: user.role as string,
         organizationId: user.organizationId || undefined,
       });
       
@@ -426,7 +438,7 @@ class AuthenticationService {
           email: user.email,
           username: user.name, // Using name as username
           fullName: user.name,
-          role: user.role as UserRole,
+          role: user.role as string,
           avatar: user.avatar,
           organizationId: user.organizationId,
           organization: user.organization,
@@ -479,7 +491,7 @@ class AuthenticationService {
         userId: user.id,
         email: user.email,
         username: user.name, // Using name as username
-        role: user.role as UserRole,
+        role: user.role as string,
         organizationId: user.organizationId || undefined,
       });
       
@@ -492,7 +504,7 @@ class AuthenticationService {
           email: user.email,
           username: user.name, // Using name as username
           fullName: user.name,
-          role: user.role as UserRole,
+          role: user.role as string,
           avatar: user.avatar,
           organizationId: user.organizationId,
           organization: user.organization,
@@ -688,6 +700,7 @@ class AuthenticationService {
           where: { id: payload.userId },
           data: { 
             password: hashedPassword,
+            emailVerified: new Date(),
           },
         }),
         // Invalidate the token after successful password reset
@@ -729,7 +742,7 @@ class AuthenticationService {
   /**
    * Check if user has a specific permission
    */
-  hasPermission(userRole: UserRole, permission: Permission): boolean {
+  hasPermission(userRole: string, permission: Permission): boolean {
     const rolePermissions = ROLE_PERMISSIONS[userRole] || [];
     return rolePermissions.includes(permission);
   }
@@ -737,31 +750,31 @@ class AuthenticationService {
   /**
    * Check if user has any of the specified permissions
    */
-  hasAnyPermission(userRole: UserRole, permissions: Permission[]): boolean {
+  hasAnyPermission(userRole: string, permissions: Permission[]): boolean {
     return permissions.some(permission => this.hasPermission(userRole, permission));
   }
   
   /**
    * Check if user has all of the specified permissions
    */
-  hasAllPermissions(userRole: UserRole, permissions: Permission[]): boolean {
+  hasAllPermissions(userRole: string, permissions: Permission[]): boolean {
     return permissions.every(permission => this.hasPermission(userRole, permission));
   }
   
   /**
    * Check if user role is at or above a certain level
    */
-  isRoleAtLeast(userRole: UserRole, requiredRole: UserRole): boolean {
-    const roleHierarchy: Record<UserRole, number> = {
-      [UserRole.ADMIN]: 100,
-      [UserRole.MANAGER]: 80,
-      [UserRole.PROJECT_MANAGER]: 70,
-      [UserRole.ENGINEER]: 50,
-      [UserRole.DRAFTSMAN]: 45,
-      [UserRole.ACCOUNTANT]: 50,
-      [UserRole.HR]: 50,
-      [UserRole.SECRETARY]: 40,
-      [UserRole.VIEWER]: 25,
+  isRoleAtLeast(userRole: string, requiredRole: string): boolean {
+    const roleHierarchy: Record<string, number> = {
+      [UserRoleValues.ADMIN]: 100,
+      [UserRoleValues.MANAGER]: 80,
+      [UserRoleValues.PROJECT_MANAGER]: 70,
+      [UserRoleValues.ENGINEER]: 50,
+      [UserRoleValues.DRAFTSMAN]: 45,
+      [UserRoleValues.ACCOUNTANT]: 50,
+      [UserRoleValues.HR]: 50,
+      [UserRoleValues.SECRETARY]: 40,
+      [UserRoleValues.VIEWER]: 25,
     };
     
     return (roleHierarchy[userRole] || 0) >= (roleHierarchy[requiredRole] || 0);
@@ -770,7 +783,7 @@ class AuthenticationService {
   /**
    * Get all permissions for a role
    */
-  getRolePermissions(role: UserRole): Permission[] {
+  getRolePermissions(role: string): Permission[] {
     return ROLE_PERMISSIONS[role] || [];
   }
   
@@ -965,7 +978,7 @@ class AuthenticationService {
           email: user.email,
           username: user.name, // Using name as username
           fullName: user.name,
-          role: user.role as UserRole,
+          role: user.role as string,
           avatar: user.avatar,
           organizationId: user.organizationId,
         },
