@@ -1,21 +1,51 @@
-import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { NextRequest, NextResponse } from "next/server";
+import { jwtVerify } from "jose";
 import { db } from "@/lib/db";
 
-export async function GET() {
-  try {
-    const session = await getServerSession(authOptions);
+const DEV_JWT_SECRET = 'blueprint-dev-secret-do-not-use-in-production-min32chars!';
 
-    if (!session?.user?.email) {
+function getJwtSecret(): Uint8Array {
+  const secret = process.env.JWT_SECRET;
+  if (secret && secret.length >= 32) {
+    return new TextEncoder().encode(secret);
+  }
+  return new TextEncoder().encode(DEV_JWT_SECRET);
+}
+
+export async function GET(request: NextRequest) {
+  try {
+    // Extract token from cookie or Authorization header
+    const authHeader = request.headers.get("authorization");
+    let token: string | null = null;
+
+    if (authHeader?.startsWith("Bearer ")) {
+      token = authHeader.slice(7);
+    }
+    if (!token) {
+      const tokenCookie = request.cookies.get("blueprint-auth-token");
+      token = tokenCookie?.value || null;
+    }
+
+    if (!token) {
       return NextResponse.json(
         { error: "غير مصرح" },
         { status: 401 }
       );
     }
 
+    // Verify JWT
+    const { payload } = await jwtVerify(token, getJwtSecret());
+    const userId = payload.userId as string;
+
+    if (!userId) {
+      return NextResponse.json(
+        { error: "رمز مصادقة غير صالح" },
+        { status: 401 }
+      );
+    }
+
     const user = await db.user.findUnique({
-      where: { email: session.user.email },
+      where: { id: userId },
       select: {
         id: true,
         email: true,
@@ -38,7 +68,7 @@ export async function GET() {
       );
     }
 
-    return NextResponse.json(user);
+    return NextResponse.json({ success: true, user });
   } catch (error) {
     console.error("Get current user error:", error);
     return NextResponse.json(

@@ -9,6 +9,33 @@ import bcrypt from 'bcryptjs';
 async function main() {
   console.log('🌱 Seeding BluePrint database...\n');
 
+  // ========== 0. Clean existing data (idempotent seeding) ==========
+  console.log('🧹 Cleaning existing data...');
+  await db.$transaction([
+    db.approval.deleteMany(),
+    db.taskComment.deleteMany(),
+    db.notification.deleteMany(),
+    db.knowledgeArticle.deleteMany(),
+    db.bid.deleteMany(),
+    db.proposal.deleteMany(),
+    db.siteDiary.deleteMany(),
+    db.meeting.deleteMany(),
+    db.siteVisit.deleteMany(),
+    db.govApproval.deleteMany(),
+    db.supplier.deleteMany(),
+    db.contract.deleteMany(),
+    db.invoice.deleteMany(),
+    db.task.deleteMany(),
+    db.projectAssignment.deleteMany(),
+    db.project.deleteMany(),
+    db.contractor.deleteMany(),
+    db.client.deleteMany(),
+    db.employee.deleteMany(),
+    db.companySettings.deleteMany(),
+    db.user.deleteMany(),
+  ]);
+  console.log('✅ Existing data cleaned\n');
+
   // ========== 1. Admin User ==========
   const adminHash = await bcrypt.hash('admin123', 10);
   const adminUser = await db.user.upsert({
@@ -122,9 +149,8 @@ async function main() {
   const project5 = await db.project.upsert({ where: { number: 'PRJ-2024-005' }, update: {}, create: { number: 'PRJ-2024-005', name: 'منشأة صناعية', nameEn: 'Industrial Facility', clientId: client2.id, location: 'رأس الخيمة', type: 'industrial', status: 'delayed', progress: 35, budget: 600000, startDate: new Date('2024-02-15'), endDate: new Date('2025-02-15'), description: 'مصنع متعدد الأغراض', createdById: adminUser.id } });
 
   // ========== Project Assignments ==========
-  await db.projectAssignment.createMany({
-    skipDuplicates: true,
-    data: [
+  // SQLite doesn't support skipDuplicates, use create in a loop
+  for (const assignment of [
       { projectId: project1.id, userId: pmUser.id, role: 'project_manager' },
       { projectId: project1.id, userId: engineerUser.id, role: 'team_member' },
       { projectId: project1.id, userId: structuralUser.id, role: 'team_member' },
@@ -138,12 +164,12 @@ async function main() {
       { projectId: project4.id, userId: adminUser.id, role: 'project_manager' },
       { projectId: project5.id, userId: pmUser.id, role: 'project_manager' },
       { projectId: project5.id, userId: structuralUser.id, role: 'team_member' },
-    ],
-  });
+    ]) {
+    await db.projectAssignment.create({ data: assignment });
+  }
 
   // ========== Tasks ==========
   await db.task.createMany({
-    skipDuplicates: true,
     data: [
       { projectId: project1.id, title: 'إعداد المخططات المعمارية النهائية', description: 'مراجعة وإكمال جميع المخططات', assigneeId: engineerUser.id, priority: 'high', status: 'in_progress', startDate: new Date('2024-04-01'), dueDate: new Date('2024-05-15'), progress: 70 },
       { projectId: project1.id, title: 'تصميم مخططات الأساسات', description: 'تصميم الأساسات بناءً على تقرير التربة', assigneeId: structuralUser.id, priority: 'high', status: 'in_progress', startDate: new Date('2024-03-15'), dueDate: new Date('2024-05-01'), progress: 50 },
@@ -159,7 +185,6 @@ async function main() {
 
   // ========== Invoices ==========
   await db.invoice.createMany({
-    skipDuplicates: true,
     data: [
       { number: 'INV-2024-001', clientId: client1.id, projectId: project1.id, issueDate: new Date('2024-02-01'), dueDate: new Date('2024-03-01'), subtotal: 62500, tax: 3750, total: 66250, paidAmount: 66250, remaining: 0, status: 'paid' },
       { number: 'INV-2024-002', clientId: client1.id, projectId: project1.id, issueDate: new Date('2024-05-01'), dueDate: new Date('2024-06-01'), subtotal: 62500, tax: 3750, total: 66250, paidAmount: 33250, remaining: 33000, status: 'partially_paid' },

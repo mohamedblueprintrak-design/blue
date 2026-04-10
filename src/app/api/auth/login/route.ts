@@ -1,9 +1,31 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import bcrypt from "bcryptjs";
-import crypto from "crypto";
+import { SignJWT } from "jose";
 
 const COOKIE_NAME = "blueprint-auth-token";
+const DEV_JWT_SECRET = 'blueprint-dev-secret-do-not-use-in-production-min32chars!';
+
+function getJwtSecret(): Uint8Array {
+  const secret = process.env.JWT_SECRET;
+  if (secret && secret.length >= 32) {
+    return new TextEncoder().encode(secret);
+  }
+  return new TextEncoder().encode(DEV_JWT_SECRET);
+}
+
+async function generateJWT(user: { id: string; email: string; name: string; role: string }): Promise<string> {
+  return new SignJWT({
+    userId: user.id,
+    email: user.email,
+    name: user.name,
+    role: user.role,
+  })
+    .setProtectedHeader({ alg: 'HS256' })
+    .setExpirationTime('7d')
+    .setIssuedAt()
+    .sign(getJwtSecret());
+}
 
 export async function POST(request: Request) {
   try {
@@ -65,8 +87,8 @@ export async function POST(request: Request) {
       data: { lastLogin: new Date() },
     });
 
-    // Generate auth token
-    const token = crypto.randomUUID();
+    // Generate JWT auth token (compatible with middleware jwtVerify)
+    const token = await generateJWT(user);
 
     // Build the response with the Set-Cookie header
     const response = NextResponse.json({
@@ -78,7 +100,6 @@ export async function POST(request: Request) {
       position: user.position,
       avatar: user.avatar,
       isActive: user.isActive,
-      token,
     });
 
     response.cookies.set(COOKIE_NAME, token, {

@@ -52,6 +52,11 @@ echo   [OK] Dependencies installed
 
 echo.
 echo [3/4] Setting up database...
+:: Delete old database to ensure clean setup
+if exist prisma\db\custom.db (
+    del prisma\db\custom.db
+    echo   [OK] Old database removed
+)
 call npx prisma db push --skip-generate
 if %ERRORLEVEL% NEQ 0 (
     color 0C
