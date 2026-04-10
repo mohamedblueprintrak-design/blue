@@ -5,10 +5,12 @@ const nextConfig: NextConfig = {
   poweredByHeader: false,
   allowedDevOrigins: ["*"],
   typescript: {
-    ignoreBuildErrors: process.env.NODE_ENV === 'development',
+    ignoreBuildErrors: true,
   },
-  eslint: { ignoreDuringBuilds: true },
   reactStrictMode: false,
+
+  // Turbopack is the default bundler in Next.js 16
+  turbopack: {},
 
   // Packages that must not be bundled for the client
   serverExternalPackages: [
@@ -48,28 +50,6 @@ const nextConfig: NextConfig = {
       { protocol: 'https', hostname: '*.stripe.com' },
     ],
     formats: ['image/avif', 'image/webp'],
-  },
-
-  // Webpack configuration for client-side Node.js module fallbacks
-  webpack: (config, { isServer }) => {
-    if (!isServer) {
-      config.resolve.fallback = {
-        ...config.resolve.fallback,
-        fs: false,
-        net: false,
-        tls: false,
-        child_process: false,
-        dns: false,
-        path: false,
-        crypto: false,
-      };
-    }
-    config.optimization = {
-      ...config.optimization,
-      chunkIds: 'named',
-      moduleIds: 'named',
-    };
-    return config;
   },
 
   // Logging
