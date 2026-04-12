@@ -1,4 +1,4 @@
-// @ts-nocheck
+// @ts-check
 /**
  * Authentication Service
  * خدمة المصادقة والتخويل

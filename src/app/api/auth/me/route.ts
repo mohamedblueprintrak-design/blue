@@ -22,7 +22,7 @@ export async function GET(request: NextRequest) {
       token = authHeader.slice(7);
     }
     if (!token) {
-      const tokenCookie = request.cookies.get("blueprint-auth-token");
+      const tokenCookie = request.cookies.get('blue_token');
       token = tokenCookie?.value || null;
     }
 

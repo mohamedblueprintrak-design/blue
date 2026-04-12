@@ -71,13 +71,13 @@ export function getTokenFromRequest(request: NextRequest): string | null {
     const token = authHeader.substring(7);
     // Skip the 'httpOnly' placeholder — real JWT is in the cookie
     if (token === 'httpOnly') {
-      const tokenCookie = request.cookies.get('token');
+      const tokenCookie = request.cookies.get('blue_token');
       return tokenCookie?.value || null;
     }
     return token;
   }
   // Fall back to httpOnly cookie
-  const tokenCookie = request.cookies.get('token');
+  const tokenCookie = request.cookies.get('blue_token');
   return tokenCookie?.value || null;
 }
 

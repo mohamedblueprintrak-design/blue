@@ -40,7 +40,7 @@ interface JwtPayload {
 // Configuration
 // ============================================
 
-const COOKIE_NAME = 'blueprint-auth-token';
+const COOKIE_NAME = 'blue_token';
 
 const RATE_LIMIT_CONFIGS = {
   auth: { maxRequests: 10, windowMs: 60000 },      // 10 req/min for auth
@@ -66,6 +66,8 @@ const PUBLIC_PAGE_ROUTES = [
 const PUBLIC_API_ROUTES = [
   '/api/auth/login',
   '/api/auth/register',
+  '/api/auth/logout',
+  '/api/auth/session',
   '/api/auth/forgot-password',
   '/api/auth/reset-password',
   '/api/auth/verify-email',
@@ -251,7 +253,7 @@ function extractToken(request: NextRequest): string | null {
     return authHeader.slice(7);
   }
 
-  // Try cookie (Blue uses blueprint-auth-token)
+  // Try cookie (Blue uses blue_token)
   const tokenCookie = request.cookies.get(COOKIE_NAME);
   if (tokenCookie) {
     return tokenCookie.value;

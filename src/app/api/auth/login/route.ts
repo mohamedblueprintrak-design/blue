@@ -3,7 +3,7 @@ import { db } from "@/lib/db";
 import bcrypt from "bcryptjs";
 import { SignJWT } from "jose";
 
-const COOKIE_NAME = "blueprint-auth-token";
+const COOKIE_NAME = 'blue_token';
 const DEV_JWT_SECRET = 'blueprint-dev-secret-do-not-use-in-production-min32chars!';
 
 function getJwtSecret(): Uint8Array {
@@ -103,10 +103,11 @@ export async function POST(request: Request) {
     });
 
     response.cookies.set(COOKIE_NAME, token, {
-      path: "/",
+      path: '/',
       maxAge: 60 * 60 * 24 * 7, // 7 days
-      httpOnly: false, // readable by client JS so Zustand can check
-      sameSite: "lax",
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
     });
 
     return response;

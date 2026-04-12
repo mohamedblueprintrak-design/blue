@@ -45,11 +45,19 @@ type NotifType = NotificationType;
 
 const isBrowser = typeof window !== 'undefined';
 
-/** Read the auth token from the cookie Blue uses */
-function getAuthToken(): string | null {
-  if (!isBrowser) return null;
-  const match = document.cookie.match(/(?:^|;\s*)blueprint-auth-token=([^;]*)/);
-  return match ? decodeURIComponent(match[1]) : null;
+/**
+ * Check if user appears authenticated (based on Zustand store).
+ * Note: With httpOnly cookies, the actual token is not readable from JS.
+ * SSE connections rely on cookies being sent automatically by the browser.
+ */
+function isUserAuthenticated(): boolean {
+  if (!isBrowser) return false;
+  try {
+    const state = useAuthStore.getState();
+    return state.isAuthenticated;
+  } catch {
+    return false;
+  }
 }
 
 // ─── Hook options & state ────────────────────────────────────────────────────
@@ -121,15 +129,14 @@ export function useRealtime(options: UseRealtimeOptions = {}) {
   } = options;
 
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
-  const token = getAuthToken();
   const queryClient = useQueryClient();
 
   // Refs for tracking state without re-renders
   const eventSourceRef = useRef<EventSource | null>(null);
   const reconnectAttemptsRef = useRef(0);
+  const lastAuthStateRef = useRef(false);
   const reconnectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const intentionalDisconnectRef = useRef(false);
-  const lastTokenRef = useRef<string | null>(null);
   const isConnectingRef = useRef(false);
   const mountedRef = useRef(false);
 
@@ -240,13 +247,12 @@ export function useRealtime(options: UseRealtimeOptions = {}) {
 
   // Create SSE connection
   const createConnection = useCallback(
-    (currentToken: string) => {
-      if (!isBrowser || !currentToken || !enabledRef.current || isConnectingRef.current) {
+    () => {
+      if (!isBrowser || !enabledRef.current || isConnectingRef.current) {
         return;
       }
 
       intentionalDisconnectRef.current = false;
-      lastTokenRef.current = currentToken;
       isConnectingRef.current = true;
 
       if (eventSourceRef.current) {
@@ -254,8 +260,8 @@ export function useRealtime(options: UseRealtimeOptions = {}) {
       }
 
       try {
-        // SSE with token as query parameter (cookie is also sent via withCredentials)
-        const url = `/api/notifications/stream?token=${encodeURIComponent(currentToken)}`;
+        // SSE — cookies (including httpOnly blue_token) are sent automatically by browser
+        const url = '/api/notifications/stream';
         const eventSource = new EventSource(url, {
           withCredentials: true,
         });
@@ -278,10 +284,10 @@ export function useRealtime(options: UseRealtimeOptions = {}) {
 
           if (intentionalDisconnectRef.current) return;
 
-          // Check if auth token changed or user logged out
+          // Check if user logged out (auth state changed)
           if (isBrowser) {
-            const storedToken = getAuthToken();
-            if (!storedToken || storedToken !== lastTokenRef.current) {
+            const stillAuthed = isUserAuthenticated();
+            if (!stillAuthed) {
               eventSource.close();
               return;
             }
@@ -334,33 +340,28 @@ export function useRealtime(options: UseRealtimeOptions = {}) {
 
     mountedRef.current = true;
 
-    if (token && enabled && isAuthenticated && token !== lastTokenRef.current) {
+    if (enabled && isAuthenticated && !lastAuthStateRef.current) {
       reconnectAttemptsRef.current = 0;
-      createConnection(token);
-    } else if (!token && lastTokenRef.current) {
+      createConnection();
+    } else if (!isAuthenticated && lastAuthStateRef.current) {
       disconnect();
     }
+    lastAuthStateRef.current = isAuthenticated;
 
     return () => {
       mountedRef.current = false;
       disconnect();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [token, enabled, isAuthenticated]);
-
-  // Token ref for manual reconnect
-  const tokenRef = useRef(token);
-  useEffect(() => {
-    tokenRef.current = token;
-  }, [token]);
+  }, [isAuthenticated, enabled]);
 
   // Manual reconnect
   const reconnect = useCallback(() => {
     reconnectAttemptsRef.current = 0;
     disconnect();
-    const currentToken = getAuthToken();
-    if (currentToken) {
-      createConnection(currentToken);
+    const stillAuthed = isUserAuthenticated();
+    if (stillAuthed) {
+      createConnection();
     }
   }, [createConnection, disconnect]);
 
