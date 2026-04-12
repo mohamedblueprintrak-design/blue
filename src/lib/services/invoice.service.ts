@@ -1,4 +1,4 @@
-// @ts-nocheck
+// @ts-check
 /**
  * Invoice Service
  * خدمة الفواتير

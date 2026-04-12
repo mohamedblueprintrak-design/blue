@@ -1,4 +1,4 @@
-// @ts-nocheck
+// @ts-check
 /**
  * Task Service
  * خدمة المهام

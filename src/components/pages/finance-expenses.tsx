@@ -170,7 +170,7 @@ export default function FinanceExpensesPage({ }: Props) {
 
   // Monthly expense chart data – pre-filter completed payments as a simpler intermediate
   const completedPayments = payments.filter((p) => p.status === "completed");
-  const monthlyExpenseData = useMemo(() => {
+  const monthlyExpenseData = (() => {
     const months: Record<string, { monthAr: string; monthEn: string; amount: number; count: number }> = {};
     const arMonths = ["يناير", "فبراير", "مارس", "أبريل", "مايو", "يونيو", "يوليو", "أغسطس", "سبتمبر", "أكتوبر", "نوفمبر", "ديسمبر"];
     const enMonths = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
@@ -191,7 +191,7 @@ export default function FinanceExpensesPage({ }: Props) {
     });
 
     return Object.values(months);
-  }, [completedPayments]);
+  })();
 
   // Payment tracking summary
   const trackingSummary = useMemo(() => {

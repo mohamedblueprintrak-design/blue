@@ -1,4 +1,4 @@
-// @ts-nocheck
+// @ts-check
 // Server-side Contract PDF generator
 // Fetches contract data from DB and generates a professional PDF
 

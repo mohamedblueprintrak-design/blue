@@ -1,4 +1,4 @@
-// @ts-nocheck
+// @ts-check
 /**
  * Base Repository Interface
  * واجهة المستودع الأساسية

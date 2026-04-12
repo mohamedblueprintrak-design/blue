@@ -1,4 +1,4 @@
-// @ts-nocheck
+// @ts-check
 /**
  * Project Service
  * خدمة المشاريع
@@ -12,7 +12,7 @@
  */
 
 import { db } from '@/lib/db';
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
+ 
 import { getProjectRepository } from '@/lib/repositories';
 import { logAudit } from './audit.service';
 import type { Project, ProjectStatus } from '@prisma/client';

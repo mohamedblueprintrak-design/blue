@@ -192,7 +192,7 @@ function useCounter(end: number, duration: number = 2000, startOnView: boolean =
 }
 
 // ==================== ANIMATION VARIANTS ====================
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+ 
 const fadeInUp: any = {
   hidden: { opacity: 0, y: 30 },
   visible: (i: number) => ({

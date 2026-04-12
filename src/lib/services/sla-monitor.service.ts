@@ -1,4 +1,4 @@
-// @ts-nocheck
+// @ts-check
 /**
  * SLA Monitoring Service
  * خدمة مراقبة SLA وتنبيهات الانتهاك

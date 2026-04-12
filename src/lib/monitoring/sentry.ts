@@ -58,7 +58,7 @@ if (SENTRY_DSN) {
     ],
     
     // Filter transactions
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     
     beforeSend(event: any, _hint: any) {
       // Filter out sensitive data
       if (event.request?.headers) {
@@ -106,7 +106,7 @@ export function captureError(
     return;
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+   
   Sentry.withScope((scope: any) => {
     if (context?.user) {
       scope.setUser({

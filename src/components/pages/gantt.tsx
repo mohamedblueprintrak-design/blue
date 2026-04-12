@@ -167,7 +167,9 @@ export default function GanttPage({ language }: GanttPageProps) {
 
   useEffect(() => {
     if (data?.data) {
-      setTasks(data.data);
+      // Use rAF to defer setState and avoid cascading renders
+      const id = requestAnimationFrame(() => setTasks(data.data));
+      return () => cancelAnimationFrame(id);
     }
   }, [data]);
 
@@ -392,6 +394,7 @@ export default function GanttPage({ language }: GanttPageProps) {
     [draggedTask, dragMode, dragStartX, originalDates, timelineHeaders.length]
   );
 
+  const handleDragEndRef = useRef<() => void>(() => {});
   const handleDragEnd = useCallback(() => {
     if (draggedTask) {
       const updatedTask = tasks.find((t) => t.id === draggedTask.id);
@@ -401,10 +404,11 @@ export default function GanttPage({ language }: GanttPageProps) {
     setDragMode(null);
     setOriginalDates(null);
     document.removeEventListener("mousemove", handleDragMove);
-    document.removeEventListener("mouseup", handleDragEnd);
+    document.removeEventListener("mouseup", handleDragEndRef.current);
   }, [draggedTask, tasks, updateMutation, handleDragMove]);
+  useEffect(() => { handleDragEndRef.current = handleDragEnd; }, [handleDragEnd]);
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps -- handleDragEnd is a stable removeEventListener callback
+   
   const handleDragStart = (e: React.MouseEvent, task: GanttTask, mode: "move" | "resize-left" | "resize-right") => {
     e.preventDefault();
     setDraggedTask(task);

@@ -1,4 +1,4 @@
-// @ts-nocheck
+// @ts-check
 /**
  * Unified API Fetch Client
  * Consolidates the best of api-client.ts and use-data.ts request logic

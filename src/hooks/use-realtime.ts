@@ -246,6 +246,7 @@ export function useRealtime(options: UseRealtimeOptions = {}) {
   }, [enabled, maxReconnectAttempts, reconnectInterval]);
 
   // Create SSE connection
+  const createConnectionRef = useRef<() => void>(() => {});
   const createConnection = useCallback(
     () => {
       if (!isBrowser || !enabledRef.current || isConnectingRef.current) {
@@ -303,8 +304,7 @@ export function useRealtime(options: UseRealtimeOptions = {}) {
 
           // Reconnect with exponential back-off
           if (
-            reconnectAttemptsRef.current < maxReconnectAttemptsRef.current &&
-            lastTokenRef.current
+            reconnectAttemptsRef.current < maxReconnectAttemptsRef.current
           ) {
             reconnectAttemptsRef.current++;
             const delay =
@@ -312,8 +312,8 @@ export function useRealtime(options: UseRealtimeOptions = {}) {
               Math.pow(2, Math.min(reconnectAttemptsRef.current - 1, 4));
 
             reconnectTimeoutRef.current = setTimeout(() => {
-              if (lastTokenRef.current && !intentionalDisconnectRef.current) {
-                createConnection(lastTokenRef.current);
+              if (!intentionalDisconnectRef.current) {
+                createConnectionRef.current();
               }
             }, delay);
           } else if (reconnectAttemptsRef.current >= maxReconnectAttemptsRef.current) {
@@ -333,6 +333,8 @@ export function useRealtime(options: UseRealtimeOptions = {}) {
     },
     [handleEvent],
   );
+  // Keep ref in sync with latest createConnection
+  useEffect(() => { createConnectionRef.current = createConnection; }, [createConnection]);
 
   // Connect / disconnect on auth state change
   useEffect(() => {
@@ -342,9 +344,9 @@ export function useRealtime(options: UseRealtimeOptions = {}) {
 
     if (enabled && isAuthenticated && !lastAuthStateRef.current) {
       reconnectAttemptsRef.current = 0;
-      createConnection();
+      const id = requestAnimationFrame(() => createConnectionRef.current());
     } else if (!isAuthenticated && lastAuthStateRef.current) {
-      disconnect();
+      requestAnimationFrame(() => disconnect());
     }
     lastAuthStateRef.current = isAuthenticated;
 
@@ -352,7 +354,7 @@ export function useRealtime(options: UseRealtimeOptions = {}) {
       mountedRef.current = false;
       disconnect();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [isAuthenticated, enabled]);
 
   // Manual reconnect

@@ -395,11 +395,12 @@ export function useKeyboardNav<T>(
   // Reset index when items change
   useEffect(() => {
     if (items.length === 0) {
-      updateIndex(-1);
+      const id = requestAnimationFrame(() => updateIndex(-1));
+      return () => cancelAnimationFrame(id);
     } else if (selectedIndex >= items.length) {
-      updateIndex(items.length - 1);
+      const id = requestAnimationFrame(() => updateIndex(items.length - 1));
+      return () => cancelAnimationFrame(id);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [items.length]);
 
   return [selectedIndex, setSelectedIndex];
@@ -435,14 +436,17 @@ export function useReducedMotion(): boolean {
 
   useEffect(() => {
     const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
-    setPrefersReducedMotion(mediaQuery.matches);
 
-    const handler = (event: MediaQueryListEvent) => {
+    // Use addListener pattern for initial sync + subscription in one step
+    const handler = (event: MediaQueryListEvent | MediaQueryList) => {
       setPrefersReducedMotion(event.matches);
     };
 
-    mediaQuery.addEventListener('change', handler);
-    return () => mediaQuery.removeEventListener('change', handler);
+    // Set initial value via the subscription handler
+    handler(mediaQuery);
+
+    mediaQuery.addEventListener('change', handler as (e: MediaQueryListEvent) => void);
+    return () => mediaQuery.removeEventListener('change', handler as (e: MediaQueryListEvent) => void);
   }, []);
 
   return prefersReducedMotion;

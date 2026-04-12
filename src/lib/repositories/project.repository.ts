@@ -1,4 +1,4 @@
-// @ts-nocheck
+// @ts-check
 /**
  * Project Repository
  * مستودع المشاريع

@@ -1,4 +1,4 @@
-// @ts-nocheck
+// @ts-check
 /**
  * Services Index
  * تصدير الخدمات

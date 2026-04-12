@@ -1,4 +1,4 @@
-// @ts-nocheck
+// @ts-check
 /**
  * @module audit-logger
  * @description Comprehensive audit logging system for the BluePrint platform.

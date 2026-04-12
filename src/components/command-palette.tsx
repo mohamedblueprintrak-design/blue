@@ -83,6 +83,7 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
   const [search, setSearch] = useState('');
   const [selectedIndex, setSelectedIndex] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
+  const prevSearchRef = useRef(search);
   const { lang, ar, t } = useLanguage();
   const setCurrentPage = useNavStore((s) => s.setCurrentPage);
 
@@ -128,14 +129,24 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
       requestAnimationFrame(() => {
         inputRef.current?.focus();
       });
-      setSearch('');
-      setSelectedIndex(0);
+      // Defer setState to avoid synchronous setState in effect
+      const id = requestAnimationFrame(() => {
+        setSearch('');
+        setSelectedIndex(0);
+      });
+      return () => cancelAnimationFrame(id);
     }
   }, [open]);
 
   // Reset selected index when search changes
+  const prevSearchRef = useRef(search);
   useEffect(() => {
-    setSelectedIndex(0);
+    if (prevSearchRef.current !== search) {
+      // Defer to avoid synchronous setState in effect
+      const id = requestAnimationFrame(() => setSelectedIndex(0));
+      prevSearchRef.current = search;
+      return () => cancelAnimationFrame(id);
+    }
   }, [search]);
 
   // Handle keyboard navigation

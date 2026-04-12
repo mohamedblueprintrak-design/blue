@@ -1,4 +1,4 @@
-// @ts-nocheck
+// @ts-check
 /**
  * Redis Cache Service
  * خدمة التخزين المؤقت باستخدام Redis

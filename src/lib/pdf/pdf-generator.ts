@@ -1,4 +1,4 @@
-// @ts-nocheck
+// @ts-check
 // Server-side PDF generation for BluePrint reports
 // This file should only be imported in server components/API routes
 // Uses dynamic imports for jspdf to avoid client-side bundling issues

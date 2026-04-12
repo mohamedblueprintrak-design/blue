@@ -1,4 +1,4 @@
-// @ts-nocheck
+// @ts-check
 /**
  * @module cache-manager
  * @description Production Redis cache manager for the BluePrint SaaS platform.

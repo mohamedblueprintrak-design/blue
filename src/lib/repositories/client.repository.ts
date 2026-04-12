@@ -1,4 +1,4 @@
-// @ts-nocheck
+// @ts-check
 /**
  * Client Repository
  * مستودع العملاء

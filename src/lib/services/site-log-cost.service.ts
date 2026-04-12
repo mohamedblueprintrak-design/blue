@@ -1,4 +1,4 @@
-// @ts-nocheck
+// @ts-check
 /**
  * Site Log Cost Service
  * خدمة تكلفة سجل الموقع وتكامل جدول الكميات
