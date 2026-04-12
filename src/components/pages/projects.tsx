@@ -38,6 +38,7 @@ import {
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Skeleton } from "@/components/ui/skeleton";
+import MapPicker from "@/components/ui/map-picker";
 import {
   Plus,
   Search,
@@ -133,6 +134,7 @@ export default function ProjectsList({ language }: ProjectsListProps) {
   const [typeFilter, setTypeFilter] = useState("all");
   const [viewMode, setViewMode] = useState<"table" | "grid">("table");
   const [showAddDialog, setShowAddDialog] = useState(false);
+  const [mapLocation, setMapLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [showCompare, setShowCompare] = useState(false);
   const [quickViewProject, setQuickViewProject] = useState<ProjectRow | null>(null);
@@ -233,6 +235,8 @@ export default function ProjectsList({ language }: ProjectsListProps) {
       budget: data.budget ? parseFloat(data.budget) : 0,
       startDate: data.startDate || null,
       endDate: data.endDate || null,
+      latitude: mapLocation?.lat ?? null,
+      longitude: mapLocation?.lng ?? null,
     });
   };
 
@@ -860,8 +864,8 @@ export default function ProjectsList({ language }: ProjectsListProps) {
       </Dialog>
 
       {/* Add Project Dialog */}
-      <Dialog open={showAddDialog} onOpenChange={(open) => { if (!open) reset(); setShowAddDialog(open); }}>
-        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+      <Dialog open={showAddDialog} onOpenChange={(open) => { if (!open) { reset(); setMapLocation(null); } setShowAddDialog(open); }}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{t("مشروع جديد", "New Project")}</DialogTitle>
           </DialogHeader>
@@ -936,6 +940,14 @@ export default function ProjectsList({ language }: ProjectsListProps) {
               <Label>{t("الموقع", "Location")}</Label>
               <Input {...register("location")} placeholder={isAr ? "رأس الخيمة" : "Ras Al Khaimah"} className={cn(errors.location && "border-red-500 focus:ring-red-500/20 focus:border-red-500")} />
               {errors.location && <p className="text-red-500 text-xs mt-1 flex items-center gap-1"><AlertCircle className="h-3 w-3 shrink-0" />{getErrorMessage(errors.location.message || "", isAr)}</p>}
+            </div>
+            <div className="space-y-2">
+              <MapPicker
+                value={mapLocation}
+                onChange={(v) => setMapLocation(v)}
+                label={t("موقع المشروع على الخريطة", "Project Location on Map")}
+                height="250px"
+              />
             </div>
             <div className="space-y-2">
               <Label>{isAr ? "رقم القسيمة" : "Plot Number"}</Label>

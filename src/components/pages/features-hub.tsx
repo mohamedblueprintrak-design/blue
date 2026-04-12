@@ -2,7 +2,24 @@
 
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { useQuery } from '@tanstack/react-query'
 import { cn } from '@/lib/utils'
+import dynamic from 'next/dynamic'
+
+// Dynamic import for Leaflet map (needs DOM)
+const ProjectMap = dynamic(() => import('@/components/ui/project-map'), {
+  ssr: false,
+  loading: () => (
+    <div className="w-full h-[500px] md:h-[600px] bg-slate-50 dark:bg-slate-900 rounded-lg flex items-center justify-center">
+      <div className="text-center space-y-2">
+        <div className="w-10 h-10 rounded-full bg-teal-100 dark:bg-teal-900/30 flex items-center justify-center mx-auto animate-pulse">
+          <MapPin className="h-5 w-5 text-teal-500" />
+        </div>
+        <p className="text-sm text-slate-400">جارٍ تحميل الخريطة...</p>
+      </div>
+    </div>
+  )
+})
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -54,7 +71,7 @@ import {
   ClipboardList, Archive, DollarSign, Percent
 } from 'lucide-react'
 
-// ===== OpenStreetMap Embed URL Builder =====
+// ===== OpenStreetMap Embed URL Builder (kept for visits tab) =====
 function buildMapUrl(center?: { lat: number; lng: number }): string {
   if (center) {
     const bbox = `${center.lng - 0.008},${center.lat - 0.008},${center.lng + 0.008},${center.lat + 0.008}`
@@ -62,6 +79,22 @@ function buildMapUrl(center?: { lat: number; lng: number }): string {
   }
   const markers = DEMO_PROJECTS.map(p => `marker=${p.lat},${p.lng}`).join('&')
   return `https://www.openstreetmap.org/export/embed.html?bbox=55.90,25.76,56.00,25.82&layer=mapnik&${markers}`
+}
+
+// ===== Real Project Type (from API) =====
+interface RealProject {
+  id: string
+  name: string
+  nameEn: string
+  location: string
+  type: string
+  status: string
+  progress: number
+  budget: number
+  latitude: number | null
+  longitude: number | null
+  client: { id: string; name: string; company: string } | null
+  contractor: { id: string; name: string; companyName: string; category: string } | null
 }
 
 // ===== Props =====
@@ -394,6 +427,7 @@ export default function FeaturesHub({ language }: FeaturesHubProps) {
   const [activeTab, setActiveTab] = useState<TabId>('map')
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false)
   const [selectedProject, setSelectedProject] = useState<DemoProject | null>(null)
+  const [selectedRealProject, setSelectedRealProject] = useState<RealProject | null>(null)
   const [showAddVisit, setShowAddVisit] = useState(false)
   const [showAddInteraction, setShowAddInteraction] = useState(false)
   const [showAddBoqItem, setShowAddBoqItem] = useState(false)
@@ -411,6 +445,56 @@ export default function FeaturesHub({ language }: FeaturesHubProps) {
   const [commFilter, setCommFilter] = useState({ type: 'all', clientId: 'all' })
   const [activeTimer, setActiveTimer] = useState<string | null>('t6')
   const [timerSeconds, setTimerSeconds] = useState(0)
+
+  // ===== Fetch Real Projects from API =====
+  const { data: projectsApiResponse, isLoading: isLoadingProjects } = useQuery({
+    queryKey: ['projects-map'],
+    queryFn: async () => {
+      const res = await fetch('/api/projects?limit=200')
+      if (!res.ok) throw new Error('Failed to fetch projects')
+      const data = await res.json()
+      return data.projects as RealProject[]
+    },
+    staleTime: 30000, // 30s cache
+    retry: 1,
+  })
+
+  // Merge real projects with coordinates into map data
+  const realProjectsForMap = useMemo(() => {
+    if (!projectsApiResponse) return []
+    return projectsApiResponse.filter(p => p.latitude && p.longitude).map(p => ({
+      id: p.id,
+      name: p.name,
+      nameEn: p.nameEn || '',
+      client: p.client,
+      status: p.status,
+      progress: p.progress || 0,
+      latitude: p.latitude!,
+      longitude: p.longitude!,
+      budget: p.budget || 0,
+      type: p.type,
+      location: p.location,
+    }))
+  }, [projectsApiResponse])
+
+  // Use real projects for stats if available, otherwise fallback to demo
+  const mapProjects = useMemo(() => {
+    return realProjectsForMap.length > 0 ? realProjectsForMap : DEMO_PROJECTS.map(p => ({
+      id: p.id,
+      name: p.name,
+      nameEn: p.name,
+      client: { id: p.id, name: p.client, company: '' },
+      status: p.status,
+      progress: p.progress,
+      latitude: p.lat,
+      longitude: p.lng,
+      budget: p.budget,
+      type: p.type,
+      location: '',
+    }))
+  }, [realProjectsForMap])
+
+  const hasRealData = realProjectsForMap.length > 0
 
   // Timer logic
   useEffect(() => {
@@ -445,16 +529,19 @@ export default function FeaturesHub({ language }: FeaturesHubProps) {
     const totalBillable = timeEntries.filter(t => t.isBillable).reduce((acc, t) => acc + t.duration, 0)
     const totalNonBillable = timeEntries.filter(t => !t.isBillable).reduce((acc, t) => acc + t.duration, 0)
 
+    // Use real projects for map stats if available
+    const sourceProjects = hasRealData ? realProjectsForMap : DEMO_PROJECTS
+
     return {
       totalVisitsThisMonth: visits.length,
       avgVisitDuration: avgDuration.toFixed(1),
       totalBillableHours: totalBillable,
       totalNonBillableHours: totalNonBillable,
-      activeProjects: DEMO_PROJECTS.filter(p => p.status === 'active').length,
-      delayedProjects: DEMO_PROJECTS.filter(p => p.status === 'delayed').length,
-      completedProjects: DEMO_PROJECTS.filter(p => p.status === 'completed').length,
+      activeProjects: sourceProjects.filter(p => p.status === 'active').length,
+      delayedProjects: sourceProjects.filter(p => p.status === 'delayed').length,
+      completedProjects: sourceProjects.filter(p => p.status === 'completed').length,
     }
-  }, [visits, timeEntries])
+  }, [visits, timeEntries, hasRealData, realProjectsForMap])
 
   // BOQ calculations
   const boqStats = useMemo(() => {
@@ -585,23 +672,48 @@ export default function FeaturesHub({ language }: FeaturesHubProps) {
 
   // ===== RENDER SECTIONS =====
 
-  // --- Map Section ---
-  const renderMapSection = () => (
+  // --- Map Section (Upgraded to Leaflet with Real Data) ---
+  const renderMapSection = () => {
+    // Source data for cards: use real API projects if available, otherwise demo
+    const sourceProjects = hasRealData
+      ? projectsApiResponse || []
+      : DEMO_PROJECTS
+
+    // Total budget calculation from source
+    const totalBudget = hasRealData
+      ? (projectsApiResponse || []).reduce((a, p) => a + (p.budget || 0), 0)
+      : DEMO_PROJECTS.reduce((a, p) => a + p.budget, 0)
+
+    return (
     <div className="space-y-4">
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
-          <h2 className="text-xl font-bold text-slate-900 dark:text-white">خريطة المشاريع</h2>
-          <p className="text-sm text-slate-500">جميع مواقع المشاريع في رأس الخيمة</p>
+          <h2 className="text-xl font-bold text-slate-900 dark:text-white">
+            {language === 'ar' ? 'خريطة المشاريع' : 'Projects Map'}
+          </h2>
+          <p className="text-sm text-slate-500">
+            {hasRealData
+              ? (language === 'ar' ? 'جميع المشاريع المسجلة على الخريطة' : 'All registered projects on the map')
+              : (language === 'ar' ? 'جميع مواقع المشاريع في رأس الخيمة (بيانات تجريبية)' : 'All project locations in Ras Al Khaimah (demo data)')}
+          </p>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
           {['active', 'delayed', 'completed', 'on_hold'].map(status => (
             <Badge key={status} variant="outline" className="flex items-center gap-1.5 text-xs cursor-pointer hover:bg-accent">
               <span className={cn('w-2.5 h-2.5 rounded-full', getStatusColor(status))} />
-              {getStatusLabel(status)} ({DEMO_PROJECTS.filter(p => p.status === status).length})
+              {getStatusLabel(status)} ({mapProjects.filter(p => p.status === status).length})
             </Badge>
           ))}
         </div>
       </div>
+
+      {/* Data source indicator */}
+      {hasRealData && (
+        <div className="flex items-center gap-2 text-xs text-teal-600 dark:text-teal-400 bg-teal-50 dark:bg-teal-900/20 px-3 py-1.5 rounded-lg w-fit">
+          <div className="w-2 h-2 rounded-full bg-teal-500 animate-pulse" />
+          {language === 'ar' ? 'بيانات حقيقية من قاعدة البيانات' : 'Live data from database'} — {realProjectsForMap.length} {language === 'ar' ? 'مشروع على الخريطة' : 'projects on map'}
+        </div>
+      )}
 
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
@@ -612,7 +724,7 @@ export default function FeaturesHub({ language }: FeaturesHubProps) {
                 <TrendingUp className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
               </div>
               <div>
-                <p className="text-xs text-slate-500">مشاريع نشطة</p>
+                <p className="text-xs text-slate-500">{language === 'ar' ? 'مشاريع نشطة' : 'Active'}</p>
                 <p className="text-xl font-bold text-slate-900 dark:text-white">{stats.activeProjects}</p>
               </div>
             </div>
@@ -625,7 +737,7 @@ export default function FeaturesHub({ language }: FeaturesHubProps) {
                 <AlertTriangle className="h-5 w-5 text-red-600 dark:text-red-400" />
               </div>
               <div>
-                <p className="text-xs text-slate-500">مشاريع متأخرة</p>
+                <p className="text-xs text-slate-500">{language === 'ar' ? 'مشاريع متأخرة' : 'Delayed'}</p>
                 <p className="text-xl font-bold text-slate-900 dark:text-white">{stats.delayedProjects}</p>
               </div>
             </div>
@@ -638,7 +750,7 @@ export default function FeaturesHub({ language }: FeaturesHubProps) {
                 <CheckCircle2 className="h-5 w-5 text-blue-600 dark:text-blue-400" />
               </div>
               <div>
-                <p className="text-xs text-slate-500">مشاريع مكتملة</p>
+                <p className="text-xs text-slate-500">{language === 'ar' ? 'مشاريع مكتملة' : 'Completed'}</p>
                 <p className="text-xl font-bold text-slate-900 dark:text-white">{stats.completedProjects}</p>
               </div>
             </div>
@@ -651,53 +763,144 @@ export default function FeaturesHub({ language }: FeaturesHubProps) {
                 <DollarSign className="h-5 w-5 text-teal-600 dark:text-teal-400" />
               </div>
               <div>
-                <p className="text-xs text-slate-500">إجمالي الميزانية</p>
-                <p className="text-lg font-bold text-slate-900 dark:text-white">{formatCurrency(DEMO_PROJECTS.reduce((a, p) => a + p.budget, 0))}</p>
+                <p className="text-xs text-slate-500">{language === 'ar' ? 'إجمالي الميزانية' : 'Total Budget'}</p>
+                <p className="text-lg font-bold text-slate-900 dark:text-white">{formatCurrency(totalBudget)}</p>
               </div>
             </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Map */}
+      {/* Interactive Leaflet Map */}
       <Card className="border-slate-200 dark:border-slate-700/50 overflow-hidden">
         <CardContent className="p-0">
-          <div className="h-[500px] md:h-[600px] relative" style={{ direction: 'ltr' }}>
-            {selectedProject ? (
-              <>
-                <iframe
-                  src={buildMapUrl({ lat: selectedProject.lat, lng: selectedProject.lng })}
-                  className="w-full h-full border-0"
-                  title="خريطة المشروع"
-                  loading="lazy"
-                />
-                <div className="absolute top-3 right-3 z-10">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="bg-white/90 backdrop-blur-sm shadow-md"
-                    onClick={() => setSelectedProject(null)}
-                  >
-                    <MapPin className="h-4 w-4 me-1" />
-                    عرض الكل
-                  </Button>
-                </div>
-              </>
-            ) : (
-              <iframe
-                src={buildMapUrl()}
-                className="w-full h-full border-0"
-                title="خريطة جميع المشاريع"
-                loading="lazy"
-              />
-            )}
+          <div style={{ direction: 'ltr' }}>
+            <ProjectMap
+              projects={mapProjects}
+              selectedProject={selectedRealProject || (selectedProject ? {
+                id: selectedProject.id,
+                name: selectedProject.name,
+                nameEn: selectedProject.name,
+                client: { id: selectedProject.id, name: selectedProject.client, company: '' },
+                status: selectedProject.status,
+                progress: selectedProject.progress,
+                latitude: selectedProject.lat,
+                longitude: selectedProject.lng,
+                budget: selectedProject.budget,
+                type: selectedProject.type,
+                location: '',
+              } : null)}
+              onSelectProject={(p) => {
+                if (p && hasRealData) {
+                  setSelectedRealProject(p)
+                  setSelectedProject(null)
+                } else {
+                  setSelectedRealProject(null)
+                  setSelectedProject(p ? {
+                    id: p.id,
+                    name: p.name,
+                    client: p.client?.name || '',
+                    status: p.status,
+                    progress: p.progress,
+                    lat: p.latitude,
+                    lng: p.longitude,
+                    budget: p.budget,
+                    type: p.type || '',
+                    startDate: '',
+                    endDate: '',
+                  } : null)
+                }
+              }}
+              height="500px"
+              language={language}
+            />
           </div>
         </CardContent>
       </Card>
 
       {/* Project Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-        {DEMO_PROJECTS.map((project, idx) => (
+        {hasRealData ? (projectsApiResponse || []).map((project, idx) => {
+          const name = language === 'ar' ? project.name : (project.nameEn || project.name)
+          const clientName = project.client?.name || ''
+          const clientCompany = project.client?.company || ''
+          const isSelected = selectedRealProject?.id === project.id
+          const hasCoords = project.latitude && project.longitude
+
+          return (
+            <motion.div
+              key={project.id}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: idx * 0.04 }}
+            >
+              <Card className={cn(
+                'border-slate-200 dark:border-slate-700/50 hover:shadow-lg transition-shadow cursor-pointer',
+                isSelected && 'ring-2 ring-teal-500',
+                !hasCoords && 'opacity-60'
+              )}
+                onClick={() => {
+                  if (hasCoords) {
+                    setSelectedRealProject(isSelected ? null : {
+                      id: project.id,
+                      name: project.name,
+                      nameEn: project.nameEn,
+                      client: project.client,
+                      status: project.status,
+                      progress: project.progress || 0,
+                      latitude: project.latitude!,
+                      longitude: project.longitude!,
+                      budget: project.budget || 0,
+                      type: project.type,
+                      location: project.location,
+                    })
+                    setSelectedProject(null)
+                  }
+                }}>
+                <CardContent className="p-4">
+                  <div className="flex items-start justify-between mb-3">
+                    <div className="flex items-center gap-2">
+                      <div className={cn('w-3 h-3 rounded-full', getStatusColor(project.status))} />
+                      <h3 className="font-bold text-sm text-slate-900 dark:text-white">{name}</h3>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      {hasCoords && (
+                        <MapPin className="h-3 w-3 text-teal-500" />
+                      )}
+                      <Badge variant="outline" className={cn('text-[10px]', getStatusBg(project.status))}>
+                        {getStatusLabel(project.status)}
+                      </Badge>
+                    </div>
+                  </div>
+                  <p className="text-xs text-slate-500 mb-3">
+                    {clientName}{clientCompany ? ` — ${clientCompany}` : ''} {project.type ? `• ${project.type}` : ''}
+                  </p>
+                  {project.location && (
+                    <p className="text-xs text-slate-400 mb-2 flex items-center gap-1">
+                      <MapPin className="h-3 w-3 shrink-0" />
+                      {project.location}
+                    </p>
+                  )}
+                  <div className="mb-2">
+                    <div className="flex items-center justify-between text-xs mb-1">
+                      <span className="text-slate-600 dark:text-slate-400">{language === 'ar' ? 'التقدم' : 'Progress'}</span>
+                      <span className="font-medium text-slate-900 dark:text-white">{project.progress || 0}%</span>
+                    </div>
+                    <Progress value={project.progress || 0} className="h-2" />
+                  </div>
+                  {(project.budget || 0) > 0 && (
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-slate-500">{formatCurrency(project.budget || 0)}</span>
+                      {!hasCoords && (
+                        <span className="text-amber-500 text-[10px]">{language === 'ar' ? 'بدون موقع' : 'No location'}</span>
+                      )}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </motion.div>
+          )
+        }) : DEMO_PROJECTS.map((project, idx) => (
           <motion.div
             key={project.id}
             initial={{ opacity: 0, y: 20 }}
@@ -733,8 +936,19 @@ export default function FeaturesHub({ language }: FeaturesHubProps) {
           </motion.div>
         ))}
       </div>
+
+      {/* Tip for adding location */}
+      {hasRealData && (projectsApiResponse || []).some(p => !p.latitude || !p.longitude) && (
+        <div className="text-center text-xs text-slate-400 bg-slate-50 dark:bg-slate-800/50 rounded-lg p-3">
+          <MapPin className="h-4 w-4 inline me-1 text-amber-500" />
+          {language === 'ar'
+            ? 'بعض المشاريع ليس لها موقع على الخريطة. يمكنك إضافة الموقع عند تعديل المشروع أو إنشاء مشروع جديد مع تحديد الموقع على الخريطة.'
+            : 'Some projects have no map location. You can add a location when editing a project or creating a new one with the map picker.'}
+        </div>
+      )}
     </div>
-  )
+    )
+  }
 
   // --- Visits Section ---
   const renderVisitsSection = () => (

@@ -223,6 +223,8 @@ model Project {
   clientId      String
   contractorId  String?
   location      String   @default("")
+  latitude      Float?
+  longitude     Float?
   plotNumber    String   @default("")
   type          String   @default("villa") // villa, building, commercial, industrial
   status        String   @default("active") // active, completed, delayed, on_hold, cancelled
