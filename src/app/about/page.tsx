@@ -12,17 +12,15 @@ import {
   Shield,
   Briefcase,
   GraduationCap,
+  MapPin,
 } from "lucide-react";
 import PublicHeader from "@/components/layout/public-header";
 import PublicFooter from "@/components/layout/public-footer";
 
 const TEAM_MEMBERS = [
-  { name: "م. أحمد الراشد", title: "المدير العام ومؤسس المكتب", specialty: "هندسة معمارية - 20+ سنة خبرة" },
-  { name: "م. سارة المنصوري", title: "مديرة قسم التصميم المعماري", specialty: "تصميم معماري - 15+ سنة خبرة" },
-  { name: "م. خالد الحربي", title: "مدير قسم التصميم الإنشائي", specialty: "هندسة إنشائية - 18+ سنة خبرة" },
-  { name: "م. فاطمة الزيودي", title: "مديرة قسم الكهرباء والميكانيك", specialty: "هندسة MEP - 12+ سنة خبرة" },
-  { name: "م. عمر الشامسي", title: "مدير التراخيص والتنسيق الحكومي", specialty: "إدارة مشاريع - 10+ سنة خبرة" },
-  { name: "م. نورة الكعبي", title: "مديرة إشراف التنفيذ", specialty: "إشراف هندسي - 14+ سنة خبرة" },
+  { name: "م. جراح الطير", title: "المدير العام ومؤسس المكتب", specialty: "هندسة مدنية - إدارة مشاريع" },
+  { name: "م. دينا الغالي", title: "مديرة قسم التصميم المعماري", specialty: "تصميم معماري" },
+  { name: "م. شريف", title: "مدير قسم التصميم الإنشائي", specialty: "هندسة إنشائية" },
 ];
 
 const LICENSES = [
@@ -71,7 +69,7 @@ export default function AboutPage() {
                 من نحن
               </motion.h1>
               <motion.p variants={fadeInUp} custom={2} className="mt-4 text-lg text-slate-400 max-w-2xl mx-auto leading-relaxed">
-                أكثر من 15 عاماً من الخبرة في تقديم الحلول الهندسية المتميزة في رأس الخيمة
+مكتب استشارات هندسية متخصص في تقديم الحلول الهندسية المتميزة في رأس الخيمة
               </motion.p>
             </motion.div>
           </div>
@@ -86,10 +84,10 @@ export default function AboutPage() {
               </motion.h2>
               <motion.div variants={fadeInUp} custom={1} className="space-y-4 text-slate-600 leading-relaxed">
                 <p>
-                  تأسس مكتب BluePrint للاستشارات الهندسية في رأس الخيمة عام 2009 برؤية واضحة: تقديم خدمات هندسية عالية الجودة تجمع بين الإبداع والدقة والموثوقية.
+                  تأسس مكتب BluePrint للاستشارات الهندسية في رأس الخيمة عام 2025 برؤية واضحة: تقديم خدمات هندسية عالية الجودة تجمع بين الإبداع والدقة والموثوقية.
                 </p>
                 <p>
-                  بدأنا كفريق صغير من المهندسين المتخصصين، وتطورنا على مر السنين ليصبح مكتبنا واحداً من أبرز مكاتب الاستشارات الهندسية في إمارة رأس الخيمة. نفخر بإنجاز أكثر من 200 مشروع متنوع يشمل الفلل السكنية والمجمعات التجارية والمنشآت الصناعية.
+                  نسعى لأن نكون من أبرز مكاتب الاستشارات الهندسية في إمارة رأس الخيمة، ونعمل على تقديم أفضل الحلول الهندسية لمشاريع متنوعة تشمل الفلل السكنية والمجمعات التجارية والمنشآت الصناعية.
                 </p>
                 <p>
                   نحن نؤمن بأن كل مشروع هو فرصة لترك بصمة إيجابية في نسيج العمران في رأس الخيمة. لذلك نحرص على تقديم خدمات تتجاوز توقعات عملائنا، مع الالتزام بأعلى معايير الجودة والسلامة والاستدامة.
@@ -99,10 +97,10 @@ export default function AboutPage() {
               {/* Stats */}
               <motion.div variants={fadeInUp} custom={2} className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-10">
                 {[
-                  { value: "+15", label: "سنة خبرة", icon: Clock },
-                  { value: "+200", label: "مشروع مكتمل", icon: Building2 },
-                  { value: "+150", label: "عميل", icon: Users },
-                  { value: "+30", label: "مهندس متخصص", icon: GraduationCap },
+                  { value: "2025", label: "سنة التأسيس", icon: Clock },
+                  { value: "6", label: "تخصصات هندسية", icon: Building2 },
+                  { value: "RAK", label: "رأس الخيمة", icon: MapPin },
+                  { value: "ISO", label: "ISO 9001:2015", icon: GraduationCap },
                 ].map((stat) => {
                   const Icon = stat.icon;
                   return (

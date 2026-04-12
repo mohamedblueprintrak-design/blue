@@ -123,7 +123,7 @@ async function main() {
       name: 'بلوبرنت للاستشارات الهندسية',
       nameEn: 'BluePrint Engineering Consultancy',
       logo: '',
-      email: 'info@blueprint.ae',
+      email: 'info.blueprintrak@gmail.com',
       phone: '+971-7-234-5678',
       address: 'رأس الخيمة، الإمارات العربية المتحدة',
       taxNumber: '100000000000000',

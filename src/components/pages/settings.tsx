@@ -253,7 +253,7 @@ export default function SettingsPage({ language: lang }: Props) {
                     value={(formData.email as string) || settings?.email || ""}
                     onChange={(e) => updateField("email", e.target.value)}
                     dir="ltr"
-                    placeholder="info@blueprint.ae"
+                    placeholder="info.blueprintrak@gmail.com"
                     className="h-10 rounded-lg"
                   />
                 </div>

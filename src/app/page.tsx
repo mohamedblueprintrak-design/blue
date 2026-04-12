@@ -99,8 +99,8 @@ const SERVICES = [
 const STATS = [
   { value: 250, label: "مشروع مكتمل", icon: Building2, suffix: "+" },
   { value: 180, label: "عميل راضٍ", icon: Users, suffix: "+" },
-  { value: 15, label: "سنة خبرة", icon: Award, suffix: "+" },
-  { value: 6, label: "تخصصات هندسية", icon: Compass, suffix: "" },
+  { value: 6, label: "تخصصات هندسية", icon: Award, suffix: "" },
+  { value: 50, label: "مشروع قيد التنفيذ", icon: Compass, suffix: "+" },
 ];
 
 // ==================== WHY CHOOSE US ====================
@@ -108,7 +108,7 @@ const WHY_US = [
   {
     icon: Users,
     title: "فريق مهني متخصص",
-    desc: "مهندسون معتمدون بخبرة واسعة تتجاوز 15 عاماً في مشاريع رأس الخيمة والإمارات",
+    desc: "مهندسون معتمدون ذوو خبرات واسعة ومتنوعة في مشاريع رأس الخيمة والإمارات، يقدمون أعلى مستويات الجودة والإتقان",
   },
   {
     icon: FileCheck,
@@ -408,7 +408,7 @@ export default function LandingPage() {
               custom={2}
               className="mt-6 text-lg text-slate-400 max-w-2xl mx-auto leading-relaxed"
             >
-              نقدم خدمات هندسية شاملة من التصميم حتى التسليم، بخبرة تتجاوز 15 عاماً في سوق رأس الخيمة. فريقنا المتخصص يضمن أعلى جودة ومطابقة للأنظمة والمتطلبات.
+              نقدم خدمات هندسية شاملة من التصميم حتى التسليم، بفريق متخصص ذو خبرات واسعة في سوق رأس الخيمة. نلتزم بأعلى معايير الجودة ومطابقة الأنظمة والمتطلبات لكل مشروع.
             </motion.p>
 
             {/* CTA Buttons */}
@@ -423,7 +423,7 @@ export default function LandingPage() {
                   طلب عرض سعر
                 </Button>
               </Link>
-              <a href="tel:+97171234567">
+              <a href="tel:+971501611234">
                 <Button
                   variant="outline"
                   className="w-full sm:w-auto px-8 h-12 text-base border-slate-600 text-slate-300 hover:bg-slate-800 hover:text-white rounded-xl"
@@ -443,7 +443,7 @@ export default function LandingPage() {
               {[
                 { label: "+250 مشروع", icon: Building2 },
                 { label: "+180 عميل", icon: Users },
-                { label: "15+ سنة", icon: Award },
+                { label: "فريق متخصص", icon: Award },
               ].map((item) => (
                 <div key={item.label} className="flex items-center gap-2 text-teal-400/80">
                   <item.icon className="w-4 h-4" />
@@ -709,7 +709,7 @@ export default function LandingPage() {
                   </div>
                   <div>
                     <div className="text-white font-medium">{isAr("اتصل بنا", "Call Us")}</div>
-                    <div className="text-slate-400 text-sm mt-1" dir="ltr">+971 7 123 4567</div>
+                    <div className="text-slate-400 text-sm mt-1" dir="ltr">+971 50 161 1234</div>
                   </div>
                 </div>
                 <div className="flex items-start gap-4">
@@ -718,7 +718,7 @@ export default function LandingPage() {
                   </div>
                   <div>
                     <div className="text-white font-medium">{isAr("البريد الإلكتروني", "Email")}</div>
-                    <div className="text-slate-400 text-sm mt-1">info@blueprint.ae</div>
+                    <div className="text-slate-400 text-sm mt-1">info.blueprintrak@gmail.com</div>
                   </div>
                 </div>
                 <div className="flex items-start gap-4">
@@ -736,7 +736,16 @@ export default function LandingPage() {
                   </div>
                   <div>
                     <div className="text-white font-medium">{isAr("ساعات العمل", "Working Hours")}</div>
-                    <div className="text-slate-400 text-sm mt-1">{isAr("الأحد - الخميس: 8:00 ص - 6:00 م", "Sun - Thu: 8:00 AM - 6:00 PM")}</div>
+                    <div className="text-slate-400 text-sm mt-1">{isAr("الأحد - الخميس: 8:30 ص - 2:00 م / 5:00 م - 8:30 م", "Sun - Thu: 8:30 AM - 2:00 PM / 5:00 PM - 8:30 PM")}</div>
+                  </div>
+                </div>
+                <div className="flex items-start gap-4">
+                  <div className="w-10 h-10 rounded-xl bg-teal-500/10 flex items-center justify-center shrink-0 mt-0.5">
+                    <Clock className="w-5 h-5 text-teal-400" />
+                  </div>
+                  <div>
+                    <div className="text-white font-medium">{isAr("الجمعة", "Friday")}</div>
+                    <div className="text-slate-400 text-sm mt-1">{isAr("8:00 ص - 12:00 م", "8:00 AM - 12:00 PM")}</div>
                   </div>
                 </div>
               </motion.div>
@@ -875,13 +884,13 @@ export default function LandingPage() {
               </p>
               {/* Social Media */}
               <div className="flex items-center gap-3 mt-4">
-                <a href="https://wa.me/97171234567" target="_blank" rel="noopener noreferrer" className="h-9 w-9 rounded-lg bg-slate-800 hover:bg-emerald-600 flex items-center justify-center transition-all duration-200 hover:scale-110 hover:shadow-lg hover:shadow-emerald-500/20" title="واتساب">
-                  <Phone className="w-4 h-4 text-slate-400 hover:text-white" />
+                <a href="https://wa.me/971501611234" target="_blank" rel="noopener noreferrer" className="h-9 w-9 rounded-lg bg-slate-800 hover:bg-emerald-600 flex items-center justify-center transition-all duration-200 hover:scale-110 hover:shadow-lg hover:shadow-emerald-500/20" title="واتساب">
+                  <MessageCircle className="w-4 h-4 text-slate-400 hover:text-white" />
                 </a>
-                <a href="mailto:info@blueprint.ae" className="h-9 w-9 rounded-lg bg-slate-800 hover:bg-blue-600 flex items-center justify-center transition-all duration-200 hover:scale-110 hover:shadow-lg hover:shadow-blue-500/20" title="البريد الإلكتروني">
+                <a href="mailto:info.blueprintrak@gmail.com" className="h-9 w-9 rounded-lg bg-slate-800 hover:bg-blue-600 flex items-center justify-center transition-all duration-200 hover:scale-110 hover:shadow-lg hover:shadow-blue-500/20" title="البريد الإلكتروني">
                   <Mail className="w-4 h-4 text-slate-400 hover:text-white" />
                 </a>
-                <a href="tel:+97171234567" className="h-9 w-9 rounded-lg bg-slate-800 hover:bg-teal-600 flex items-center justify-center transition-all duration-200 hover:scale-110 hover:shadow-lg hover:shadow-teal-500/20" title="اتصال">
+                <a href="tel:+971501611234" className="h-9 w-9 rounded-lg bg-slate-800 hover:bg-teal-600 flex items-center justify-center transition-all duration-200 hover:scale-110 hover:shadow-lg hover:shadow-teal-500/20" title="اتصال">
                   <Phone className="w-4 h-4 text-slate-400 hover:text-white" />
                 </a>
                 <a href="#" className="h-9 w-9 rounded-lg bg-slate-800 hover:bg-sky-600 flex items-center justify-center transition-all duration-200 hover:scale-110 hover:shadow-lg hover:shadow-sky-500/20" title="انستغرام">
@@ -925,15 +934,19 @@ export default function LandingPage() {
                 </li>
                 <li className="flex items-center gap-2 text-sm text-slate-400">
                   <Phone className="w-4 h-4 text-teal-500 shrink-0" />
-                  <span dir="ltr">+971 7 123 4567</span>
+                  <span dir="ltr">+971 50 161 1234</span>
                 </li>
                 <li className="flex items-center gap-2 text-sm text-slate-400">
                   <Mail className="w-4 h-4 text-teal-500 shrink-0" />
-                  info@blueprint.ae
+                  info.blueprintrak@gmail.com
                 </li>
                 <li className="flex items-center gap-2 text-sm text-slate-400">
                   <Clock className="w-4 h-4 text-teal-500 shrink-0" />
-                  {isAr("الأحد - الخميس: 8-6", "Sun - Thu: 8-6")}
+                  {isAr("الأحد - الخميس: 8:30-2 / 5-8:30", "Sun - Thu: 8:30-2 / 5-8:30")}
+                </li>
+                <li className="flex items-center gap-2 text-sm text-slate-400">
+                  <Clock className="w-4 h-4 text-teal-500 shrink-0" />
+                  {isAr("الجمعة: 8:00 ص - 12:00 م", "Friday: 8:00 AM - 12:00 PM")}
                 </li>
               </ul>
             </div>
@@ -970,10 +983,10 @@ export default function LandingPage() {
 
       {/* ===== FLOATING WHATSAPP ===== */}
       <a
-        href="https://wa.me/97171234567?text=%D9%85%D8%B1%D8%AD%D8%A8%D8%A7%D8%8C%D8%8C%D8%8C%D8%8C%D8%8C%D8%8C%D8%8C%20%D8%A3%D8%B1%D9%8A%D8%AF%20%D8%A7%D9%84%D8%A7%D8%B3%D8%AA%D9%81%D8%B3%D8%A7%D8%B1%20%D8%B9%D9%86%20%D8%AE%D8%AF%D9%85%D8%A7%D8%AA%D9%83%D9%85"
+        href="https://wa.me/971501611234?text=%D9%85%D8%B1%D8%AD%D8%A8%D8%A7%D8%8C%D8%8C%D8%8C%D8%8C%D8%8C%D8%8C%D8%8C%20%D8%A3%D8%B1%D9%8A%D8%AF%20%D8%A7%D9%84%D8%A7%D8%B3%D8%AA%D9%81%D8%B3%D8%A7%D8%B1%20%D8%B9%D9%86%20%D8%AE%D8%AF%D9%85%D8%A7%D8%AA%D9%83%D9%85"
         target="_blank"
         rel="noopener noreferrer"
-        className="fixed bottom-6 left-6 z-50 w-14 h-14 bg-green-500 hover:bg-green-600 rounded-full flex items-center justify-center shadow-xl shadow-green-500/30 hover:shadow-green-500/50 transition-all duration-300 hover:scale-110 group"
+        className="fixed bottom-6 left-6 z-[60] w-14 h-14 bg-green-500 hover:bg-green-600 rounded-full flex items-center justify-center shadow-xl shadow-green-500/30 hover:shadow-green-500/50 transition-all duration-300 hover:scale-110 group"
         aria-label="تواصل عبر واتساب"
       >
         <MessageCircle className="w-7 h-7 text-white" />

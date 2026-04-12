@@ -355,7 +355,7 @@ export default function ServicesPage() {
                   <ArrowLeft className="w-4 h-4 ms-2 rotate-180" />
                 </Button>
               </Link>
-              <a href="tel:+97171234567">
+              <a href="tel:+971501611234">
                 <Button
                   variant="outline"
                   className="w-full sm:w-auto px-8 h-12 border-white/30 text-white hover:bg-white/10 rounded-xl text-base"

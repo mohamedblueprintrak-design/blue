@@ -427,12 +427,12 @@ export default function PortalPage() {
             <div className="mt-8 text-center space-y-2">
               <p className="text-sm text-slate-500">هل تحتاج مساعدة؟</p>
               <div className="flex items-center justify-center gap-4">
-                <a href="tel:+97171234567" className="flex items-center gap-1.5 text-sm text-teal-600 hover:text-teal-700">
+                <a href="tel:+971501611234" className="flex items-center gap-1.5 text-sm text-teal-600 hover:text-teal-700">
                   <Phone className="h-3.5 w-3.5" />
                   <span dir="ltr">+971 7 123 4567</span>
                 </a>
                 <a
-                  href="https://wa.me/97171234567"
+                  href="https://wa.me/971501611234"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center gap-1.5 text-sm text-green-600 hover:text-green-700"
@@ -755,18 +755,18 @@ export default function PortalPage() {
               <div className="bg-gradient-to-r from-teal-600 to-cyan-600 p-6 text-white">
                 <h3 className="text-base font-bold mb-4">تواصل معنا</h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <a href="tel:+97171234567" className="flex items-center gap-3 bg-white/10 hover:bg-white/20 rounded-lg p-3 transition-colors">
+                  <a href="tel:+971501611234" className="flex items-center gap-3 bg-white/10 hover:bg-white/20 rounded-lg p-3 transition-colors">
                     <Phone className="h-5 w-5 shrink-0" />
                     <div>
                       <p className="text-xs text-white/70">الهاتف</p>
                       <p className="text-sm font-medium" dir="ltr">+971 7 123 4567</p>
                     </div>
                   </a>
-                  <a href="mailto:info@blueprint.ae" className="flex items-center gap-3 bg-white/10 hover:bg-white/20 rounded-lg p-3 transition-colors">
+                  <a href="mailto:info.blueprintrak@gmail.com" className="flex items-center gap-3 bg-white/10 hover:bg-white/20 rounded-lg p-3 transition-colors">
                     <Mail className="h-5 w-5 shrink-0" />
                     <div>
                       <p className="text-xs text-white/70">البريد الإلكتروني</p>
-                      <p className="text-sm font-medium">info@blueprint.ae</p>
+                      <p className="text-sm font-medium">info.blueprintrak@gmail.com</p>
                     </div>
                   </a>
                   <a
