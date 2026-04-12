@@ -9,11 +9,7 @@
 // Audit Service
 export { 
   logAudit, 
-  getEntityAuditLogs, 
-  getUserAuditLogs, 
-  getOrganizationAuditLogs,
-  cleanupOldAuditLogs,
-  type AuditLogData 
+  type AuditLogParams 
 } from './audit.service';
 
 // Project Service

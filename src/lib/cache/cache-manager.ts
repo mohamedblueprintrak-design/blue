@@ -28,6 +28,20 @@ interface CacheEntry<T = unknown> {
   tags: string[];
 }
 
+/** Minimal Redis client interface used by CacheManager */
+interface RedisClient {
+  on(event: string, callback: (...args: unknown[]) => void): void;
+  connect(): Promise<void>;
+  get(key: string): Promise<string | null>;
+  set(key: string, value: string, options?: { ex?: number }): Promise<unknown>;
+  sAdd(key: string, ...members: string[]): Promise<unknown>;
+  del(...keys: string[]): Promise<unknown>;
+  keys(pattern: string): Promise<string[]>;
+  sMembers(key: string): Promise<string[]>;
+  exists(key: string): Promise<number>;
+  quit(): Promise<unknown>;
+}
+
 /** Statistics about cache operations */
 export interface CacheStats {
   hits: number;
@@ -194,6 +208,7 @@ class InMemoryCache {
  */
 export class CacheManager {
   private memoryCache: InMemoryCache;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private redisClient: any = null;
   private redisAvailable = false;
   private redisConnecting = false;
@@ -649,7 +664,7 @@ export const projectCache: CacheNamespace = new Proxy({} as CacheNamespace, {
   get(_target, prop) {
     const manager = getCacheManager();
     const ns = createCacheNamespace('projects', manager);
-    return (ns as Record<string | symbol, unknown>)[prop];
+    return (ns as unknown as Record<string | symbol, unknown>)[prop];
   },
 });
 
@@ -658,7 +673,7 @@ export const taskCache: CacheNamespace = new Proxy({} as CacheNamespace, {
   get(_target, prop) {
     const manager = getCacheManager();
     const ns = createCacheNamespace('tasks', manager);
-    return (ns as Record<string | symbol, unknown>)[prop];
+    return (ns as unknown as Record<string | symbol, unknown>)[prop];
   },
 });
 
@@ -667,7 +682,7 @@ export const invoiceCache: CacheNamespace = new Proxy({} as CacheNamespace, {
   get(_target, prop) {
     const manager = getCacheManager();
     const ns = createCacheNamespace('invoices', manager);
-    return (ns as Record<string | symbol, unknown>)[prop];
+    return (ns as unknown as Record<string | symbol, unknown>)[prop];
   },
 });
 
@@ -676,7 +691,7 @@ export const userCache: CacheNamespace = new Proxy({} as CacheNamespace, {
   get(_target, prop) {
     const manager = getCacheManager();
     const ns = createCacheNamespace('users', manager);
-    return (ns as Record<string | symbol, unknown>)[prop];
+    return (ns as unknown as Record<string | symbol, unknown>)[prop];
   },
 });
 
@@ -685,7 +700,7 @@ export const dashboardCache: CacheNamespace = new Proxy({} as CacheNamespace, {
   get(_target, prop) {
     const manager = getCacheManager();
     const ns = createCacheNamespace('dashboard', manager);
-    return (ns as Record<string | symbol, unknown>)[prop];
+    return (ns as unknown as Record<string | symbol, unknown>)[prop];
   },
 });
 
@@ -695,7 +710,7 @@ export const dashboardCache: CacheNamespace = new Proxy({} as CacheNamespace, {
 export const cacheManager: CacheManager = new Proxy({} as CacheManager, {
   get(_target, prop) {
     const manager = getCacheManager();
-    const value = (manager as Record<string | symbol, unknown>)[prop];
+    const value = (manager as unknown as Record<string | symbol, unknown>)[prop];
     if (typeof value === 'function') {
       return value.bind(manager);
     }

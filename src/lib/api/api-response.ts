@@ -371,7 +371,7 @@ export function validationErrorResponse(
 ): NextResponse<ValidationErrorResponse> {
   const fields: ValidationErrorField[] =
     errors instanceof ZodError
-      ? errors.errors.map((err) => ({
+      ? errors.issues.map((err) => ({
           field: String(err.path.join('.')),
           message: err.message,
           code: err.code,

@@ -177,14 +177,14 @@ export class ProjectRepository extends BaseRepository<Project> {
   /**
    * Get count of projects by status for an organization
    */
-  async countByStatus(organizationId: string): Promise<Record<string, number>> {
+  async countByStatus(_organizationId: string): Promise<Record<string, number>> {
     const counts = await this.prisma.project.groupBy({
       by: ['status'],
-      where: { organizationId, deletedAt: null },
+      where: { deletedAt: null },
       _count: { status: true }
     });
     return counts.reduce((acc, item) => {
-      acc[item.status] = item._count.status;
+      acc[item.status] = (item._count as any).status ?? 0;
       return acc;
     }, {} as Record<string, number>);
   }

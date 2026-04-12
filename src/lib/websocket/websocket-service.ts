@@ -8,7 +8,7 @@
 
 import { Server as HTTPServer } from 'http';
 import { Server as HTTPSServer } from 'https';
-import { Server as IOServer, Socket } from 'socket.io';
+import { Server as IOServer, Socket, DefaultEventsMap } from 'socket.io';
 import { verify } from 'jsonwebtoken';
 import { db } from '@/lib/db';
 import {
@@ -17,13 +17,17 @@ import {
   ProjectPayload,
   TaskPayload,
   RoomType,
+  ClientToServerEvents,
+  ServerToClientEvents,
 } from './types';
 
 // ============================================
 // WebSocket Server Instance
 // ============================================
 
-let io: IOServer<any, any, any, SocketData> | null = null;
+type TypedIOServer = IOServer<ClientToServerEvents, ServerToClientEvents, DefaultEventsMap, SocketData>;
+
+let io: TypedIOServer | null = null;
 
 // ============================================
 // Connected Users Tracking
@@ -48,7 +52,7 @@ const userSockets = new Map<string, Set<string>>(); // userId -> Set of socketId
 export function initializeWebSocket(
   server: HTTPServer | HTTPSServer,
   corsOrigin: string | string[] = '*'
-): IOServer<any, any, any, SocketData> {
+): TypedIOServer {
   if (io) {
     return io;
   }
@@ -65,7 +69,7 @@ export function initializeWebSocket(
   });
 
   // Authentication middleware
-  io.use(async (socket: any, next: any) => {
+  io.use(async (socket: Socket<ClientToServerEvents, ServerToClientEvents, DefaultEventsMap, SocketData>, next: (err?: Error) => void) => {
     try {
       const token = socket.handshake.auth.token || socket.handshake.headers.authorization?.replace('Bearer ', '');
 
@@ -122,7 +126,7 @@ export function initializeWebSocket(
   });
 
   // Connection handler
-  io.on('connection', (socket: any) => {
+  io.on('connection', (socket: Socket<ClientToServerEvents, ServerToClientEvents, DefaultEventsMap, SocketData>) => {
     handleConnection(socket);
   });
 
@@ -133,7 +137,7 @@ export function initializeWebSocket(
 // Connection Handler
 // ============================================
 
-function handleConnection(socket: Socket<any, any, any, SocketData>) {
+function handleConnection(socket: Socket<ClientToServerEvents, ServerToClientEvents, DefaultEventsMap, SocketData>) {
   const { userId, organizationId, userName } = socket.data;
 
   console.log(`[WebSocket] User connected: ${userName} (${userId})`);
@@ -182,7 +186,7 @@ function handleConnection(socket: Socket<any, any, any, SocketData>) {
 // Event Handlers
 // ============================================
 
-function setupEventHandlers(socket: Socket<any, any, any, SocketData>) {
+function setupEventHandlers(socket: Socket<ClientToServerEvents, ServerToClientEvents, DefaultEventsMap, SocketData>) {
   // Join organization room
   socket.on('join_organization', (organizationId: string) => {
     joinRoom(socket, 'organization', organizationId);
@@ -248,7 +252,7 @@ function setupEventHandlers(socket: Socket<any, any, any, SocketData>) {
 // Disconnection Handler
 // ============================================
 
-function handleDisconnection(socket: Socket<any, any, any, SocketData>) {
+function handleDisconnection(socket: Socket<ClientToServerEvents, ServerToClientEvents, DefaultEventsMap, SocketData>) {
   const { userId, userName } = socket.data;
 
   console.log(`[WebSocket] User disconnected: ${userName} (${userId})`);
@@ -272,7 +276,7 @@ function handleDisconnection(socket: Socket<any, any, any, SocketData>) {
 // Room Management
 // ============================================
 
-function joinRoom(socket: Socket<any, any, any, SocketData>, type: RoomType, id: string) {
+function joinRoom(socket: Socket<ClientToServerEvents, ServerToClientEvents, DefaultEventsMap, SocketData>, type: RoomType, id: string) {
   const roomName = getRoomName(type, id);
   socket.join(roomName);
 
@@ -284,7 +288,7 @@ function joinRoom(socket: Socket<any, any, any, SocketData>, type: RoomType, id:
   console.log(`[WebSocket] ${socket.data.userName} joined room: ${roomName}`);
 }
 
-function leaveRoom(socket: Socket<any, any, any, SocketData>, type: RoomType, id: string) {
+function leaveRoom(socket: Socket<ClientToServerEvents, ServerToClientEvents, DefaultEventsMap, SocketData>, type: RoomType, id: string) {
   const roomName = getRoomName(type, id);
   socket.leave(roomName);
 
@@ -326,12 +330,13 @@ export async function sendNotificationToUser(
 export function sendNotificationToOrganization(
   organizationId: string,
   event: string,
-  payload: any
+  payload: Record<string, unknown>
 ): void {
   if (!io) return;
 
   const roomName = getRoomName('organization', organizationId);
-  io.to(roomName).emit(event, payload);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  io.to(roomName).emit(event as any, payload);
 }
 
 /**
@@ -407,7 +412,7 @@ function broadcastUserPresence(
  * Send notification count to user
  */
 async function sendNotificationCount(
-  socket: Socket<any, any, any, SocketData>,
+  socket: Socket<ClientToServerEvents, ServerToClientEvents, DefaultEventsMap, SocketData>,
   userId: string
 ): Promise<void> {
   try {
@@ -499,7 +504,7 @@ export function getOnlineUsersInOrganization(organizationId: string): string[] {
 /**
  * Get WebSocket server instance
  */
-export function getWebSocketServer(): IOServer<any, any, any, SocketData> | null {
+export function getWebSocketServer(): TypedIOServer | null {
   return io;
 }
 

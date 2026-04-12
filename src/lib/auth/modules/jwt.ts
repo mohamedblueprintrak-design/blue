@@ -7,7 +7,6 @@
  */
 
 import { SignJWT, jwtVerify } from 'jose';
-import type { JwtPayload as JwtPayloadType } from './types';
 
 // ============================================
 // Constants

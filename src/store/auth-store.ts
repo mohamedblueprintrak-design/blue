@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { getRolePermissions } from "@/lib/auth/modules/authorization";
+import { Permission } from "@/lib/auth/types";
 
 interface User {
   id: string;
@@ -109,8 +110,8 @@ export const useAuthStore = create<AuthStore>()(
         if (!user) return false;
         if (user.role === 'admin') return true;
         try {
-          const rolePerms = getRolePermissions(user.role as any);
-          return rolePerms.includes(permission as any);
+          const rolePerms = getRolePermissions(user.role);
+          return rolePerms.includes(permission as Permission);
         } catch {
           return false;
         }

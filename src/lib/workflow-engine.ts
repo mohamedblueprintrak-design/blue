@@ -60,7 +60,7 @@ export async function initWorkflow(projectId: string, templateId?: string) {
   if (existing) throw new Error('Workflow already exists for this project');
 
   // Find template
-  let template: any = null;
+  let template: { id: string; stages: Array<{ id: string; name: string; nameEn: string; order: number; durationDays?: unknown; steps: unknown; [key: string]: unknown }> } | null = null;
   if (templateId) {
     template = await db.workflowTemplate.findUnique({
       where: { id: templateId },
@@ -97,10 +97,10 @@ export async function initWorkflow(projectId: string, templateId?: string) {
           status: stageIdx === 0 ? 'pending' : 'locked',
           startDate: stageIdx === 0 ? new Date() : null,
           dueDate: stageIdx === 0
-            ? new Date(Date.now() + stage.durationDays * 24 * 60 * 60 * 1000)
+            ? new Date(Date.now() + (stage.durationDays as number) * 24 * 60 * 60 * 1000)
             : null,
           steps: {
-            create: stage.steps.map((step, stepIdx) => ({
+            create: (stage.steps as Array<{ id: string; name: string; nameEn: string; order: number; assignedRole: string; daysToComplete: number; description?: string; descriptionEn?: string }>).map((step, stepIdx) => ({
               templateStepId: step.id,
               name: step.name,
               nameEn: step.nameEn,

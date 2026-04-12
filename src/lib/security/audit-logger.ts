@@ -411,10 +411,10 @@ export class AuditLogger {
   private async persistToDatabase(entries: AuditLogEntry[]): Promise<void> {
     if (!this.prismaClient) return;
 
-    const prisma = this.prismaClient as any;
+    const prisma = this.prismaClient as Record<string, unknown>;
 
     // Try the Activity model first, then fallback to AuditLog
-    const model = prisma.activity ?? prisma.auditLog;
+    const model = (prisma.activity ?? prisma.auditLog) as { createMany: (args: Record<string, unknown>) => Promise<unknown> } | undefined;
     if (!model) return;
 
     // Batch create (up to 100 at a time to avoid DB limits)
@@ -463,10 +463,9 @@ export class AuditLogger {
       });
 
       for (const entry of entries) {
-        logger.log({
-          level: entry.level.toLowerCase(),
-          ...entry,
-        });
+        const { level, ...rest } = entry;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        logger.log({ level: (level as string).toLowerCase(), ...rest } as any);
       }
     } catch {
       // Winston not available — skip file logging silently
@@ -521,8 +520,8 @@ export class AuditLogger {
       throw new Error('Prisma client not configured for audit logger');
     }
 
-    const prisma = this.prismaClient as any;
-    const model = prisma.activity ?? prisma.auditLog;
+    const prisma = this.prismaClient as Record<string, unknown>;
+    const model = (prisma.activity ?? prisma.auditLog) as { findMany: (args: Record<string, unknown>) => Promise<unknown[]> } | undefined;
     if (!model) return [];
 
     const where: Record<string, unknown> = {};

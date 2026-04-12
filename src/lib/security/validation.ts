@@ -453,7 +453,7 @@ export function rateLimitInput(
  * ```
  */
 export function createValidator<T>(
-  schema: { safeParse: (input: any) => { success: boolean; data?: T; error?: { errors: Array<{ message: string }> } } },
+  schema: { safeParse: (input: unknown) => { success: boolean; data?: T; error?: { errors: Array<{ message: string }> } } },
   config: ValidatorConfig = {}
 ): ValidatorFn<T> {
   const { errorMessage, sanitize = true } = config;

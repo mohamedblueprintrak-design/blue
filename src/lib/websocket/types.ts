@@ -73,7 +73,7 @@ export interface NotificationPayload extends BaseEventPayload {
 export interface ProjectPayload extends BaseEventPayload {
   projectId: string;
   name: string;
-  changes?: Record<string, { old: any; new: any }>;
+  changes?: Record<string, { old: unknown; new: unknown }>;
   updatedBy: string;
 }
 

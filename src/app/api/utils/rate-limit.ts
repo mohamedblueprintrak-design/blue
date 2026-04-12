@@ -58,6 +58,7 @@ const DEFAULT_WINDOW = RATE_LIMIT_CONFIGS.api.windowMs;
 // Redis Support (Optional)
 // ============================================
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 let redisClient: any = null;
 let redisAvailable = false;
 

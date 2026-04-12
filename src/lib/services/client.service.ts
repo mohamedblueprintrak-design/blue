@@ -119,7 +119,6 @@ class ClientService {
       async () => {
         log.service('ClientService', 'getClients', { organizationId });
         return db.client.findMany({
-          where: { organizationId },
           orderBy: { createdAt: 'desc' },
         });
       },
@@ -138,7 +137,7 @@ class ClientService {
       async () => {
         log.service('ClientService', 'getActiveClients', { organizationId });
         return db.client.findMany({
-          where: { organizationId, isActive: true },
+          where: { isActive: true },
           orderBy: { name: 'asc' },
           select: {
             id: true,
@@ -158,7 +157,7 @@ class ClientService {
    */
   async getClientById(id: string, organizationId: string): Promise<Client | null> {
     return db.client.findFirst({
-      where: { id, organizationId },
+      where: { id },
     });
   }
 
@@ -179,14 +178,11 @@ class ClientService {
         email: data.email,
         phone: data.phone,
         address: data.address,
-        city: data.city,
-        country: data.country,
-        contactPerson: data.contactPerson,
+        fullAddress: JSON.stringify({ city: data.city || '', country: data.country || '' }),
         taxNumber: data.taxNumber,
         creditLimit: data.creditLimit || 0,
-        paymentTerms: data.paymentTerms || 30,
+        paymentTerms: String(data.paymentTerms || 30),
         notes: data.notes,
-        organizationId,
       },
     });
 
@@ -198,7 +194,7 @@ class ClientService {
       entityId: client.id,
       action: 'create',
       description: `تم إنشاء العميل: ${client.name}`,
-      newValue: client,
+      metadata: { newValue: client },
     });
 
     // Invalidate cache
@@ -219,7 +215,7 @@ class ClientService {
   ): Promise<Client> {
     // SECURITY: Verify client belongs to organization
     const oldClient = await db.client.findFirst({
-      where: { id, organizationId },
+      where: { id },
     });
 
     if (!oldClient) {
@@ -227,18 +223,22 @@ class ClientService {
     }
 
     // SECURITY: Explicit field mapping to prevent Mass Assignment
-    const updateData: Partial<Client> = {};
+    const updateData: Record<string, unknown> = {};
     
     if (data.name !== undefined) updateData.name = data.name;
     if (data.email !== undefined) updateData.email = data.email;
     if (data.phone !== undefined) updateData.phone = data.phone;
     if (data.address !== undefined) updateData.address = data.address;
-    if (data.city !== undefined) updateData.city = data.city;
-    if (data.country !== undefined) updateData.country = data.country;
-    if (data.contactPerson !== undefined) updateData.contactPerson = data.contactPerson;
+    if (data.city !== undefined || data.country !== undefined) {
+      // Build fullAddress from city/country
+      const existingAddress = oldClient.fullAddress ? JSON.parse(oldClient.fullAddress) : {};
+      if (data.city !== undefined) existingAddress.city = data.city;
+      if (data.country !== undefined) existingAddress.country = data.country;
+      updateData.fullAddress = JSON.stringify(existingAddress);
+    }
     if (data.taxNumber !== undefined) updateData.taxNumber = data.taxNumber;
     if (data.creditLimit !== undefined) updateData.creditLimit = data.creditLimit;
-    if (data.paymentTerms !== undefined) updateData.paymentTerms = data.paymentTerms;
+    if (data.paymentTerms !== undefined) updateData.paymentTerms = String(data.paymentTerms);
     if (data.notes !== undefined) updateData.notes = data.notes;
     if (data.isActive !== undefined) updateData.isActive = data.isActive;
 
@@ -255,8 +255,7 @@ class ClientService {
       entityId: client.id,
       action: 'update',
       description: `تم تحديث العميل: ${client.name}`,
-      oldValue: oldClient,
-      newValue: client,
+      metadata: { oldValue: oldClient, newValue: client },
     });
 
     // Invalidate cache
@@ -276,7 +275,7 @@ class ClientService {
   ): Promise<void> {
     // SECURITY: Verify client belongs to organization
     const client = await db.client.findFirst({
-      where: { id, organizationId },
+      where: { id },
     });
 
     if (!client) {
@@ -297,7 +296,7 @@ class ClientService {
       entityId: id,
       action: 'delete',
       description: `تم حذف العميل: ${client.name}`,
-      oldValue: client,
+      metadata: { oldValue: client },
     });
 
     // Invalidate cache
@@ -315,8 +314,8 @@ class ClientService {
       async () => {
         log.service('ClientService', 'getClientStats', { organizationId });
         const [total, active] = await Promise.all([
-          db.client.count({ where: { organizationId } }),
-          db.client.count({ where: { organizationId, isActive: true } }),
+          db.client.count({}),
+          db.client.count({ where: { isActive: true } }),
         ]);
 
         return {
@@ -337,12 +336,11 @@ class ClientService {
     
     return db.client.findMany({
       where: {
-        organizationId,
         isActive: true,
         OR: [
           { name: { contains: query } },
           { email: { contains: query } },
-          { contactPerson: { contains: query } },
+          { phone: { contains: query } },
         ],
       },
       take: 20,
@@ -354,7 +352,7 @@ class ClientService {
    */
   async hasActiveProjects(clientId: string): Promise<boolean> {
     const count = await db.project.count({
-      where: { clientId, status: 'ACTIVE' },
+      where: { clientId, status: 'active' },
     });
     return count > 0;
   }

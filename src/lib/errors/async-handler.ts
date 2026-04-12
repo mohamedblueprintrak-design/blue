@@ -11,7 +11,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { formatErrorResponse, logError, AppError } from '@/lib/errors';
 import { requiresCsrfProtection, isCsrfExempt, validateCsrfToken, CSRF_COOKIE_NAME, CSRF_HEADER_NAME } from '@/lib/csrf';
 
-type RouteHandler = (request: NextRequest, context?: any) => Promise<NextResponse>;
+type RouteHandler = (request: NextRequest, context?: Record<string, string | string[]>) => Promise<NextResponse>;
 type Middleware = (request: NextRequest) => NextResponse | Promise<NextResponse> | null;
 
 /**
@@ -23,7 +23,7 @@ export function withHandler(handler: RouteHandler, options?: {
   allowedMethods?: string[];
   middlewares?: Middleware[];
 }) {
-  return async (request: NextRequest, context?: any): Promise<NextResponse> => {
+  return async (request: NextRequest, context?: Record<string, string | string[]>): Promise<NextResponse> => {
     try {
       // Run middlewares
       if (options?.middlewares) {
@@ -63,7 +63,7 @@ export function csrfMiddleware(request: NextRequest): NextResponse | null {
   const cookieToken = request.cookies.get(CSRF_COOKIE_NAME)?.value;
   const headerToken = request.headers.get(CSRF_HEADER_NAME);
 
-  if (!validateCsrfToken(cookieToken, headerToken)) {
+  if (!validateCsrfToken(cookieToken ?? undefined, headerToken ?? undefined)) {
     return NextResponse.json(
       { success: false, error: { code: 'CSRF_INVALID', message: 'Invalid CSRF token' } },
       { status: 403 }

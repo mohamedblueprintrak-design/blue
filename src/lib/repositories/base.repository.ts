@@ -50,7 +50,9 @@ export abstract class BaseRepository<T> implements IRepository<T> {
   /**
    * Get the Prisma delegate for this model
    */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   protected get delegate(): any {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return (this.prisma as any)[this.model];
   }
 

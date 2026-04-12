@@ -51,7 +51,7 @@ const itemVariants = {
   visible: {
     opacity: 1,
     y: 0,
-    transition: { duration: 0.3, ease: 'easeOut' },
+    transition: { duration: 0.3, ease: 'easeOut' as const },
   },
 };
 
@@ -105,7 +105,7 @@ export function PageLoader({
                     transition: {
                       duration: 1.5,
                       repeat: Infinity,
-                      ease: 'easeInOut',
+                      ease: 'easeInOut' as const,
                     },
                   }
             }

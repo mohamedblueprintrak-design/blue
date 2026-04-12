@@ -18,7 +18,7 @@ function formatCurrency(amount: number): string {
   return `${amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} AED`;
 }
 
-function formatDate(date: Date | string | undefined): string {
+function formatDate(date: Date | string | null | undefined): string {
   if (!date) return '-';
   const d = typeof date === 'string' ? new Date(date) : date;
   return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' });

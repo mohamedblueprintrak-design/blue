@@ -3,7 +3,12 @@
  * إعداد مراقبة الأخطاء مع Sentry
  */
 
-import * as Sentry from '@sentry/nextjs';
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const Sentry = require('@sentry/nextjs') as typeof import('@sentry/nextjs') & {
+  BrowserTracing: any;
+  Replay: any;
+  startTransaction: any;
+};
 
 // NOTE: NEXT_PUBLIC_ prefix exposes this value to the browser bundle.
 // This is required because client-side Sentry integrations (BrowserTracing, Replay)

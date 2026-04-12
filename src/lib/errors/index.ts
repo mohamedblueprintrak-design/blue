@@ -139,7 +139,7 @@ export function formatErrorResponse(error: unknown): {
 
   // Handle Prisma errors
   if (error instanceof Error) {
-    const prismaError = error as any
+    const prismaError = error as { code?: string; meta?: { target?: unknown } };
     
     // Unique constraint violation
     if (prismaError.code === 'P2002') {

@@ -9,7 +9,7 @@
  */
 
 import { db, isDatabaseAvailable } from '@/lib/db';
-import { TaskType, TaskStatus, TaskPriority } from '@prisma/client';
+import { Task, TaskType } from '@prisma/client';
 import { log } from '@/lib/logger';
 
 // ============================================
@@ -284,7 +284,7 @@ export async function initializeTemplates(): Promise<void> {
     const templateData = getTemplateMetadata(code);
     
     // Check if template already exists
-    const existing = await db.projectTemplate.findUnique({
+    const existing = await (db as any).projectTemplate.findUnique({
       where: { code },
     });
 
@@ -294,7 +294,7 @@ export async function initializeTemplates(): Promise<void> {
     }
 
     // Create template
-    const template = await db.projectTemplate.create({
+    const template = await (db as any).projectTemplate.create({
       data: {
         name: templateData.name,
         nameAr: templateData.nameAr,
@@ -319,7 +319,7 @@ export async function initializeTemplates(): Promise<void> {
             governmentEntityAr: task.governmentEntityAr ?? null,
             isMandatory: true,
             color: task.color ?? null,
-          })) as any,
+          })) // TODO: type this — nested create type mismatch
         },
       },
     });
@@ -338,7 +338,13 @@ function getTemplateMetadata(code: string): {
   descriptionAr: string;
   category: string;
 } {
-  const metadata: Record<string, any> = {
+  const metadata: Record<string, {
+    name: string;
+    nameAr: string;
+    description: string;
+    descriptionAr: string;
+    category: string;
+  }> = {
     FEWA: {
       name: 'FEWA Electricity & Water Connection',
       nameAr: 'توصيل هيئة الكهرباء والماء',
@@ -384,7 +390,7 @@ function getTemplateMetadata(code: string): {
  */
 export async function createTasksFromTemplate(
   input: CreateProjectFromTemplateInput
-): Promise<{ created: number; tasks: any[] }> {
+): Promise<{ created: number; tasks: Task[] }> {
   if (!isDatabaseAvailable()) {
     throw new Error('Database not available');
   }
@@ -393,7 +399,7 @@ export async function createTasksFromTemplate(
   const startDate = customStartDate || new Date();
 
   // Get template
-  const template = await db.projectTemplate.findUnique({
+  const template = await (db as any).projectTemplate.findUnique({
     where: { code: templateCode },
     include: { tasks: { orderBy: { order: 'asc' } } },
   });
@@ -412,7 +418,7 @@ export async function createTasksFromTemplate(
   }
 
   // Create tasks
-  const createdTasks: any[] = [];
+  const createdTasks: Task[] = [];
 
   for (const templateTask of template.tasks) {
     const taskStartDate = new Date(startDate);
@@ -429,21 +435,20 @@ export async function createTasksFromTemplate(
         titleAr: templateTask.taskNameAr,
         description: templateTask.description,
         taskType: TaskType.GOVERNMENTAL,
-        status: TaskStatus.TODO,
-        priority: TaskPriority.HIGH,
+        status: 'todo',
+        priority: 'high',
         startDate: taskStartDate,
         endDate: taskEndDate,
-        estimatedMinutes: templateTask.estimatedMinutes,
+        estimatedHours: templateTask.estimatedMinutes ? templateTask.estimatedMinutes / 60 : undefined,
         slaDays: templateTask.slaDays,
         slaWarningDays: templateTask.slaWarningDays,
         slaStartDate: taskStartDate,
-        isMandatory: templateTask.isMandatory,
-        workflowTemplate: templateCode,
-        governmentEntity: templateTask.governmentEntity,
-        assignedTo: assignedToId,
+        isMilestone: templateTask.isMandatory || false,
+        isGovernmental: true,
+        assigneeId: assignedToId,
         order: templateTask.order,
         color: templateTask.color,
-        dependencies: templateTask.dependencies as any,
+        dependencies: templateTask.dependencies ? JSON.stringify(templateTask.dependencies) as unknown as string : undefined, // TODO: type this — TemplateTaskData uses number[] but Task expects string
       },
     });
 
@@ -460,7 +465,7 @@ export async function createTasksFromTemplate(
  * Get all available templates
  * الحصول على جميع القوالب المتاحة
  */
-export async function getAvailableTemplates(): Promise<any[]> {
+export async function getAvailableTemplates(): Promise<Record<string, unknown>[]> {
   if (!isDatabaseAvailable()) {
     return Object.keys(PREDEFINED_TEMPLATES).map((code) => ({
       code,
@@ -469,7 +474,7 @@ export async function getAvailableTemplates(): Promise<any[]> {
     }));
   }
 
-  return db.projectTemplate.findMany({
+  return (db as any).projectTemplate.findMany({
     where: { isActive: true },
     include: {
       _count: { select: { tasks: true } },
@@ -481,10 +486,10 @@ export async function getAvailableTemplates(): Promise<any[]> {
 /**
  * Get template details with tasks
  */
-export async function getTemplateDetails(templateCode: string): Promise<any | null> {
+export async function getTemplateDetails(templateCode: string): Promise<Record<string, unknown> | null> {
   if (!isDatabaseAvailable()) return null;
 
-  return db.projectTemplate.findUnique({
+  return (db as any).projectTemplate.findUnique({
     where: { code: templateCode },
     include: {
       tasks: { orderBy: { order: 'asc' } },

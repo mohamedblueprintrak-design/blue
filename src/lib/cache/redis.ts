@@ -171,7 +171,7 @@ export async function cacheDeletePattern(pattern: string): Promise<number> {
     let totalDeleted = 0;
 
     do {
-      const result = await client.scan(Number(cursor), { MATCH: fullPattern, COUNT: 100 });
+      const result = await client.scan(cursor, { MATCH: fullPattern, COUNT: 100 });
       const nextCursor = String(result.cursor);
       const keys = result.keys;
       if (keys.length > 0) {

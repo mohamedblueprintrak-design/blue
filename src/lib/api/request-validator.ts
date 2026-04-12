@@ -82,12 +82,12 @@ export type InferBody<T> = T extends RouteHandlerConfig<infer B> ? B : never;
 /**
  * Type helper to infer the params type from a `RouteHandlerConfig`.
  */
-export type InferParams<T> = T extends RouteHandlerConfig<any, infer P> ? P : never;
+export type InferParams<T> = T extends RouteHandlerConfig<unknown, infer P> ? P : never;
 
 /**
  * Type helper to infer the query type from a `RouteHandlerConfig`.
  */
-export type InferQuery<T> = T extends RouteHandlerConfig<any, any, infer Q> ? Q : never;
+export type InferQuery<T> = T extends RouteHandlerConfig<unknown, unknown, infer Q> ? Q : never;
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Body Validation
@@ -241,11 +241,18 @@ export interface AuthUser {
  * @returns The authenticated user or `null`.
  */
 export async function getAuthUser(request: NextRequest): Promise<AuthUser | null> {
-  // TODO: Replace with actual auth integration
-  // Example with NextAuth:
-  // const session = await getServerSession(authOptions);
-  // if (!session?.user) return null;
-  // return { id: session.user.id, email: session.user.email, role: session.user.role };
+  /**
+   * Placeholder: returns `null` (no authenticated user).
+   *
+   * Production integration should replace the body of this function with a real
+   * session/JWT verification. For example, with NextAuth:
+   *
+   * ```ts
+   * const session = await getServerSession(authOptions);
+   * if (!session?.user) return null;
+   * return { id: session.user.id, email: session.user.email, role: session.user.role };
+   * ```
+   */
   return null;
 }
 

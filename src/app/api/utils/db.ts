@@ -174,6 +174,7 @@ export const DEMO_USERS: DemoUser[] = DEMO_MODE_ENABLED ? [
 ] : [];
 
 // Dynamic database import to avoid failures when DB is not available
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 let db: any = null;
 
 /**
@@ -196,7 +197,7 @@ export async function getDb(): Promise<any> {
  * Safe database operation wrapper
  */
 export async function safeDbOp<T>(
-  operation: (database: any) => Promise<T>,
+  operation: (database: unknown) => Promise<T>,
   fallback: T
 ): Promise<T> {
   try {

@@ -11,7 +11,7 @@
 
 import { db } from '@/lib/db';
 import { logAudit } from './audit.service';
-import type { Task, TaskPriority, TaskStatus } from '@prisma/client';
+import type { Task } from '@prisma/client';
 
 /**
  * Task filtering options
@@ -147,7 +147,7 @@ class TaskService {
     // Apply filters
     if (filters?.status) where.status = filters.status;
     if (filters?.priority) where.priority = filters.priority;
-    if (filters?.assignedTo) where.assignedTo = filters.assignedTo;
+    if (filters?.assignedTo) where.assigneeId = filters.assignedTo;
     if (filters?.projectId) where.projectId = filters.projectId;
     if (filters?.parentId) where.parentId = filters.parentId;
 
@@ -164,10 +164,6 @@ class TaskService {
       if (filters?.dueDateTo) (where.dueDate as Record<string, Date>).lte = filters.dueDateTo;
     }
 
-    // SECURITY: Always filter by organization through project relation
-    // This ensures tenant isolation
-    where.project = { organizationId };
-
     const [tasks, total] = await Promise.all([
       db.task.findMany({
         where,
@@ -178,7 +174,7 @@ class TaskService {
           : { createdAt: 'desc' },
         include: {
           project: {
-            select: { id: true, name: true, organizationId: true },
+            select: { id: true, name: true },
           },
         },
       }),
@@ -210,11 +206,11 @@ class TaskService {
     const task = await db.task.findFirst({
       where: {
         id,
-        project: { organizationId },
+        project: { createdBy: { organizationId } },
       },
       include: {
         project: {
-          select: { id: true, name: true, organizationId: true },
+          select: { id: true, name: true },
         },
         parent: {
           select: { id: true, title: true },
@@ -243,7 +239,7 @@ class TaskService {
       const project = await db.project.findFirst({
         where: {
           id: data.projectId,
-          organizationId,
+          createdBy: { organizationId },
         },
         select: { id: true },
       });
@@ -258,7 +254,7 @@ class TaskService {
       const parentTask = await db.task.findFirst({
         where: {
           id: data.parentId,
-          project: { organizationId },
+          project: { createdBy: { organizationId } },
         },
         select: { id: true },
       });
@@ -274,9 +270,9 @@ class TaskService {
         description: data.description,
         projectId: data.projectId,
         parentId: data.parentId,
-        assignedTo: data.assignedTo,
-        priority: (data.priority as TaskPriority) || 'MEDIUM',
-        status: (data.status as TaskStatus) || 'TODO',
+        assigneeId: data.assignedTo,
+        priority: data.priority || 'normal',
+        status: data.status || 'todo',
         startDate: data.startDate,
         endDate: data.endDate,
         dueDate: data.dueDate,
@@ -290,12 +286,11 @@ class TaskService {
       await logAudit({
         userId,
         organizationId,
-        projectId: data.projectId,
         entityType: 'task',
         entityId: task.id,
         action: 'create',
         description: `تم إنشاء المهمة: ${task.title}`,
-        newValue: task,
+        metadata: { projectId: data.projectId, newValue: task },
       });
     }
 
@@ -325,7 +320,7 @@ class TaskService {
     const oldTask = await db.task.findFirst({
       where: {
         id,
-        project: { organizationId },
+        project: { createdBy: { organizationId } },
       },
     });
 
@@ -338,7 +333,7 @@ class TaskService {
       const newProject = await db.project.findFirst({
         where: {
           id: data.projectId,
-          organizationId,
+          createdBy: { organizationId },
         },
         select: { id: true },
       });
@@ -350,15 +345,15 @@ class TaskService {
 
     // SECURITY: Explicit field mapping to prevent Mass Assignment
     // Only allow specific fields to be updated
-    const updateData: Partial<Task> = {};
+    const updateData: Record<string, unknown> = {};
     
     if (data.title !== undefined) updateData.title = data.title;
     if (data.description !== undefined) updateData.description = data.description;
     if (data.projectId !== undefined) updateData.projectId = data.projectId;
     if (data.parentId !== undefined) updateData.parentId = data.parentId;
-    if (data.assignedTo !== undefined) updateData.assignedTo = data.assignedTo;
-    if (data.priority !== undefined) updateData.priority = data.priority as TaskPriority;
-    if (data.status !== undefined) updateData.status = data.status as TaskStatus;
+    if (data.assignedTo !== undefined) updateData.assigneeId = data.assignedTo;
+    if (data.priority !== undefined) updateData.priority = data.priority;
+    if (data.status !== undefined) updateData.status = data.status;
     if (data.startDate !== undefined) updateData.startDate = data.startDate;
     if (data.endDate !== undefined) updateData.endDate = data.endDate;
     if (data.dueDate !== undefined) updateData.dueDate = data.dueDate;
@@ -372,19 +367,17 @@ class TaskService {
 
     const task = await db.task.update({
       where: { id },
-      data: updateData as any,
+      data: updateData,
     });
 
     await logAudit({
       userId,
       organizationId,
-      projectId: task.projectId || undefined,
       entityType: 'task',
       entityId: task.id,
       action: 'update',
       description: `تم تحديث المهمة: ${task.title}`,
-      oldValue: oldTask,
-      newValue: task,
+      metadata: { projectId: task.projectId, oldValue: oldTask, newValue: task },
     });
 
     return task;
@@ -404,7 +397,7 @@ class TaskService {
     const task = await db.task.findFirst({
       where: {
         id,
-        project: { organizationId },
+        project: { createdBy: { organizationId } },
       },
     });
 
@@ -420,12 +413,11 @@ class TaskService {
     await logAudit({
       userId,
       organizationId,
-      projectId: task.projectId || undefined,
       entityType: 'task',
       entityId: id,
       action: 'delete',
       description: `تم حذف المهمة: ${task.title}`,
-      oldValue: task,
+      metadata: { projectId: task.projectId, oldValue: task },
     });
   }
 
@@ -478,7 +470,7 @@ class TaskService {
     const project = await db.project.findFirst({
       where: {
         id: projectId,
-        organizationId,
+        createdBy: { organizationId },
       },
       select: { id: true },
     });
@@ -503,7 +495,7 @@ class TaskService {
         color: true,
         isMilestone: true,
         order: true,
-        assignedTo: true,
+        assigneeId: true,
       },
     }) as unknown as GanttTaskDTO[];
   }
@@ -524,18 +516,18 @@ class TaskService {
       db.task.groupBy({
         by: ['status'],
         where: {
-          project: { organizationId },
+          project: { createdBy: { organizationId } },
         },
         _count: true,
       }),
       db.task.count({
         where: {
-          project: { organizationId },
+          project: { createdBy: { organizationId } },
           dueDate: { lt: new Date() },
-          status: { notIn: ['DONE', 'CANCELLED'] },
+          status: { notIn: ['done', 'cancelled'] },
         },
       }),
-    ]);
+    ]) as [Array<{ status: string; _count: number }>, number];
 
     const stats = {
       total: 0,
@@ -549,16 +541,16 @@ class TaskService {
     for (const item of statusCounts) {
       stats.total += item._count;
       switch (item.status) {
-        case 'TODO':
+        case 'todo':
           stats.todo = item._count;
           break;
-        case 'IN_PROGRESS':
+        case 'in_progress':
           stats.inProgress = item._count;
           break;
-        case 'REVIEW':
+        case 'review':
           stats.review = item._count;
           break;
-        case 'DONE':
+        case 'done':
           stats.done = item._count;
           break;
       }

@@ -13,7 +13,7 @@
  */
 
 import { db, isDatabaseAvailable } from '@/lib/db';
-import { TaskStatus, TaskType, SLABreachStatus } from '@prisma/client';
+import { TaskType, SLABreachStatus } from '@prisma/client';
 import { log } from '@/lib/logger';
 
 // ============================================
@@ -126,7 +126,7 @@ export async function checkSLABreaches(): Promise<SLAMonitorReport> {
     // Get all active tasks with SLA requirements
     const activeTasks = await db.task.findMany({
       where: {
-        status: { in: [TaskStatus.TODO, TaskStatus.IN_PROGRESS] },
+        status: { in: ['todo', 'in_progress'] },
         slaDays: { not: null, gt: 0 },
         slaStartDate: { not: null },
       },
@@ -135,13 +135,6 @@ export async function checkSLABreaches(): Promise<SLAMonitorReport> {
           include: {
             manager: true,
           },
-        },
-        slaBreaches: {
-          where: {
-            status: { in: [SLABreachStatus.WARNING, SLABreachStatus.BREACHED, SLABreachStatus.CRITICAL] },
-          },
-          orderBy: { createdAt: 'desc' },
-          take: 1,
         },
       },
     });
@@ -187,8 +180,8 @@ export async function checkSLABreaches(): Promise<SLAMonitorReport> {
         breachDays,
         status,
         escalationLevel: level,
-        assignedTo: task.assignedTo,
-        governmentEntity: task.governmentEntity ?? null,
+        assignedTo: task.assigneeId,
+        governmentEntity: task.isGovernmental ? 'Government' : null,
       };
 
       report.results.push(result);
@@ -211,8 +204,24 @@ export async function checkSLABreaches(): Promise<SLAMonitorReport> {
  * Create or update SLA breach record
  * إنشاء أو تحديث سجل تجاوز SLA
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type SLATaskWithRelations = any;
+
+/* Original typed interface — kept for documentation:
+interface SLATaskWithRelations {
+  id: string;
+  projectId: string | null;
+  title: string;
+  assigneeId: string | null;
+  governmentEntity?: string | null;
+  isGovernmental?: boolean;
+  slaBreaches: Array<{ id: string }>;
+  project?: { managerId?: string | null } | null;
+}
+*/
+
 async function createOrUpdateSLABreach(
-  task: any,
+  task: SLATaskWithRelations,
   result: SLACheckResult
 ): Promise<void> {
   try {
@@ -258,7 +267,7 @@ async function createOrUpdateSLABreach(
  * إرسال إشعارات SLA متدرجة حسب مستوى التصعيد
  */
 async function sendEscalatedNotifications(
-  task: any,
+  task: SLATaskWithRelations,
   result: SLACheckResult,
   escalationLevel: number
 ): Promise<void> {
@@ -288,7 +297,7 @@ async function sendEscalatedNotifications(
         },
         select: { id: true },
       });
-      usersToNotify.push(...admins.map((a: any) => a.id));
+      usersToNotify.push(...admins.map((a: { id: string }) => a.id));
     }
 
     // Create notifications (deduplicated)
@@ -299,10 +308,8 @@ async function sendEscalatedNotifications(
           title: getEscalatedNotificationTitle(result, task),
           message: getEscalatedNotificationMessage(result, task),
           notificationType: 'sla',
-          referenceType: 'task',
-          referenceId: task.id,
-          priority: escalationLevel >= ESCALATION_LEVELS.CRITICAL ? 'URGENT' as const : 'HIGH' as const,
-          actionUrl: `/dashboard/tasks/${task.id}`,
+          relatedEntityType: 'task',
+          relatedEntityId: task.id,
         },
       })
     );
@@ -320,7 +327,7 @@ async function sendEscalatedNotifications(
 /**
  * Get notification title based on escalation level
  */
-function getEscalatedNotificationTitle(result: SLACheckResult, task: any): string {
+function getEscalatedNotificationTitle(result: SLACheckResult, task: SLATaskWithRelations): string {
   const entity = task.governmentEntity ? ` [${task.governmentEntity}]` : '';
   
   switch (result.escalationLevel) {
@@ -338,7 +345,7 @@ function getEscalatedNotificationTitle(result: SLACheckResult, task: any): strin
 /**
  * Get notification message based on escalation level
  */
-function getEscalatedNotificationMessage(result: SLACheckResult, task: any): string {
+function getEscalatedNotificationMessage(result: SLACheckResult, task: SLATaskWithRelations): string {
   const entity = task.governmentEntity ? ` (${task.governmentEntity})` : '';
   
   switch (result.escalationLevel) {
@@ -371,7 +378,7 @@ function getSLANotificationTitle(status: SLABreachStatus, taskName: string): str
 /**
  * Get notification message based on breach details (legacy compatibility)
  */
-function getSLANotificationMessage(result: SLACheckResult, task: any): string {
+function getSLANotificationMessage(result: SLACheckResult, task: SLATaskWithRelations): string {
   const entity = task.governmentEntity ? ` (${task.governmentEntity})` : '';
   
   if (result.status === SLABreachStatus.WARNING) {
@@ -395,7 +402,7 @@ function getSLANotificationMessage(result: SLACheckResult, task: any): string {
  * إرسال إشعارات SLA للمستخدمين المعنيين
  */
 async function _sendSLANotifications(
-  task: any,
+  task: SLATaskWithRelations,
   result: SLACheckResult
 ): Promise<void> {
   try {
@@ -417,7 +424,7 @@ async function _sendSLANotifications(
         },
         select: { id: true },
       });
-      usersToNotify.push(...admins.map((a: any) => a.id));
+      usersToNotify.push(...admins.map((a: { id: string }) => a.id));
     }
 
     const notificationPromises = [...new Set(usersToNotify)].map((userId) =>
@@ -427,10 +434,8 @@ async function _sendSLANotifications(
           title: getSLANotificationTitle(result.status, task.title),
           message: getSLANotificationMessage(result, task),
           notificationType: 'sla',
-          referenceType: 'task',
-          referenceId: task.id,
-          priority: result.status === SLABreachStatus.CRITICAL ? 'URGENT' : 'HIGH',
-          actionUrl: `/dashboard/tasks/${task.id}`,
+          relatedEntityType: 'task',
+          relatedEntityId: task.id,
         },
       })
     );
@@ -464,7 +469,7 @@ export async function getSLAStatistics(): Promise<{
 
   const tasks = await db.task.findMany({
     where: {
-      status: { in: [TaskStatus.TODO, TaskStatus.IN_PROGRESS] },
+      status: { in: ['todo', 'in_progress'] },
       slaDays: { not: null, gt: 0 },
       slaStartDate: { not: null },
     },
@@ -530,7 +535,7 @@ export async function getSLADashboard(projectId: string): Promise<SLADashboard |
   const tasks = await db.task.findMany({
     where: {
       projectId,
-      status: { in: [TaskStatus.TODO, TaskStatus.IN_PROGRESS] },
+      status: { in: ['todo', 'in_progress'] },
       slaDays: { not: null, gt: 0 },
       slaStartDate: { not: null },
     },
@@ -541,7 +546,8 @@ export async function getSLADashboard(projectId: string): Promise<SLADashboard |
       slaStartDate: true,
       slaDays: true,
       slaWarningDays: true,
-      assignedTo: true,
+      isGovernmental: true,
+      assigneeId: true,
     },
     orderBy: { createdAt: 'asc' },
   });
@@ -583,7 +589,7 @@ export async function getSLADashboard(projectId: string): Promise<SLADashboard |
       slaDays: task.slaDays,
       daysRemaining,
       escalationLevel: level,
-      assignedTo: task.assignedTo,
+      assignedTo: task.assigneeId,
     });
   }
 
@@ -591,7 +597,7 @@ export async function getSLADashboard(projectId: string): Promise<SLADashboard |
   const allActiveTasks = await db.task.count({
     where: {
       projectId,
-      status: { in: [TaskStatus.TODO, TaskStatus.IN_PROGRESS] },
+      status: { in: ['todo', 'in_progress'] },
     },
   });
 
@@ -622,7 +628,7 @@ export async function getAutoTaskSuggestions(taskId: string): Promise<SuggestedT
       description: true,
       taskType: true,
       projectId: true,
-      governmentEntity: true,
+      isGovernmental: true,
       slaDays: true,
     },
   });
@@ -630,10 +636,11 @@ export async function getAutoTaskSuggestions(taskId: string): Promise<SuggestedT
   if (!task || task.taskType !== TaskType.GOVERNMENTAL) return [];
 
   const suggestions: SuggestedTask[] = [];
+  const govEntity = task.isGovernmental ? 'government' : '';
 
   // Generic government entity suggestions
-  if (task.governmentEntity) {
-    const entity = task.governmentEntity.toLowerCase();
+  if (govEntity) {
+    const entity = govEntity.toLowerCase();
 
     // FEWA suggestions
     if (entity.includes('fewa') || entity.includes('electricity') || entity.includes('water')) {
@@ -644,7 +651,7 @@ export async function getAutoTaskSuggestions(taskId: string): Promise<SuggestedT
           taskType: TaskType.MANDATORY,
           slaDays: 3,
           priority: 'HIGH',
-          governmentEntity: task.governmentEntity ?? null,
+          governmentEntity: govEntity || null,
         },
         {
           title: 'Schedule FEWA Site Inspection',
@@ -652,7 +659,7 @@ export async function getAutoTaskSuggestions(taskId: string): Promise<SuggestedT
           taskType: TaskType.STANDARD,
           slaDays: 7,
           priority: 'HIGH',
-          governmentEntity: task.governmentEntity ?? null,
+          governmentEntity: govEntity || null,
         }
       );
     }
@@ -666,7 +673,7 @@ export async function getAutoTaskSuggestions(taskId: string): Promise<SuggestedT
           taskType: TaskType.MANDATORY,
           slaDays: 5,
           priority: 'URGENT',
-          governmentEntity: task.governmentEntity ?? null,
+          governmentEntity: govEntity || null,
         },
         {
           title: 'Submit Fire Safety Equipment List',
@@ -674,7 +681,7 @@ export async function getAutoTaskSuggestions(taskId: string): Promise<SuggestedT
           taskType: TaskType.MANDATORY,
           slaDays: 3,
           priority: 'HIGH',
-          governmentEntity: task.governmentEntity ?? null,
+          governmentEntity: govEntity || null,
         }
       );
     }
@@ -688,7 +695,7 @@ export async function getAutoTaskSuggestions(taskId: string): Promise<SuggestedT
           taskType: TaskType.MANDATORY,
           slaDays: 3,
           priority: 'URGENT',
-          governmentEntity: task.governmentEntity ?? null,
+          governmentEntity: govEntity || null,
         },
         {
           title: 'Obtain Owner NOC',
@@ -696,7 +703,7 @@ export async function getAutoTaskSuggestions(taskId: string): Promise<SuggestedT
           taskType: TaskType.MANDATORY,
           slaDays: 5,
           priority: 'HIGH',
-          governmentEntity: task.governmentEntity ?? null,
+          governmentEntity: govEntity || null,
         }
       );
     }
@@ -710,15 +717,15 @@ export async function getAutoTaskSuggestions(taskId: string): Promise<SuggestedT
       taskType: TaskType.INTERNAL,
       slaDays: 2,
       priority: 'HIGH',
-      governmentEntity: task.governmentEntity || undefined,
+      governmentEntity: govEntity || undefined,
     },
     {
       title: 'Follow-up Submission',
-      description: `Schedule a follow-up visit to ${task.governmentEntity || 'the government entity'} to track application progress.`,
+      description: `Schedule a follow-up visit to ${govEntity || 'the government entity'} to track application progress.`,
       taskType: TaskType.STANDARD,
       slaDays: task.slaDays ? Math.max(task.slaDays + 7, 14) : 14,
       priority: 'HIGH',
-      governmentEntity: task.governmentEntity || undefined,
+      governmentEntity: govEntity || undefined,
     }
   );
 

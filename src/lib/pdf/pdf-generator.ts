@@ -151,7 +151,6 @@ function getStatusLabel(status: string, language: 'ar' | 'en'): string {
     'on_hold': { ar: 'متوقف', en: 'On Hold' },
     'on-hold': { ar: 'متوقف', en: 'On Hold' },
     'in_progress': { ar: 'قيد التنفيذ', en: 'In Progress' },
-    in_progress: { ar: 'قيد التنفيذ', en: 'In Progress' },
     todo: { ar: 'للتنفيذ', en: 'To Do' },
     done: { ar: 'منجز', en: 'Done' },
     paid: { ar: 'مدفوع', en: 'Paid' },

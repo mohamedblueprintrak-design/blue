@@ -170,6 +170,7 @@ model User {
   activities      ActivityLog[]
   leaves          Leave[]
   createdProjects Project[] @relation("CreatedProjects")
+  managedProjects Project[] @relation("ProjectManager")
   rfisFrom        RFI[]  @relation("RFIFrom")
   rfisTo          RFI[]  @relation("RFITo")
   riskActions     RiskAction[]
@@ -234,15 +235,21 @@ model Project {
   startDate     DateTime?
   endDate       DateTime?
   expectedEndDate DateTime? // Expected delivery date
+  actualStartDate DateTime?
+  actualEndDate   DateTime?
+  contractDate    DateTime?
   description   String   @default("")
   municipalityChecklist String @default("") // JSON: [{id,label,checked,stage}]
+  managerId     String?
   createdById   String
+  deletedAt     DateTime? // Soft delete
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
   client        Client     @relation(fields: [clientId], references: [id])
   contractor    Contractor? @relation("ProjectContractor", fields: [contractorId], references: [id])
   createdBy     User     @relation("CreatedProjects", fields: [createdById], references: [id])
+  manager       User?     @relation("ProjectManager", fields: [managerId], references: [id])
   assignments   ProjectAssignment[]
   tasks         Task[]
   stages        ProjectStage[]
@@ -422,6 +429,7 @@ model Client {
   // Credit & Status
   creditUsed      Float    @default(0)
   isActive        Boolean  @default(true)
+  deletedAt       DateTime? // Soft delete
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
@@ -456,15 +464,27 @@ model Task {
   id              String   @id @default(cuid())
   projectId       String?
   title           String   @default("")
+  titleAr         String   @default("")
   description     String   @default("")
   assigneeId      String?
   priority        String   @default("normal") // normal, medium, high, urgent
   status          String   @default("todo") // todo, in_progress, review, done, cancelled
   startDate       DateTime?
   dueDate         DateTime?
+  endDate         DateTime?
   progress        Float    @default(0)
   slaDays         Int?
+  slaStartDate    DateTime?
+  slaWarningDays  Int      @default(3)
+  slaBreachedAt   DateTime?
   isGovernmental  Boolean  @default(false)
+  taskType        String   @default("STANDARD") // STANDARD, GOVERNMENTAL, MANDATORY, CLIENT, INTERNAL
+  dependencies    String?  // JSON array of task IDs
+  color           String   @default("")
+  estimatedHours  Float?
+  actualHours     Float?
+  isMilestone     Boolean  @default(false)
+  order           Int      @default(0)
   parentId        String?
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
@@ -542,10 +562,12 @@ model Invoice {
   dueDate         DateTime
   subtotal        Float    @default(0)
   tax             Float    @default(0)
+  taxRate         Float    @default(0) // Tax percentage
   total           Float    @default(0)
   paidAmount      Float    @default(0)
   remaining       Float    @default(0)
   status          String   @default("draft") // draft, sent, partially_paid, paid, overdue, cancelled
+  deletedAt       DateTime? // Soft delete
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
@@ -958,11 +980,13 @@ model MeetingAgenda {
 model BOQItem {
   id              String   @id @default(cuid())
   projectId       String
+  itemNumber      String   @default("")
   code            String   @default("")
   description     String   @default("")
   unit            String   @default("")
   quantity        Float    @default(0)
   unitPrice       Float    @default(0)
+  totalPrice      Float    @default(0)
   total           Float    @default(0)
   category        String   @default("civil") // civil, structural, electrical, finishing
 
@@ -1158,6 +1182,7 @@ model Notification {
   userId          String
   projectId       String?
   type            String   @default("") // task_due, invoice_overdue, approval_needed, etc.
+  notificationType String  @default("") // Alias for type compatibility
   title           String   @default("")
   message         String   @default("")
   isRead          Boolean  @default(false)

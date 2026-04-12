@@ -52,7 +52,7 @@ export async function validatePhaseTransition(
     return { allowed: true };
   }
 
-  const phase = await db.workflowPhase.findUnique({
+  const phase = await (db as any).workflowPhase.findUnique({
     where: { id: phaseId },
     include: {
       project: {
@@ -164,7 +164,7 @@ export async function validatePhaseTransition(
 export async function getBlockedPhases(projectId: string) {
   if (!isDatabaseAvailable()) return [];
 
-  const phases = await db.workflowPhase.findMany({
+  const phases = await (db as any).workflowPhase.findMany({
     where: { projectId },
     include: { dependsOn: true },
   });
@@ -197,7 +197,7 @@ export async function getPhaseDependencies(
 ): Promise<PhaseDependencyNode[]> {
   if (!isDatabaseAvailable()) return [];
 
-  const phases = await db.workflowPhase.findMany({
+  const phases = await (db as any).workflowPhase.findMany({
     where: { projectId },
     include: {
       dependsOn: true,
@@ -311,7 +311,7 @@ export async function validateAllPhaseTransitions(
 ): Promise<PhaseViolation[]> {
   if (!isDatabaseAvailable()) return [];
 
-  const phases = await db.workflowPhase.findMany({
+  const phases = await (db as any).workflowPhase.findMany({
     where: { projectId },
     include: {
       project: {

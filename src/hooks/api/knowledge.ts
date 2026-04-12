@@ -26,7 +26,7 @@ export function useKnowledgeArticles(filters?: Record<string, unknown>) {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   return useQuery({
     queryKey: ['knowledge', filters],
-    queryFn: () => apiGet<KnowledgeArticleItem[]>('/api/knowledge', filters),
+    queryFn: () => apiGet<KnowledgeArticleItem[]>('/api/knowledge', filters as Record<string, string | number | boolean | undefined>),
     enabled: isAuthenticated,
   });
 }

@@ -5,12 +5,12 @@
  * into a single, reusable, typed fetch utility.
  */
 
-// Use the @/types ApiResponse (with optional data field) as the primary type
-// for all hook return values. This ensures consumers can safely access .data.
-import type { ApiResponse } from '@/types';
-
-// Re-export for backward compatibility
-export type { ApiResponse } from '@/types';
+/** Standard API response wrapper used by all hooks and API helpers. */
+export interface ApiResponse<T> {
+  success: boolean;
+  data: T;
+  error?: { code: string; message: string };
+}
 
 /**
  * API Error class for structured error handling
@@ -257,19 +257,19 @@ export async function apiDelete<T>(
 
 export function isSuccessResponse<T>(
   response: ApiResponse<T>,
-): response is { success: true; data: T } {
+): response is ApiResponse<T> & { success: true } {
   return response.success === true;
 }
 
 export function isErrorResponse<T>(
   response: ApiResponse<T>,
-): response is { success: false; error: { code: string; message: string } } {
+): response is ApiResponse<T> & { success: false; error: { code: string; message: string } } {
   return response.success === false;
 }
 
 export function unwrapResponse<T>(response: ApiResponse<T>): T {
   if (isSuccessResponse(response)) {
-    return response.data;
+    return response.data as T;
   }
   throw new ApiError(
     response.error?.message || 'Unknown error',

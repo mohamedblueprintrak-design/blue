@@ -27,7 +27,7 @@ export function useCorrespondence(filters?: Record<string, unknown>) {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   return useQuery({
     queryKey: ['correspondence', filters],
-    queryFn: () => apiGet<CorrespondenceRecord[]>('/api/municipality-correspondence', filters),
+    queryFn: () => apiGet<CorrespondenceRecord[]>('/api/municipality-correspondence', filters as Record<string, string | number | boolean | undefined>),
     enabled: isAuthenticated,
   });
 }

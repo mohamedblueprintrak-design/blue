@@ -134,7 +134,8 @@ class MemoryStore implements RateLimitStore {
 // ============================================
 
 class RedisStore implements RateLimitStore {
-  private redis: any; // Redis client type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  private redis: any;
   private prefix: string;
 
   constructor(redisClient: any, prefix: string = 'ratelimit:') {

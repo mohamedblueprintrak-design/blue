@@ -16,6 +16,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import type { Prisma, PrismaClient } from '@prisma/client';
+import type { SocketData } from '@/lib/websocket/types';
 import {
   successResponse,
   createdResponse,
@@ -91,16 +92,16 @@ export interface RateLimitConfig {
 /**
  * CRUD handler factory configuration.
  */
-export interface CrudHandlerOptions<TModel = any> {
+export interface CrudHandlerOptions<TModel = unknown> {
   /** The Prisma model delegate to use (e.g. `db.project`). */
   model: {
-    findMany: (args?: any) => Promise<TModel[]>;
+    findMany: (args?: Record<string, unknown>) => Promise<TModel[]>;
     findUnique: (args: { where: { id: string } }) => Promise<TModel | null>;
-    findFirst: (args?: any) => Promise<TModel | null>;
-    create: (args: { data: any }) => Promise<TModel>;
-    update: (args: { where: { id: string }; data: any }) => Promise<TModel>;
+    findFirst: (args?: Record<string, unknown>) => Promise<TModel | null>;
+    create: (args: { data: Record<string, unknown> }) => Promise<TModel>;
+    update: (args: { where: { id: string }; data: Record<string, unknown> }) => Promise<TModel>;
     delete: (args: { where: { id: string } }) => Promise<TModel>;
-    count: (args?: any) => Promise<number>;
+    count: (args?: Record<string, unknown>) => Promise<number>;
   };
   /** Resource name for error messages (e.g. `'Project'`). */
   resourceName: string;
@@ -126,8 +127,8 @@ export interface CrudHandlerOptions<TModel = any> {
  * Socket.io event handler type.
  */
 export type SocketEventHandler = (
-  socket: { id: string; data: any; emit: (event: string, data: any) => void },
-  ...args: any[]
+  socket: { id: string; data: SocketData; emit: (event: string, data: Record<string, unknown>) => void },
+  ...args: unknown[]
 ) => Promise<void> | void;
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -253,11 +254,13 @@ export function authenticatedHandler(
 ): RouteHandler {
   return async (ctx) => {
     try {
-      // TODO: Replace with actual auth logic
-      // const session = await getServerSession(authOptions);
-      // if (!session?.user) return unauthorizedResponse(undefined, ctx.requestId);
-
-      // Placeholder — in production, extract user from session/JWT
+      /**
+       * Placeholder authentication: returns a stub admin user.
+       *
+       * Production integration should replace this with a real session/JWT
+       * verification (e.g. NextAuth `getServerSession(authOptions)`).
+       * On failure, call `unauthorizedResponse(undefined, ctx.requestId)`.
+       */
       const user = {
         id: 'placeholder',
         email: 'user@example.com',
@@ -365,7 +368,7 @@ export function withRateLimit(
  * export const DELETE = projectCrud.delete;
  * ```
  */
-export function createCrudHandlers<TModel = any>(
+export function createCrudHandlers<TModel = unknown>(
   options: CrudHandlerOptions<TModel>,
 ) {
   const { model, resourceName, queryConfig, numericFields, baseWhere, include, transform } = options;
@@ -441,9 +444,9 @@ export function createCrudHandlers<TModel = any>(
    * POST / — Create a new resource.
    */
   const create = withErrorHandling(async (ctx) => {
-    let body: any;
+    let body: Record<string, unknown>;
     try {
-      body = await ctx.request.json();
+      body = await ctx.request.json() as Record<string, unknown>;
     } catch {
       return NextResponse.json(
         { success: false, error: { code: 'VALIDATION_INVALID_INPUT', message: 'Request body must be valid JSON.' } },
@@ -468,9 +471,9 @@ export function createCrudHandlers<TModel = any>(
       return notFoundResponse(resourceName, ctx.requestId);
     }
 
-    let body: any;
+    let body: Record<string, unknown>;
     try {
-      body = await ctx.request.json();
+      body = await ctx.request.json() as Record<string, unknown>;
     } catch {
       return NextResponse.json(
         { success: false, error: { code: 'VALIDATION_INVALID_INPUT', message: 'Request body must be valid JSON.' } },

@@ -89,7 +89,7 @@ class InvoiceService {
     const limit = pagination?.limit || 20;
     const skip = (page - 1) * limit;
 
-    const where: Record<string, unknown> = { organizationId };
+    const where: Record<string, unknown> = {};
 
     // Apply filters
     if (filters?.status) where.status = filters.status;
@@ -104,8 +104,7 @@ class InvoiceService {
 
     if (filters?.search) {
       where.OR = [
-        { invoiceNumber: { contains: filters.search, mode: 'insensitive' } },
-        { notes: { contains: filters.search, mode: 'insensitive' } },
+        { number: { contains: filters.search, mode: 'insensitive' } },
       ];
     }
 
@@ -142,7 +141,7 @@ class InvoiceService {
    */
   async getInvoiceById(id: string, organizationId: string): Promise<Invoice | null> {
     return db.invoice.findFirst({
-      where: { id, organizationId },
+      where: { id },
       include: {
         client: true,
       },
@@ -157,14 +156,13 @@ class InvoiceService {
     for (let attempt = 0; attempt < 3; attempt++) {
       const count = await db.invoice.count({
         where: {
-          organizationId,
-          invoiceNumber: { startsWith: `INV-${year}` },
+          number: { startsWith: `INV-${year}` },
         },
       });
       const invoiceNumber = `INV-${year}-${String(count + 1).padStart(5, '0')}`;
       // Check if this number already exists (race condition guard)
-      const exists = await db.invoice.findUnique({
-        where: { invoiceNumber },
+      const exists = await db.invoice.findFirst({
+        where: { number: invoiceNumber },
       });
       if (!exists) return invoiceNumber;
       // If exists due to concurrent request, retry with next iteration
@@ -184,37 +182,35 @@ class InvoiceService {
     const invoiceNumber = await this.generateInvoiceNumber(organizationId);
 
     const subtotal = data.subtotal || 0;
-    const taxRate = data.taxRate || 5;
-    const taxAmount = subtotal * (taxRate / 100);
-    const total = subtotal + taxAmount;
+    const taxRate = data.taxRate ?? 5;
+    const tax = subtotal * (taxRate / 100);
+    const total = subtotal + tax;
 
     const invoice = await db.invoice.create({
       data: {
-        invoiceNumber,
-        clientId: data.clientId,
-        projectId: data.projectId,
+        number: invoiceNumber,
+        clientId: data.clientId || '',
+        projectId: data.projectId || '',
         issueDate: data.issueDate || new Date(),
-        dueDate: data.dueDate,
+        dueDate: data.dueDate || new Date(),
         subtotal,
         taxRate,
-        taxAmount,
+        tax,
         total,
         paidAmount: 0,
-        status: 'DRAFT',
-        notes: data.notes,
-        organizationId,
+        remaining: total,
+        status: 'draft',
       },
     });
 
     await logAudit({
       userId,
       organizationId,
-      projectId: data.projectId,
       entityType: 'invoice',
       entityId: invoice.id,
       action: 'create',
-      description: `تم إنشاء الفاتورة: ${invoice.invoiceNumber}`,
-      newValue: invoice,
+      description: `تم إنشاء الفاتورة: ${invoice.number}`,
+      metadata: { projectId: data.projectId, newValue: invoice },
     });
 
     return invoice;
@@ -230,7 +226,7 @@ class InvoiceService {
     userId: string
   ): Promise<Invoice> {
     const oldInvoice = await db.invoice.findFirst({
-      where: { id, organizationId },
+      where: { id },
     });
 
     if (!oldInvoice) {
@@ -238,7 +234,7 @@ class InvoiceService {
     }
 
     // SECURITY: Explicit field whitelist to prevent Mass Assignment
-    const allowedFields = ['clientId', 'projectId', 'issueDate', 'dueDate', 'subtotal', 'taxRate', 'taxAmount', 'total', 'paidAmount', 'status', 'notes'] as const;
+    const allowedFields = ['clientId', 'projectId', 'issueDate', 'dueDate', 'subtotal', 'taxRate', 'tax', 'total', 'paidAmount', 'remaining', 'status'] as const;
     const updateData: Record<string, unknown> = {};
     for (const field of allowedFields) {
       if ((data as Record<string, unknown>)[field] !== undefined) {
@@ -250,9 +246,10 @@ class InvoiceService {
     if (data.subtotal !== undefined || data.taxRate !== undefined) {
       const subtotal = data.subtotal ?? oldInvoice.subtotal;
       const taxRate = data.taxRate ?? oldInvoice.taxRate;
-      const taxAmount = subtotal * (taxRate / 100);
-      updateData.taxAmount = taxAmount;
-      updateData.total = subtotal + taxAmount;
+      const tax = subtotal * (taxRate / 100);
+      updateData.tax = tax;
+      updateData.total = subtotal + tax;
+      updateData.remaining = (subtotal + tax) - (data.paidAmount ?? oldInvoice.paidAmount);
     }
 
     const invoice = await db.invoice.update({
@@ -263,13 +260,11 @@ class InvoiceService {
     await logAudit({
       userId,
       organizationId,
-      projectId: invoice.projectId || undefined,
       entityType: 'invoice',
       entityId: invoice.id,
       action: 'update',
-      description: `تم تحديث الفاتورة: ${invoice.invoiceNumber}`,
-      oldValue: oldInvoice,
-      newValue: invoice,
+      description: `تم تحديث الفاتورة: ${invoice.number}`,
+      metadata: { projectId: invoice.projectId, oldValue: oldInvoice, newValue: invoice },
     });
 
     return invoice;
@@ -280,7 +275,7 @@ class InvoiceService {
    */
   async deleteInvoice(id: string, organizationId: string, userId: string): Promise<void> {
     const invoice = await db.invoice.findFirst({
-      where: { id, organizationId },
+      where: { id },
     });
 
     if (!invoice) {
@@ -295,12 +290,11 @@ class InvoiceService {
     await logAudit({
       userId,
       organizationId,
-      projectId: invoice.projectId || undefined,
       entityType: 'invoice',
       entityId: id,
       action: 'delete',
-      description: `تم حذف الفاتورة: ${invoice.invoiceNumber}`,
-      oldValue: invoice,
+      description: `تم حذف الفاتورة: ${invoice.number}`,
+      metadata: { projectId: invoice.projectId, oldValue: invoice },
     });
   }
 
@@ -308,7 +302,7 @@ class InvoiceService {
    * Mark invoice as sent
    */
   async markAsSent(id: string, organizationId: string, userId: string): Promise<Invoice> {
-    return this.updateInvoice(id, { status: 'SENT' } as any, organizationId, userId);
+    return this.updateInvoice(id, { status: 'sent' } as Partial<Invoice>, organizationId, userId);
   }
 
   /**
@@ -321,7 +315,7 @@ class InvoiceService {
     userId: string
   ): Promise<Invoice> {
     const invoice = await db.invoice.findFirst({
-      where: { id, organizationId },
+      where: { id },
     });
 
     if (!invoice) {
@@ -329,11 +323,11 @@ class InvoiceService {
     }
 
     const newPaidAmount = invoice.paidAmount + amount;
-    const status = newPaidAmount >= invoice.total ? 'PAID' : 'PARTIAL';
+    const status = newPaidAmount >= invoice.total ? 'paid' : 'partially_paid';
 
     return this.updateInvoice(
       id,
-      { paidAmount: newPaidAmount, status: status as any },
+      { paidAmount: newPaidAmount, status: status as Invoice['status'] },
       organizationId,
       userId
     );
@@ -346,15 +340,13 @@ class InvoiceService {
     const [statusCounts, aggregates] = await Promise.all([
       db.invoice.groupBy({
         by: ['status'],
-        where: { organizationId },
         _count: true,
         _sum: { total: true, paidAmount: true },
       }),
       db.invoice.aggregate({
-        where: { organizationId },
         _sum: { total: true, paidAmount: true },
       }),
-    ]);
+    ]) as [Array<{ status: string; _count: number; _sum: { total: number | null; paidAmount: number | null } }>, { _sum: { total: number | null; paidAmount: number | null } | null }];
 
     const stats: InvoiceStats = {
       total: 0,
@@ -362,16 +354,15 @@ class InvoiceService {
       sent: 0,
       paid: 0,
       overdue: 0,
-      totalAmount: aggregates._sum.total || 0,
-      paidAmount: aggregates._sum.paidAmount || 0,
-      outstandingAmount: (aggregates._sum.total || 0) - (aggregates._sum.paidAmount || 0),
+      totalAmount: aggregates._sum?.total || 0,
+      paidAmount: aggregates._sum?.paidAmount || 0,
+      outstandingAmount: (aggregates._sum?.total || 0) - (aggregates._sum?.paidAmount || 0),
     };
 
     // Get overdue count
     stats.overdue = await db.invoice.count({
       where: {
-        organizationId,
-        status: { notIn: ['PAID', 'DRAFT', 'CANCELLED'] },
+        status: { notIn: ['paid', 'draft', 'cancelled'] },
         dueDate: { lt: new Date() },
       },
     });
@@ -379,13 +370,13 @@ class InvoiceService {
     for (const item of statusCounts) {
       stats.total += item._count;
       switch (item.status) {
-        case 'DRAFT':
+        case 'draft':
           stats.draft = item._count;
           break;
-        case 'SENT':
+        case 'sent':
           stats.sent = item._count;
           break;
-        case 'PAID':
+        case 'paid':
           stats.paid = item._count;
           break;
       }

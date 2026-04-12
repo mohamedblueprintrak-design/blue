@@ -159,12 +159,15 @@ describe('CSRF Protection Logic', () => {
   it('should reject when cookie and header differ', () => {
     const csrfCookie = 'abc123';
     const csrfHeader = 'xyz789';
-    expect(csrfCookie !== csrfHeader).toBe(true);
+    // Use variables to avoid TS literal comparison error
+    expect((csrfCookie as string) !== (csrfHeader as string)).toBe(true);
   });
 
   it('should reject when either is missing', () => {
-    expect(!'value' || 'value' === '').toBe(false);
-    expect(!'' || '' !== '').toBe(true);
+    const value: string = 'value';
+    const empty: string = '';
+    expect(value === '').toBe(false);
+    expect(empty === '').toBe(true);
   });
 
   it('should generate a valid CSRF token', () => {

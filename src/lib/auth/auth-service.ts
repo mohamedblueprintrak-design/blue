@@ -245,10 +245,10 @@ class AuthenticationService {
       // Find user by email OR name (username)
       let user;
       user = await db.user.findUnique({
-        where: { email: data.email.toLowerCase() },
+        where: { email: (data.email ?? '').toLowerCase() },
         include: {
           organization: {
-            select: { id: true, name: true },
+            select: { id: true, name: true, slug: true },
           },
         },
       });
@@ -257,7 +257,7 @@ class AuthenticationService {
           where: { name: data.email },
           include: {
             organization: {
-              select: { id: true, name: true },
+              select: { id: true, name: true, slug: true },
             },
           },
         });
@@ -399,13 +399,13 @@ class AuthenticationService {
           email: data.email.toLowerCase(),
           password: hashedPassword,
           name: data.fullName, // Using name field
-          role: (organizationId ? UserRoleValues.ADMIN : (data.role && Object.values(UserRoleValues).includes(data.role as any) ? data.role : UserRoleValues.VIEWER)) as string,
+          role: (organizationId ? UserRoleValues.ADMIN : (data.role && Object.values(UserRoleValues).includes(data.role as typeof UserRoleValues[keyof typeof UserRoleValues]) ? data.role : UserRoleValues.VIEWER)) as string,
           department: data.department || '',
           organizationId,
         },
         include: {
           organization: {
-            select: { id: true, name: true },
+            select: { id: true, name: true, slug: true },
           },
         },
       });
@@ -474,7 +474,7 @@ class AuthenticationService {
         where: { id: payload.userId },
         include: {
           organization: {
-            select: { id: true, name: true },
+            select: { id: true, name: true, slug: true },
           },
         },
       });

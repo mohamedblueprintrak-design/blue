@@ -165,7 +165,8 @@ export async function generateSiteReportPDFBuffer(siteDiaryId: string, lang: 'ar
   const projName = isRTL ? siteDiary.project?.name : (siteDiary.project?.nameEn || siteDiary.project?.name);
   doc.text(`${translations.projectName}: ${projName || '-'}`, margin + 5, yPos + 10);
 
-  doc.text(`${translations.status}: ${statusLabels[siteDiary.status] || siteDiary.status}`, margin + 5, yPos + 17);
+  const diary = siteDiary as any;
+  doc.text(`${translations.status}: ${statusLabels[diary.status] || diary.status || '-'}`, margin + 5, yPos + 17);
 
   yPos += 35;
 

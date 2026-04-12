@@ -139,7 +139,6 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
   }, [open]);
 
   // Reset selected index when search changes
-  const prevSearchRef = useRef(search);
   useEffect(() => {
     if (prevSearchRef.current !== search) {
       // Defer to avoid synchronous setState in effect

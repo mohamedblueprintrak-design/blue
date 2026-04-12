@@ -27,7 +27,7 @@ export function useLeaveRequests(filters?: Record<string, unknown>) {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   return useQuery({
     queryKey: ['leave-requests', filters],
-    queryFn: () => apiGet<LeaveRequest[]>('/api/leave', filters),
+    queryFn: () => apiGet<LeaveRequest[]>('/api/leave', filters as Record<string, string | number | boolean | undefined>),
     enabled: isAuthenticated,
   });
 }
