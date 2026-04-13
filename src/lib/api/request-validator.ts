@@ -240,7 +240,7 @@ export interface AuthUser {
  * @param request - The incoming request.
  * @returns The authenticated user or `null`.
  */
-export async function getAuthUser(request: NextRequest): Promise<AuthUser | null> {
+export async function getAuthUser(_request: NextRequest): Promise<AuthUser | null> {
   /**
    * Placeholder: returns `null` (no authenticated user).
    *

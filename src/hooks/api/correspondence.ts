@@ -6,7 +6,7 @@
 'use client';
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { apiGet, apiPost, apiPut, apiDelete } from '@/lib/api/fetch-client';
+import { apiGet, apiPost, apiDelete } from '@/lib/api/fetch-client';
 import { useAuthStore } from '@/store/auth-store';
 
 export interface CorrespondenceRecord {

@@ -1,5 +1,6 @@
 import { db } from "@/lib/db";
 import { NextRequest, NextResponse } from "next/server";
+import { validateRequest, bidCreateSchema } from '@/lib/api-validation';
 
 export async function GET(request: NextRequest) {
   try {
@@ -44,6 +45,12 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
+
+    const validation = validateRequest(bidCreateSchema, body);
+    if (!validation.success) {
+      return NextResponse.json({ error: validation.error, errors: validation.errors }, { status: 400 });
+    }
+
     const {
       projectId,
       contractorId,
@@ -58,13 +65,6 @@ export async function POST(request: NextRequest) {
       evaluationNotes,
       status,
     } = body;
-
-    if (!projectId) {
-      return NextResponse.json(
-        { error: "Project is required" },
-        { status: 400 }
-      );
-    }
 
     // If contractorId is provided, auto-fill contractor info
     let resolvedContractorName = contractorName || "";

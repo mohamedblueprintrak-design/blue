@@ -293,7 +293,7 @@ export default function WorkloadPage({ language }: WorkloadPageProps) {
   const departments = workloadData?.departments || [];
 
   // Top summary cards
-  const topStats = [
+  const _topStats = [
     {
       label: ar ? "إجمالي الفريق" : "Team Total",
       value: summary.totalEmployees,

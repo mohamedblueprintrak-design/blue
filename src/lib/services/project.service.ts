@@ -13,7 +13,6 @@
 
 import { db } from '@/lib/db';
  
-import { getProjectRepository } from '@/lib/repositories';
 import { logAudit } from './audit.service';
 import type { Project } from '@prisma/client';
 
@@ -190,7 +189,7 @@ class ProjectService {
    * Get project by ID with full details
    * SECURITY: Validates organization ownership
    */
-  async getProjectById(id: string, organizationId: string) {
+  async getProjectById(id: string, _organizationId: string) {
     return db.project.findFirst({
       where: { id },
       include: {
@@ -411,7 +410,7 @@ class ProjectService {
   /**
    * Get project statistics for dashboard
    */
-  async getProjectStats(organizationId: string): Promise<ProjectStats> {
+  async getProjectStats(_organizationId: string): Promise<ProjectStats> {
     const [statusCounts, valueAggregate, progressAggregate] = await Promise.all([
       db.project.groupBy({
         by: ['status'],
@@ -544,7 +543,7 @@ class ProjectService {
   /**
    * Update project progress based on task completion
    */
-  async updateProgress(id: string, organizationId: string): Promise<number | null> {
+  async updateProgress(id: string, _organizationId: string): Promise<number | null> {
     // SECURITY: Verify project belongs to organization
     const project = await db.project.findFirst({
       where: { id },

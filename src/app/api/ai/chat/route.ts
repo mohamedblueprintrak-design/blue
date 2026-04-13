@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import ZAI from 'z-ai-web-dev-sdk';
 import { db } from '@/lib/db';
+import { validateBody, aiChatSchema } from '@/lib/api-validation';
 
 // In-memory conversation history
 const conversationHistories = new Map<string, Array<{ role: 'user' | 'system' | 'assistant'; content: string }>>();
@@ -566,9 +567,7 @@ async function fetchContextData(topics: string[], userId?: string, projectId?: s
     // Reports / Statistics summary
     if (topics.includes('reports')) {
       const now = new Date();
-      const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
       const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-      const startOfYear = new Date(now.getFullYear(), 0, 1);
 
       const [
         projectCount,
@@ -693,14 +692,9 @@ async function fetchProjectContext(projectId: string): Promise<string | null> {
 
 export async function POST(request: NextRequest) {
   try {
-    const { message, conversationId = 'default', userId, language, projectId } = await request.json();
-
-    if (!message || typeof message !== 'string') {
-      return NextResponse.json(
-        { error: 'Message is required' },
-        { status: 400 }
-      );
-    }
+    const body = await validateBody(request, aiChatSchema);
+    if (body instanceof NextResponse) return body;
+    const { message, conversationId, userId, language, projectId } = body;
 
     // Get or create conversation history
     if (!conversationHistories.has(conversationId)) {

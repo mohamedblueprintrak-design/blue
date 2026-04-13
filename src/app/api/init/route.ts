@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import bcrypt from 'bcryptjs';
-import { DEMO_CREDENTIALS, isDemoMode, getDemoPassword } from '@/lib/demo-credentials';
+import { DEMO_CREDENTIALS, isDemoMode } from '@/lib/demo-credentials';
 
 /**
  * POST /api/init - Auto-initialize database with seed data if empty
@@ -10,6 +10,9 @@ import { DEMO_CREDENTIALS, isDemoMode, getDemoPassword } from '@/lib/demo-creden
  * In demo/development mode, returns credentials so the login page can auto-fill passwords.
  * In production, credentials are never exposed.
  */
+
+type UserRecord = { id: string; email: string; role: string; name: string };
+
 export async function POST() {
   try {
     // Check if any users exist
@@ -40,30 +43,30 @@ export async function POST() {
     console.log('🌱 Auto-seeding database (no users found)...');
 
     // Create all demo users using shared credentials
-    const createdUsers = [];
+    const createdUsers: UserRecord[] = [];
 
     for (const cred of DEMO_CREDENTIALS) {
       const hash = await bcrypt.hash(cred.password, 10);
       try {
         const user = await db.user.upsert({
           where: { email: cred.email },
-          update: { password: hash, name: cred.nameAr, role: cred.role as never, isActive: true },
+          update: { password: hash, name: cred.nameAr, isActive: true },
           create: {
             email: cred.email,
             password: hash,
             name: cred.nameAr,
             phone: '',
-            role: cred.role as never,
+            role: cred.role,
             department: '',
             position: '',
             isActive: true,
           },
         });
-        createdUsers.push(user);
+        createdUsers.push({ id: user.id, email: user.email, role: user.role, name: user.name });
       } catch {
         // User may already exist
         const existing = await db.user.findUnique({ where: { email: cred.email } });
-        if (existing) createdUsers.push(existing);
+        if (existing) createdUsers.push({ id: existing.id, email: existing.email, role: existing.role, name: existing.name });
       }
     }
 

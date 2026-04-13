@@ -1,5 +1,6 @@
 import { db } from "@/lib/db";
 import { NextRequest, NextResponse } from "next/server";
+import { validateRequest, leaveCreateSchema } from '@/lib/api-validation';
 
 // GET /api/leave
 export async function GET(request: NextRequest) {
@@ -44,7 +45,7 @@ export async function GET(request: NextRequest) {
     // Summary stats
     const now = new Date();
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-    const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+    const _endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
@@ -82,14 +83,13 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { employeeId, type, startDate, endDate, days, reason } = body;
 
-    if (!employeeId || !startDate || !endDate) {
-      return NextResponse.json(
-        { error: "employeeId, startDate, and endDate are required" },
-        { status: 400 }
-      );
+    const validation = validateRequest(leaveCreateSchema, body);
+    if (!validation.success) {
+      return NextResponse.json({ error: validation.error, errors: validation.errors }, { status: 400 });
     }
+
+    const { employeeId, type, startDate, endDate, days, reason } = body;
 
     const leave = await db.leave.create({
       data: {

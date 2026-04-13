@@ -139,7 +139,7 @@ class InvoiceService {
   /**
    * Get invoice by ID
    */
-  async getInvoiceById(id: string, organizationId: string): Promise<Invoice | null> {
+  async getInvoiceById(id: string, _organizationId: string): Promise<Invoice | null> {
     return db.invoice.findFirst({
       where: { id },
       include: {
@@ -151,7 +151,7 @@ class InvoiceService {
   /**
    * Generate unique invoice number
    */
-  private async generateInvoiceNumber(organizationId: string): Promise<string> {
+  private async generateInvoiceNumber(_organizationId: string): Promise<string> {
     const year = new Date().getFullYear();
     for (let attempt = 0; attempt < 3; attempt++) {
       const count = await db.invoice.count({
@@ -336,7 +336,7 @@ class InvoiceService {
   /**
    * Get invoice statistics
    */
-  async getInvoiceStats(organizationId: string): Promise<InvoiceStats> {
+  async getInvoiceStats(_organizationId: string): Promise<InvoiceStats> {
     const [statusCounts, aggregates] = await Promise.all([
       db.invoice.groupBy({
         by: ['status'],

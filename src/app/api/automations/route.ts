@@ -76,7 +76,7 @@ const mockAutomations = [
 ];
 
 // In-memory store for automations (since we use client-side rules pattern)
-let automationsStore = [...mockAutomations];
+const automationsStore = [...mockAutomations];
 
 // GET - Fetch all automations
 export async function GET() {

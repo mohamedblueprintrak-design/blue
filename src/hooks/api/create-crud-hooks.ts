@@ -28,7 +28,7 @@ export interface ApiResult<T> {
 }
 
 /** Configuration for the CRUD hook factory */
-export interface CrudHooksConfig<TEntity = unknown> {
+export interface CrudHooksConfig<_TEntity = unknown> {
   /** REST base path, e.g. '/api/tasks' */
   basePath: string;
   /** TanStack Query cache key (usually the plural entity name, e.g. 'tasks') */

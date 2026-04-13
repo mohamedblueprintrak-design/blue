@@ -1,5 +1,6 @@
 import { db } from "@/lib/db";
 import { NextRequest, NextResponse } from "next/server";
+import { validateRequest, meetingCreateSchema } from '@/lib/api-validation';
 
 export async function GET(request: NextRequest) {
   try {
@@ -39,6 +40,12 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
+
+    const validation = validateRequest(meetingCreateSchema, body);
+    if (!validation.success) {
+      return NextResponse.json({ error: validation.error, errors: validation.errors }, { status: 400 });
+    }
+
     const {
       projectId,
       title,
@@ -51,13 +58,6 @@ export async function POST(request: NextRequest) {
       attendeeIds,
       agendaItems,
     } = body;
-
-    if (!title || !date) {
-      return NextResponse.json(
-        { error: "Title and date are required" },
-        { status: 400 }
-      );
-    }
 
     const meeting = await db.meeting.create({
       data: {

@@ -9,7 +9,7 @@ import { useAuthStore } from '@/store/auth-store';
 import type { ExportParams } from './common';
 
 export function useExportReport() {
-  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const _isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   return useMutation({
     mutationFn: async (params: ExportParams): Promise<boolean> => {
       const queryParams = new URLSearchParams();

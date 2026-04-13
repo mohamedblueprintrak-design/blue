@@ -54,13 +54,13 @@ const allRoles: Role[] = [
   "viewer",
 ];
 
-const managementRoles: Role[] = [
+const _managementRoles: Role[] = [
   "admin",
   "manager",
   "project_manager",
 ];
 
-const fullRoles: Role[] = ["admin", "manager"];
+const _fullRoles: Role[] = ["admin", "manager"];
 
 // ===== NAVIGATION ITEMS (Simplified) =====
 // Strategy: fewer top-level items, no unnecessary sub-menus.

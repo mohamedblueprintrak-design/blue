@@ -13,7 +13,7 @@ export async function GET() {
 // Accepts layout data for future server-side persistence.
 export async function POST(request: Request) {
   try {
-    const body = await request.json();
+    const _body = await request.json();
     // In the future, this could persist to a database or user settings.
     // For now, layout is stored in localStorage on the client.
     return NextResponse.json({ success: true, message: "Layout acknowledged (client-side localStorage is primary store)." });

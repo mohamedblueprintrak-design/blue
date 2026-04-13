@@ -1,5 +1,6 @@
 import { db } from "@/lib/db";
 import { NextRequest, NextResponse } from "next/server";
+import { validateRequest, siteDiarySchema } from '@/lib/api-validation';
 
 export async function GET(request: NextRequest) {
   try {
@@ -29,11 +30,13 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { projectId, date, weather, workerCount, workDescription, issues, safetyNotes, equipment, materials, photos } = body;
 
-    if (!projectId || !date) {
-      return NextResponse.json({ error: "Project ID and date are required" }, { status: 400 });
+    const validation = validateRequest(siteDiarySchema, body);
+    if (!validation.success) {
+      return NextResponse.json({ error: validation.error, errors: validation.errors }, { status: 400 });
     }
+
+    const { projectId, date, weather, workerCount, workDescription, issues, safetyNotes, equipment, materials, photos } = body;
 
     const siteDiary = await db.siteDiary.create({
       data: {

@@ -49,5 +49,5 @@ export function escapeSqlLike(input: string): string {
 
 export function sanitizeFilename(filename: string): string {
   if (typeof filename !== 'string') return '';
-  return filename.replace(/\.\./g, '').replace(/[\/\\]/g, '').replace(/[^a-zA-Z0-9._-]/g, '_').trim();
+  return filename.replace(/\.\./g, '').replace(/[/\\]/g, '').replace(/[^a-zA-Z0-9._-]/g, '_').trim();
 }

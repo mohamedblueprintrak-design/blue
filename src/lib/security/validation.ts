@@ -81,11 +81,11 @@ const PATH_TRAVERSAL_PATTERNS: RegExp[] = [
   /\.\.\//g,
   /\.\.\\/g,
   /\.\./g,
-  /%2e%2e[\/%5c]/gi,
+  /%2e%2e[/%5c]/gi,
   /%2e%2e\//gi,
   /\.\.%2f/gi,
   /\.\.%5c/gi,
-  /%252e%252e[\/%5c]/gi,
+  /%252e%252e[/%5c]/gi,
 ];
 
 /**
@@ -274,7 +274,7 @@ export function validatePhoneNumber(phone: string): ValidationResult {
   }
 
   // Strip formatting characters for validation
-  const stripped = phone.replace(/[\s\-\(\)\.]/g, '');
+  const stripped = phone.replace(/[\s\-().]/g, '');
 
   // E.164 format or international with leading +
   const phoneRegex = /^\+?[1-9]\d{6,14}$/;

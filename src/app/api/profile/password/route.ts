@@ -26,7 +26,7 @@ export async function PUT(request: Request) {
         { status: 400 }
       );
     }
-    const { currentPassword, newPassword, confirmPassword } = validation.data;
+    const { currentPassword, newPassword, confirmPassword: _confirmPassword } = validation.data;
 
     const user = await db.user.findUnique({
       where: { email: session.user.email },

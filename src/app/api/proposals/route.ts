@@ -1,5 +1,6 @@
 import { db } from "@/lib/db";
 import { NextRequest, NextResponse } from "next/server";
+import { validateRequest, proposalSchema } from '@/lib/api-validation';
 
 export async function GET(request: NextRequest) {
   try {
@@ -31,11 +32,13 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { number, clientId, projectId, status, items, notes } = body;
 
-    if (!clientId) {
-      return NextResponse.json({ error: "Client is required" }, { status: 400 });
+    const validation = validateRequest(proposalSchema, body);
+    if (!validation.success) {
+      return NextResponse.json({ error: validation.error, errors: validation.errors }, { status: 400 });
     }
+
+    const { number, clientId, projectId, status, items, notes } = body;
 
     const lineItems = items || [];
     const subtotal = lineItems.reduce((sum: number, item: { quantity: number; unitPrice: number }) => sum + (item.quantity * item.unitPrice), 0);

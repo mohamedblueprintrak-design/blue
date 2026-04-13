@@ -8,12 +8,10 @@ import { cn } from "@/lib/utils";
 import { formatCurrency } from "@/lib/formatters";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Separator } from "@/components/ui/separator";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Dialog,
@@ -257,7 +255,7 @@ interface TendersPageProps {
 }
 
 export default function TendersPage({ language }: TendersPageProps) {
-  const ar = language === "ar";
+  const _ar = language === "ar";
   const lang = useLang();
   const isAr = lang === "ar";
 

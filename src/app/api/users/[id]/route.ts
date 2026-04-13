@@ -1,5 +1,6 @@
 import { db } from '@/lib/db';
 import { NextRequest, NextResponse } from 'next/server';
+import { validateRequest, userUpdateSchema } from '@/lib/api-validation';
 
 export async function GET(
   _request: NextRequest,
@@ -41,6 +42,11 @@ export async function PUT(
   try {
     const { id } = await params;
     const body = await request.json();
+
+    const validation = validateRequest(userUpdateSchema, body);
+    if (!validation.success) {
+      return NextResponse.json({ error: validation.error, errors: validation.errors }, { status: 400 });
+    }
 
     const user = await db.user.update({
       where: { id },

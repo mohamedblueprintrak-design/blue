@@ -344,7 +344,7 @@ export function useRealtime(options: UseRealtimeOptions = {}) {
 
     if (enabled && isAuthenticated && !lastAuthStateRef.current) {
       reconnectAttemptsRef.current = 0;
-      const id = requestAnimationFrame(() => createConnectionRef.current());
+      const _id = requestAnimationFrame(() => createConnectionRef.current());
     } else if (!isAuthenticated && lastAuthStateRef.current) {
       requestAnimationFrame(() => disconnect());
     }
@@ -355,7 +355,7 @@ export function useRealtime(options: UseRealtimeOptions = {}) {
       disconnect();
     };
      
-  }, [isAuthenticated, enabled]);
+  }, [isAuthenticated, enabled, disconnect]);
 
   // Manual reconnect
   const reconnect = useCallback(() => {

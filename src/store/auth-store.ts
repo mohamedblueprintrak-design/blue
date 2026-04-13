@@ -80,7 +80,7 @@ export const useAuthStore = create<AuthStore>()(
           }
           set({ isLoading: false });
           return { success: false, error: result.error?.message || 'Registration failed' };
-        } catch (error) {
+        } catch {
           set({ isLoading: false });
           return { success: false, error: 'Network error' };
         }

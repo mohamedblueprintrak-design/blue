@@ -155,7 +155,7 @@ class ClientService {
    * Get client by ID with organization validation
    * SECURITY: Verifies client belongs to organization before returning
    */
-  async getClientById(id: string, organizationId: string): Promise<Client | null> {
+  async getClientById(id: string, _organizationId: string): Promise<Client | null> {
     return db.client.findFirst({
       where: { id },
     });

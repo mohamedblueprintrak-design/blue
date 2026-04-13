@@ -1,5 +1,6 @@
 import { db } from '@/lib/db';
 import { NextRequest, NextResponse } from 'next/server';
+import { validateBody, companySettingsSchema } from '@/lib/api-validation';
 
 export async function GET() {
   try {
@@ -25,7 +26,8 @@ export async function GET() {
 
 export async function PUT(request: NextRequest) {
   try {
-    const body = await request.json();
+    const body = await validateBody(request, companySettingsSchema);
+    if (body instanceof NextResponse) return body;
     const existing = await db.companySettings.findFirst();
 
     if (!existing) {

@@ -1,5 +1,6 @@
 import { db } from "@/lib/db";
 import { NextRequest, NextResponse } from "next/server";
+import { validateRequest, knowledgeArticleSchema } from '@/lib/api-validation';
 
 export async function GET(request: NextRequest) {
   try {
@@ -37,11 +38,13 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { title, content, category, tags, authorId } = body;
 
-    if (!title) {
-      return NextResponse.json({ error: "Article title is required" }, { status: 400 });
+    const validation = validateRequest(knowledgeArticleSchema, body);
+    if (!validation.success) {
+      return NextResponse.json({ error: validation.error, errors: validation.errors }, { status: 400 });
     }
+
+    const { title, content, category, tags, authorId } = body;
 
     const article = await db.knowledgeArticle.create({
       data: {

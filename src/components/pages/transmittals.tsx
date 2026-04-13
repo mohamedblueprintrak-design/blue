@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -52,7 +52,6 @@ import {
   Clock,
   CheckCircle2,
   MessageSquare,
-  FileCheck2,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -238,7 +237,7 @@ export default function Transmittals({ language, projectId }: TransmittalsProps)
   });
 
   // Update item reply mutation
-  const updateItemMutation = useMutation({
+  const _updateItemMutation = useMutation({
     mutationFn: async ({ itemId, data }: { itemId: string; data: Record<string, unknown> }) => {
       const res = await fetch(`/api/transmittals/items/${itemId}`, {
         method: "PUT",
@@ -322,7 +321,7 @@ export default function Transmittals({ language, projectId }: TransmittalsProps)
     setItemReplies(replies);
   };
 
-  const currentUser = users.find((u) => u.id === formData.fromId);
+  const _currentUser = users.find((u) => u.id === formData.fromId);
 
   return (
     <div className="space-y-4">

@@ -84,7 +84,7 @@ export function FormSelectField({
   labelEn,
   name,
   children,
-  placeholder,
+  placeholder: _placeholder,
   required,
   className,
   isAr = true,

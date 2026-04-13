@@ -1,5 +1,6 @@
 import { db } from "@/lib/db";
 import { NextRequest, NextResponse } from "next/server";
+import { validateBody, supplierCreateSchema } from '@/lib/api-validation';
 
 export async function GET(request: NextRequest) {
   try {
@@ -28,12 +29,9 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
+    const body = await validateBody(request, supplierCreateSchema);
+    if (body instanceof NextResponse) return body;
     const { name, category, email, phone, address, rating, creditLimit } = body;
-
-    if (!name) {
-      return NextResponse.json({ error: "Name is required" }, { status: 400 });
-    }
 
     const supplier = await db.supplier.create({
       data: {
@@ -42,8 +40,8 @@ export async function POST(request: NextRequest) {
         email: email || "",
         phone: phone || "",
         address: address || "",
-        rating: rating ? parseInt(rating) : 0,
-        creditLimit: creditLimit ? parseFloat(creditLimit) : 0,
+        rating: rating || 0,
+        creditLimit: creditLimit || 0,
       },
       include: {
         _count: {

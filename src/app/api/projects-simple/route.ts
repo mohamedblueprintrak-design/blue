@@ -8,7 +8,7 @@ export async function GET() {
       orderBy: { createdAt: "desc" },
     });
     return NextResponse.json(projects);
-  } catch (error) {
+  } catch {
     return NextResponse.json([], { status: 200 });
   }
 }

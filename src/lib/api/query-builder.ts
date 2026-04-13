@@ -184,7 +184,7 @@ export function parseSortParams(
 
   let sortBy = searchParams.get('sortBy') || defaultSortBy;
   const rawOrder = searchParams.get('sortOrder') || defaultSortOrder;
-  let sortOrder: SortOrder = rawOrder === 'asc' ? 'asc' : 'desc';
+  const sortOrder: SortOrder = rawOrder === 'asc' ? 'asc' : 'desc';
 
   // If allow-list is provided, ensure sortBy is in it
   if (allowedFields && allowedFields.length > 0 && !allowedFields.includes(sortBy)) {

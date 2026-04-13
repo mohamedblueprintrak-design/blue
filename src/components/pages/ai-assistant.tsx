@@ -761,6 +761,7 @@ export default function AIAssistant({ language: lang, projectId }: Props) {
           userId: user?.id,
           language: lang,
           projectId,
+          model: selectedModel,
         }),
       });
 
@@ -903,6 +904,7 @@ export default function AIAssistant({ language: lang, projectId }: Props) {
           userId: user?.id,
           language: lang,
           projectId,
+          model: selectedModel,
         }),
       });
 

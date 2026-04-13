@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
+import { validateBody, approvalCreateSchema } from '@/lib/api-validation';
 
 // GET: List all approvals with optional filtering
 export async function GET(request: NextRequest) {
@@ -24,12 +25,9 @@ export async function GET(request: NextRequest) {
 
 // POST: Create a new approval request
 export async function POST(request: NextRequest) {
-  const body = await request.json();
+  const body = await validateBody(request, approvalCreateSchema);
+  if (body instanceof NextResponse) return body;
   const { entityType, entityId, title, description, requestedBy, assignedTo, step, totalSteps, amount } = body;
-
-  if (!entityType || !entityId || !title || !requestedBy || !assignedTo) {
-    return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
-  }
 
   const approval = await db.approval.create({
     data: {

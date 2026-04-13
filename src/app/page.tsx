@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
-import { motion, AnimatePresence, useInView } from "framer-motion";
+import { motion, AnimatePresence, useInView, Variants } from "framer-motion";
 import {
   Building2,
   Compass,
@@ -15,7 +15,6 @@ import {
   Mail,
   MapPin,
   ArrowLeft,
-  ArrowUp,
   Users,
   Award,
   Clock,
@@ -192,8 +191,8 @@ function useCounter(end: number, duration: number = 2000, startOnView: boolean =
 }
 
 // ==================== ANIMATION VARIANTS ====================
- 
-const fadeInUp: any = {
+
+const fadeInUp: Variants = {
   hidden: { opacity: 0, y: 30 },
   visible: (i: number) => ({
     opacity: 1,
@@ -210,10 +209,8 @@ const staggerContainer = {
   },
 };
 
-// ==================== i18n HELPER (Arabic-only landing page) ====================
-function isAr(ar: string, _en: string): string {
-  return ar;
-}
+// NOTE: i18n is handled by the `t` function inside the component using React state,
+// so language changes trigger proper re-renders.
 
 export default function LandingPage() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -225,6 +222,23 @@ export default function LandingPage() {
   const [formSubmitting, setFormSubmitting] = useState(false);
   const [formSuccess, setFormSuccess] = useState(false);
   const [showScrollTop, setShowScrollTop] = useState(false);
+  const [language, setLanguage] = useState<"ar" | "en">("ar");
+
+  // Initialize language from localStorage
+  useEffect(() => {
+    const saved = localStorage.getItem("blueprint-lang") as "ar" | "en" | null;
+    if (saved) setLanguage(saved);
+  }, []);
+
+  const toggleLanguage = () => {
+    const newLang = language === "ar" ? "en" : "ar";
+    setLanguage(newLang);
+    localStorage.setItem("blueprint-lang", newLang);
+    document.documentElement.dir = newLang === "ar" ? "rtl" : "ltr";
+    document.documentElement.lang = newLang;
+  };
+
+  const t = (ar: string, en: string) => language === "ar" ? ar : en;
 
   // Track scroll position for back-to-top button
   useEffect(() => {
@@ -278,7 +292,7 @@ export default function LandingPage() {
   };
 
   return (
-    <div className="min-h-screen bg-white" dir="rtl">
+    <div className="min-h-screen bg-white" dir={language === "ar" ? "rtl" : "ltr"}>
       {/* ===== HEADER ===== */}
       <header className="fixed top-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-md border-b border-slate-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -305,9 +319,16 @@ export default function LandingPage() {
                   {link.label}
                 </Link>
               ))}
+              <button
+                onClick={toggleLanguage}
+                className="px-3 py-1.5 text-xs font-medium text-slate-500 hover:text-teal-600 border border-slate-200 hover:border-teal-300 rounded-lg transition-all duration-200 flex items-center gap-1.5"
+              >
+                <Globe className="w-3.5 h-3.5" />
+                {language === "ar" ? "EN" : "عربي"}
+              </button>
               <Link href="/dashboard">
                 <Button className="mr-2 bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-600 hover:to-cyan-600 text-white shadow-lg shadow-teal-500/20">
-                  لوحة التحكم
+                  {t("لوحة التحكم", "Dashboard")}
                 </Button>
               </Link>
             </nav>
@@ -708,7 +729,7 @@ export default function LandingPage() {
                     <Phone className="w-5 h-5 text-teal-400" />
                   </div>
                   <div>
-                    <div className="text-white font-medium">{isAr("اتصل بنا", "Call Us")}</div>
+                    <div className="text-white font-medium">{t("اتصل بنا", "Call Us")}</div>
                     <div className="text-slate-400 text-sm mt-1" dir="ltr">+971 50 161 1234</div>
                   </div>
                 </div>
@@ -717,7 +738,7 @@ export default function LandingPage() {
                     <Mail className="w-5 h-5 text-teal-400" />
                   </div>
                   <div>
-                    <div className="text-white font-medium">{isAr("البريد الإلكتروني", "Email")}</div>
+                    <div className="text-white font-medium">{t("البريد الإلكتروني", "Email")}</div>
                     <div className="text-slate-400 text-sm mt-1">info.blueprintrak@gmail.com</div>
                   </div>
                 </div>
@@ -726,8 +747,8 @@ export default function LandingPage() {
                     <MapPin className="w-5 h-5 text-teal-400" />
                   </div>
                   <div>
-                    <div className="text-white font-medium">{isAr("العنوان", "Address")}</div>
-                    <div className="text-slate-400 text-sm mt-1">{isAr("رأس الخيمة - الإمارات العربية المتحدة", "Ras Al Khaimah - UAE")}</div>
+                    <div className="text-white font-medium">{t("العنوان", "Address")}</div>
+                    <div className="text-slate-400 text-sm mt-1">{t("رأس الخيمة - الإمارات العربية المتحدة", "Ras Al Khaimah - UAE")}</div>
                   </div>
                 </div>
                 <div className="flex items-start gap-4">
@@ -735,8 +756,8 @@ export default function LandingPage() {
                     <Clock className="w-5 h-5 text-teal-400" />
                   </div>
                   <div>
-                    <div className="text-white font-medium">{isAr("ساعات العمل", "Working Hours")}</div>
-                    <div className="text-slate-400 text-sm mt-1">{isAr("الأحد - الخميس: 8:30 ص - 2:00 م / 5:00 م - 8:30 م", "Sun - Thu: 8:30 AM - 2:00 PM / 5:00 PM - 8:30 PM")}</div>
+                    <div className="text-white font-medium">{t("ساعات العمل", "Working Hours")}</div>
+                    <div className="text-slate-400 text-sm mt-1">{t("الأحد - الخميس: 8:30 ص - 2:00 م / 5:00 م - 8:30 م", "Sun - Thu: 8:30 AM - 2:00 PM / 5:00 PM - 8:30 PM")}</div>
                   </div>
                 </div>
                 <div className="flex items-start gap-4">
@@ -744,8 +765,8 @@ export default function LandingPage() {
                     <Clock className="w-5 h-5 text-teal-400" />
                   </div>
                   <div>
-                    <div className="text-white font-medium">{isAr("الجمعة", "Friday")}</div>
-                    <div className="text-slate-400 text-sm mt-1">{isAr("8:00 ص - 12:00 م", "8:00 AM - 12:00 PM")}</div>
+                    <div className="text-white font-medium">{t("الجمعة", "Friday")}</div>
+                    <div className="text-slate-400 text-sm mt-1">{t("8:00 ص - 12:00 م", "8:00 AM - 12:00 PM")}</div>
                   </div>
                 </div>
               </motion.div>
@@ -763,26 +784,26 @@ export default function LandingPage() {
                 <div className="text-center py-10">
                   <CheckCircle2 className="w-16 h-16 text-teal-500 mx-auto mb-4" />
                   <h3 className="text-xl font-bold text-slate-900 mb-2">
-                    {isAr("تم إرسال طلبك بنجاح!", "Request Sent Successfully!")}
+                    {t("تم إرسال طلبك بنجاح!", "Request Sent Successfully!")}
                   </h3>
                   <p className="text-slate-500">
-                    {isAr("سنتواصل معك خلال 24 ساعة", "We'll get back to you within 24 hours")}
+                    {t("سنتواصل معك خلال 24 ساعة", "We'll get back to you within 24 hours")}
                   </p>
                 </div>
               ) : (
                 <form onSubmit={handleContactSubmit} className="space-y-5">
                   <h3 className="text-xl font-bold text-slate-900 mb-2">
-                    {isAr("طلب استشارة مجانية", "Free Consultation Request")}
+                    {t("طلب استشارة مجانية", "Free Consultation Request")}
                   </h3>
                   <p className="text-sm text-slate-500 mb-4">
-                    {isAr("املأ النموذج أدناه وسنعود إليك قريباً", "Fill the form below and we'll get back to you soon")}
+                    {t("املأ النموذج أدناه وسنعود إليك قريباً", "Fill the form below and we'll get back to you soon")}
                   </p>
 
                   <div className="grid sm:grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label className="text-slate-700 text-sm">{isAr("الاسم الكامل", "Full Name")}</Label>
+                      <Label className="text-slate-700 text-sm">{t("الاسم الكامل", "Full Name")}</Label>
                       <Input
-                        placeholder={isAr("أدخل اسمك", "Enter your name")}
+                        placeholder={t("أدخل اسمك", "Enter your name")}
                         value={formName}
                         onChange={(e) => setFormName(e.target.value)}
                         required
@@ -790,7 +811,7 @@ export default function LandingPage() {
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label className="text-slate-700 text-sm">{isAr("رقم الهاتف", "Phone Number")}</Label>
+                      <Label className="text-slate-700 text-sm">{t("رقم الهاتف", "Phone Number")}</Label>
                       <Input
                         placeholder="+971 XX XXX XXXX"
                         value={formPhone}
@@ -803,7 +824,7 @@ export default function LandingPage() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label className="text-slate-700 text-sm">{isAr("البريد الإلكتروني", "Email")}</Label>
+                    <Label className="text-slate-700 text-sm">{t("البريد الإلكتروني", "Email")}</Label>
                     <Input
                       type="email"
                       placeholder="example@email.com"
@@ -816,26 +837,26 @@ export default function LandingPage() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label className="text-slate-700 text-sm">{isAr("نوع الخدمة", "Service Type")}</Label>
+                    <Label className="text-slate-700 text-sm">{t("نوع الخدمة", "Service Type")}</Label>
                     <Select value={formType} onValueChange={setFormType} required>
                       <SelectTrigger className="w-full h-11 border-slate-200">
-                        <SelectValue placeholder={isAr("اختر نوع الخدمة", "Select service type")} />
+                        <SelectValue placeholder={t("اختر نوع الخدمة", "Select service type")} />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="design">{isAr("خدمة تصميم", "Design Service")}</SelectItem>
-                        <SelectItem value="supervision">{isAr("إشراف تنفيذ", "Construction Supervision")}</SelectItem>
-                        <SelectItem value="inspection">{isAr("فحص هندسي", "Engineering Inspection")}</SelectItem>
-                        <SelectItem value="licensing">{isAr("ترخيص", "Licensing")}</SelectItem>
-                        <SelectItem value="turnkey">{isAr("مشروع متكامل", "Turnkey Project")}</SelectItem>
-                        <SelectItem value="other">{isAr("أخرى", "Other")}</SelectItem>
+                        <SelectItem value="design">{t("خدمة تصميم", "Design Service")}</SelectItem>
+                        <SelectItem value="supervision">{t("إشراف تنفيذ", "Construction Supervision")}</SelectItem>
+                        <SelectItem value="inspection">{t("فحص هندسي", "Engineering Inspection")}</SelectItem>
+                        <SelectItem value="licensing">{t("ترخيص", "Licensing")}</SelectItem>
+                        <SelectItem value="turnkey">{t("مشروع متكامل", "Turnkey Project")}</SelectItem>
+                        <SelectItem value="other">{t("أخرى", "Other")}</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
 
                   <div className="space-y-2">
-                    <Label className="text-slate-700 text-sm">{isAr("رسالتك", "Your Message")}</Label>
+                    <Label className="text-slate-700 text-sm">{t("رسالتك", "Your Message")}</Label>
                     <Textarea
-                      placeholder={isAr("اكتب تفاصيل مشروعك هنا...", "Describe your project details...")}
+                      placeholder={t("اكتب تفاصيل مشروعك هنا...", "Describe your project details...")}
                       value={formMessage}
                       onChange={(e) => setFormMessage(e.target.value)}
                       rows={3}
@@ -849,9 +870,9 @@ export default function LandingPage() {
                     className="w-full h-12 bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-600 hover:to-cyan-600 text-white shadow-lg shadow-teal-500/20 rounded-xl text-base font-semibold"
                   >
                     {formSubmitting
-                      ? isAr("جاري الإرسال...", "Sending...")
+                      ? t("جاري الإرسال...", "Sending...")
                       : <>
-                        {isAr("إرسال الطلب", "Submit Request")}
+                        {t("إرسال الطلب", "Submit Request")}
                         <ArrowLeft className="w-4 h-4 ms-2 rotate-180" />
                       </>
                     }
@@ -873,11 +894,11 @@ export default function LandingPage() {
                 <LogoImage size={40} />
                 <div>
                   <h3 className="text-lg font-bold">BluePrint</h3>
-                  <p className="text-xs text-slate-400">{isAr("مكتب الاستشارات الهندسية", "Engineering Consultancy")}</p>
+                  <p className="text-xs text-slate-400">{t("مكتب الاستشارات الهندسية", "Engineering Consultancy")}</p>
                 </div>
               </div>
               <p className="text-sm text-slate-400 leading-relaxed">
-                {isAr(
+                {t(
                   "مكتب هندسي متخصص في رأس الخيمة يقدم خدمات التصميم والترخيص والإشراف الهندسي بأعلى معايير الجودة",
                   "Specialized engineering consultancy in Ras Al Khaimah offering design, licensing, and construction supervision services"
                 )}
@@ -901,36 +922,36 @@ export default function LandingPage() {
 
             {/* Quick Links */}
             <div>
-              <h4 className="font-semibold text-sm mb-4">{isAr("روابط سريعة", "Quick Links")}</h4>
+              <h4 className="font-semibold text-sm mb-4">{t("روابط سريعة", "Quick Links")}</h4>
               <ul className="space-y-2.5">
-                <li><Link href="#services" className="text-sm text-slate-400 hover:text-teal-400 transition-colors">{isAr("خدماتنا", "Services")}</Link></li>
-                <li><Link href="#about" className="text-sm text-slate-400 hover:text-teal-400 transition-colors">{isAr("من نحن", "About Us")}</Link></li>
-                <li><Link href="/calculator" className="text-sm text-slate-400 hover:text-teal-400 transition-colors">{isAr("حاسبة التكاليف", "Cost Calculator")}</Link></li>
-                <li><Link href="/quote" className="text-sm text-slate-400 hover:text-teal-400 transition-colors">{isAr("طلب عرض سعر", "Request Quote")}</Link></li>
-                <li><Link href="/dashboard" className="text-sm text-slate-400 hover:text-teal-400 transition-colors">{isAr("لوحة التحكم", "Dashboard")}</Link></li>
+                <li><Link href="#services" className="text-sm text-slate-400 hover:text-teal-400 transition-colors">{t("خدماتنا", "Services")}</Link></li>
+                <li><Link href="#about" className="text-sm text-slate-400 hover:text-teal-400 transition-colors">{t("من نحن", "About Us")}</Link></li>
+                <li><Link href="/calculator" className="text-sm text-slate-400 hover:text-teal-400 transition-colors">{t("حاسبة التكاليف", "Cost Calculator")}</Link></li>
+                <li><Link href="/quote" className="text-sm text-slate-400 hover:text-teal-400 transition-colors">{t("طلب عرض سعر", "Request Quote")}</Link></li>
+                <li><Link href="/dashboard" className="text-sm text-slate-400 hover:text-teal-400 transition-colors">{t("لوحة التحكم", "Dashboard")}</Link></li>
               </ul>
             </div>
 
             {/* Services */}
             <div>
-              <h4 className="font-semibold text-sm mb-4">{isAr("خدماتنا", "Our Services")}</h4>
+              <h4 className="font-semibold text-sm mb-4">{t("خدماتنا", "Our Services")}</h4>
               <ul className="space-y-2.5">
-                <li><span className="text-sm text-slate-400">{isAr("التصميم المعماري", "Architectural Design")}</span></li>
-                <li><span className="text-sm text-slate-400">{isAr("التصميم الإنشائي", "Structural Design")}</span></li>
-                <li><span className="text-sm text-slate-400">{isAr("التصميم الكهروميكانيكي", "MEP Design")}</span></li>
-                <li><span className="text-sm text-slate-400">{isAr("رخص البلدية والدفاع المدني", "Municipality & Civil Defense")}</span></li>
-                <li><span className="text-sm text-slate-400">{isAr("إشراف التنفيذ", "Construction Supervision")}</span></li>
-                <li><span className="text-sm text-slate-400">{isAr("الاستشارات الهندسية", "Engineering Consultation")}</span></li>
+                <li><span className="text-sm text-slate-400">{t("التصميم المعماري", "Architectural Design")}</span></li>
+                <li><span className="text-sm text-slate-400">{t("التصميم الإنشائي", "Structural Design")}</span></li>
+                <li><span className="text-sm text-slate-400">{t("التصميم الكهروميكانيكي", "MEP Design")}</span></li>
+                <li><span className="text-sm text-slate-400">{t("رخص البلدية والدفاع المدني", "Municipality & Civil Defense")}</span></li>
+                <li><span className="text-sm text-slate-400">{t("إشراف التنفيذ", "Construction Supervision")}</span></li>
+                <li><span className="text-sm text-slate-400">{t("الاستشارات الهندسية", "Engineering Consultation")}</span></li>
               </ul>
             </div>
 
             {/* Contact */}
             <div>
-              <h4 className="font-semibold text-sm mb-4">{isAr("تواصل معنا", "Contact Us")}</h4>
+              <h4 className="font-semibold text-sm mb-4">{t("تواصل معنا", "Contact Us")}</h4>
               <ul className="space-y-3">
                 <li className="flex items-center gap-2 text-sm text-slate-400">
                   <MapPin className="w-4 h-4 text-teal-500 shrink-0" />
-                  {isAr("رأس الخيمة - الإمارات", "Ras Al Khaimah - UAE")}
+                  {t("رأس الخيمة - الإمارات", "Ras Al Khaimah - UAE")}
                 </li>
                 <li className="flex items-center gap-2 text-sm text-slate-400">
                   <Phone className="w-4 h-4 text-teal-500 shrink-0" />
@@ -942,11 +963,11 @@ export default function LandingPage() {
                 </li>
                 <li className="flex items-center gap-2 text-sm text-slate-400">
                   <Clock className="w-4 h-4 text-teal-500 shrink-0" />
-                  {isAr("الأحد - الخميس: 8:30-2 / 5-8:30", "Sun - Thu: 8:30-2 / 5-8:30")}
+                  {t("الأحد - الخميس: 8:30-2 / 5-8:30", "Sun - Thu: 8:30-2 / 5-8:30")}
                 </li>
                 <li className="flex items-center gap-2 text-sm text-slate-400">
                   <Clock className="w-4 h-4 text-teal-500 shrink-0" />
-                  {isAr("الجمعة: 8:00 ص - 12:00 م", "Friday: 8:00 AM - 12:00 PM")}
+                  {t("الجمعة: 8:00 ص - 12:00 م", "Friday: 8:00 AM - 12:00 PM")}
                 </li>
               </ul>
             </div>
@@ -957,7 +978,7 @@ export default function LandingPage() {
             <div className="flex flex-wrap items-center justify-center gap-6">
               <div className="flex items-center gap-2 text-slate-500 text-xs">
                 <Shield className="w-4 h-4 text-teal-500" />
-                {isAr("معتمد من البلدية", "Municipality Approved")}
+                {t("معتمد من البلدية", "Municipality Approved")}
               </div>
               <div className="flex items-center gap-2 text-slate-500 text-xs">
                 <Globe className="w-4 h-4 text-teal-500" />
@@ -965,18 +986,18 @@ export default function LandingPage() {
               </div>
               <div className="flex items-center gap-2 text-slate-500 text-xs">
                 <Settings className="w-4 h-4 text-teal-500" />
-                {isAr("عضو جمعية المهندسين الإمارات", "UAE Society of Engineers")}
+                {t("عضو جمعية المهندسين الإمارات", "UAE Society of Engineers")}
               </div>
               <div className="flex items-center gap-2 text-slate-500 text-xs">
                 <BarChart3 className="w-4 h-4 text-teal-500" />
-                {isAr("تصنيف فئة أ", "Grade A Classified")}
+                {t("تصنيف فئة أ", "Grade A Classified")}
               </div>
             </div>
           </div>
 
           {/* Copyright */}
           <div className="pt-8 text-center text-xs text-slate-500">
-            &copy; {new Date().getFullYear()} BluePrint Engineering Consultancy. {isAr("جميع الحقوق محفوظة.", "All rights reserved.")}
+            &copy; {new Date().getFullYear()} BluePrint Engineering Consultancy. {t("جميع الحقوق محفوظة.", "All rights reserved.")}
           </div>
         </div>
       </footer>

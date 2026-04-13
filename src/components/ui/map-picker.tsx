@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useMemo, useRef } from "react";
+import { useState, useCallback, useMemo, useRef, useEffect } from "react";
 import { MapContainer, TileLayer, Marker, useMapEvents, useMap } from "react-leaflet";
 import L from "leaflet";
 import { MapPin, LocateFixed, X } from "lucide-react";
@@ -54,16 +54,20 @@ function LocationMarker({
   ) : null;
 }
 
-// FlyTo using requestAnimationFrame to avoid setState-in-effect warning
+// FlyTo using useEffect to avoid accessing refs during render
 function FlyToLocation({ position }: { position: [number, number] | null }) {
   const map = useMap();
   const prevRef = useRef<{ lat: number; lng: number } | null>(null);
-  if (position && (prevRef.current?.lat !== position[0] || prevRef.current?.lng !== position[1])) {
-    prevRef.current = { lat: position[0], lng: position[1] };
-    requestAnimationFrame(() => {
-      map.flyTo(position, 15, { duration: 0.8 });
-    });
-  }
+
+  useEffect(() => {
+    if (position && (prevRef.current?.lat !== position[0] || prevRef.current?.lng !== position[1])) {
+      prevRef.current = { lat: position[0], lng: position[1] };
+      requestAnimationFrame(() => {
+        map.flyTo(position, 15, { duration: 0.8 });
+      });
+    }
+  }, [position, map]);
+
   return null;
 }
 

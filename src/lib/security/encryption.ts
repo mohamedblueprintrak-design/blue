@@ -24,7 +24,7 @@ const ENCRYPTION_ALGORITHM = 'aes-256-gcm';
 const IV_LENGTH = 16;
 
 /** Length of the auth tag for GCM mode (in bytes) */
-const AUTH_TAG_LENGTH = 16;
+const _AUTH_TAG_LENGTH = 16;
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 

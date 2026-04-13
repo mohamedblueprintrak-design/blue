@@ -56,7 +56,7 @@ export function generateInvoicePDF(invoice: InvoicePDFData) {
 
   const pageWidth = doc.internal.pageSize.getWidth();
   const margin = 20;
-  const contentWidth = pageWidth - margin * 2;
+  const _contentWidth = pageWidth - margin * 2;
 
   // ---- Company Header ----
   // Teal header bar

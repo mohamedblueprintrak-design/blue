@@ -9,7 +9,7 @@ import { useMutation } from '@tanstack/react-query';
 import { useAuthStore } from '@/store/auth-store';
 
 export function useAIChat() {
-  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const _isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   return useMutation({
     mutationFn: async (data: {
       message?: string;

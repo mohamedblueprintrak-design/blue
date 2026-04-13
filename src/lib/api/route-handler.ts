@@ -15,7 +15,6 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import type { Prisma, PrismaClient } from '@prisma/client';
 import type { SocketData } from '@/lib/websocket/types';
 import {
   successResponse,
@@ -29,7 +28,6 @@ import {
   paginatedResponse,
   generateRequestId,
 } from './api-response';
-import { ErrorCode } from './error-codes';
 import { parseQuery, buildPrismaPagination, buildPrismaOrderBy, buildPrismaWhere, buildSearchCondition, buildDateRangeCondition } from './query-builder';
 import type { QueryConfig, ParsedQuery } from './query-builder';
 
@@ -584,7 +582,7 @@ export function streamResponse(
 
       try {
         await handler(send);
-      } catch (error) {
+      } catch {
         send({ event: 'error', data: { message: 'Stream error occurred' } });
       } finally {
         controller.close();

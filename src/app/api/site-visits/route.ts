@@ -1,5 +1,6 @@
 import { db } from "@/lib/db";
 import { NextRequest, NextResponse } from "next/server";
+import { validateRequest, siteVisitCreateSchema } from '@/lib/api-validation';
 
 export async function GET(request: NextRequest) {
   try {
@@ -33,11 +34,13 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { projectId, date, plotNumber, municipality, gateDescription, neighborDesc, buildingDesc, status, photos, notes } = body;
 
-    if (!projectId || !date) {
-      return NextResponse.json({ error: "Project ID and date are required" }, { status: 400 });
+    const validation = validateRequest(siteVisitCreateSchema, body);
+    if (!validation.success) {
+      return NextResponse.json({ error: validation.error, errors: validation.errors }, { status: 400 });
     }
+
+    const { projectId, date, plotNumber, municipality, gateDescription, neighborDesc, buildingDesc, status, photos, notes } = body;
 
     const siteVisit = await db.siteVisit.create({
       data: {
