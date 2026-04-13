@@ -731,7 +731,7 @@ export default function AppLayout({ language }: AppLayoutProps) {
         <AppHeader />
         <Breadcrumbs language={language} />
 
-        <main className="flex-1 p-4 lg:p-6 bg-slate-50 dark:bg-slate-950 dot-pattern-content custom-scrollbar overflow-y-auto">
+        <main className="flex-1 p-4 lg:p-6 bg-slate-50 dark:bg-slate-950 dot-pattern-content custom-scrollbar overflow-y-auto" role="main" aria-label={language === "ar" ? "المحتوى الرئيسي" : "Main content"}>
           <AnimatePresence mode="wait">
             <motion.div
               key={currentPage}
