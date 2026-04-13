@@ -1,5 +1,6 @@
 import { db } from "@/lib/db";
 import { NextRequest, NextResponse } from "next/server";
+import { sanitizeObject, sanitizeEmail } from '@/lib/security/sanitize';
 
 export async function GET(
   request: NextRequest,
@@ -85,7 +86,8 @@ export async function PUT(
 ) {
   try {
     const { id } = await params;
-    const body = await request.json();
+    const rawBody = await request.json();
+    const body = sanitizeObject(rawBody);
 
     const existing = await db.client.findUnique({ where: { id } });
     if (!existing) {
@@ -103,12 +105,14 @@ export async function PUT(
       paymentTerms,
     } = body;
 
+    const sanitizedEmail = email !== undefined ? sanitizeEmail(email as string) : undefined;
+
     const client = await db.client.update({
       where: { id },
       data: {
         ...(name !== undefined && { name }),
         ...(company !== undefined && { company }),
-        ...(email !== undefined && { email }),
+        ...(sanitizedEmail !== undefined && { email: sanitizedEmail }),
         ...(phone !== undefined && { phone }),
         ...(address !== undefined && { address }),
         ...(taxNumber !== undefined && { taxNumber }),

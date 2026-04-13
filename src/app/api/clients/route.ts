@@ -1,5 +1,6 @@
 import { db } from "@/lib/db";
 import { NextRequest, NextResponse } from "next/server";
+import { sanitizeObject, sanitizeEmail } from '@/lib/security/sanitize';
 
 export async function GET(request: NextRequest) {
   try {
@@ -37,7 +38,8 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
+    const rawBody = await request.json();
+    const body = sanitizeObject(rawBody);
     const {
       name,
       company,
@@ -49,6 +51,8 @@ export async function POST(request: NextRequest) {
       paymentTerms,
     } = body;
 
+    const sanitizedEmail = email ? sanitizeEmail(email as string) : "";
+
     if (!name) {
       return NextResponse.json({ error: "Name is required" }, { status: 400 });
     }
@@ -57,7 +61,7 @@ export async function POST(request: NextRequest) {
       data: {
         name,
         company: company || "",
-        email: email || "",
+        email: sanitizedEmail,
         phone: phone || "",
         address: address || "",
         taxNumber: taxNumber || "",

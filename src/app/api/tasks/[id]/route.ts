@@ -1,5 +1,6 @@
 import { db } from "@/lib/db";
 import { NextRequest, NextResponse } from "next/server";
+import { sanitizeObject } from '@/lib/security/sanitize';
 
 export async function GET(
   request: NextRequest,
@@ -51,7 +52,8 @@ export async function PUT(
 ) {
   try {
     const { id } = await params;
-    const body = await request.json();
+    const rawBody = await request.json();
+    const body = sanitizeObject(rawBody);
 
     // Check task exists
     const existing = await db.task.findUnique({ where: { id } });

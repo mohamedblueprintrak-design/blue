@@ -1,6 +1,7 @@
 import { db } from '@/lib/db';
 import bcrypt from 'bcryptjs';
 import { randomBytes } from 'crypto';
+import logger from '@/lib/logger';
 
 /**
  * BluePrint Seed Script
@@ -22,7 +23,7 @@ function generateSecurePassword(): string {
 }
 
 async function main() {
-  console.log('🌱 Seeding BluePrint database...\n');
+  logger.info('🌱 Seeding BluePrint database...\n');
 
   // ========== 1. Admin User ==========
   const adminPassword = generateSecurePassword();
@@ -41,7 +42,7 @@ async function main() {
       isActive: true,
     },
   });
-  console.log('✅ Admin user created:', adminUser.email);
+  logger.info('✅ Admin user created:', adminUser.email);
 
   // ========== 2. Additional Users (matching ROLES in login page) ==========
   const additionalUsers = [
@@ -128,7 +129,7 @@ async function main() {
 
   const pmUser = createdUsers['pm@blueprint.ae'] || await db.user.findFirst({ where: { email: 'pm@blueprint.ae' } });
 
-  console.log('✅ Demo users created (18 users total)');
+  logger.info('✅ Demo users created (18 users total)');
 
   // ========== 3. Company Settings ==========
   const companySettings = await db.companySettings.upsert({
@@ -149,7 +150,7 @@ async function main() {
       workingHours: '07:30-16:30',
     },
   });
-  console.log('✅ Company settings created:', companySettings.name);
+  logger.info('✅ Company settings created:', companySettings.name);
 
   // ========== 4. Employee Records ==========
   await db.employee.upsert({
@@ -221,7 +222,7 @@ async function main() {
       hireDate: new Date('2020-06-01'),
     },
   });
-  console.log('✅ Employee records created (5 employees)');
+  logger.info('✅ Employee records created (5 employees)');
 
   // ========== 5. Clients ==========
   const client1 = await db.client.create({
@@ -275,7 +276,7 @@ async function main() {
       paymentTerms: '60 days after invoice',
     },
   });
-  console.log('✅ Demo clients created (4 clients)');
+  logger.info('✅ Demo clients created (4 clients)');
 
   // ========== 6. Projects ==========
   const project1 = await db.project.create({
@@ -372,7 +373,7 @@ async function main() {
       createdById: adminUser.id,
     },
   });
-  console.log('✅ Demo projects created (5 projects)');
+  logger.info('✅ Demo projects created (5 projects)');
 
   // ========== 7. Project Assignments ==========
   await db.projectAssignment.createMany({
@@ -392,7 +393,7 @@ async function main() {
       { projectId: project5.id, userId: structuralUser.id, role: 'team_member' },
     ],
   });
-  console.log('✅ Project assignments created');
+  logger.info('✅ Project assignments created');
 
   // ========== 8. Tasks ==========
   await db.task.createMany({
@@ -503,7 +504,7 @@ async function main() {
       },
     ],
   });
-  console.log('✅ Demo tasks created (9 tasks)');
+  logger.info('✅ Demo tasks created (9 tasks)');
 
   // ========== 9. Invoices ==========
   await db.invoice.createMany({
@@ -588,7 +589,7 @@ async function main() {
       },
     ],
   });
-  console.log('✅ Demo invoices created (6 invoices)');
+  logger.info('✅ Demo invoices created (6 invoices)');
 
   // ========== 10. Contracts ==========
   await db.contract.createMany({
@@ -634,7 +635,7 @@ async function main() {
       },
     ],
   });
-  console.log('✅ Demo contracts created (3 contracts)');
+  logger.info('✅ Demo contracts created (3 contracts)');
 
   // ========== 11. Site Visits ==========
   await db.siteVisit.createMany({
@@ -671,7 +672,7 @@ async function main() {
       },
     ],
   });
-  console.log('✅ Demo site visits created (3 visits)');
+  logger.info('✅ Demo site visits created (3 visits)');
 
   // ========== 12. Project Stages ==========
   const stages = [
@@ -693,7 +694,7 @@ async function main() {
   for (const stage of stages) {
     await db.projectStage.create({ data: stage });
   }
-  console.log('✅ Project stages created');
+  logger.info('✅ Project stages created');
 
   // ========== 13. Government Approvals ==========
   await db.govApproval.createMany({
@@ -716,7 +717,7 @@ async function main() {
       },
     ],
   });
-  console.log('✅ Government approvals created');
+  logger.info('✅ Government approvals created');
 
   // ========== 14. Meetings ==========
   await db.meeting.createMany({
@@ -752,7 +753,7 @@ async function main() {
       },
     ],
   });
-  console.log('✅ Meetings created (3 meetings)');
+  logger.info('✅ Meetings created (3 meetings)');
 
   // ========== 15. Suppliers ==========
   await db.supplier.createMany({
@@ -786,7 +787,7 @@ async function main() {
       },
     ],
   });
-  console.log('✅ Suppliers created (3 suppliers)');
+  logger.info('✅ Suppliers created (3 suppliers)');
 
   // ========== 16. Site Diaries ==========
   await db.siteDiary.createMany({
@@ -815,7 +816,7 @@ async function main() {
       },
     ],
   });
-  console.log('✅ Site diaries created');
+  logger.info('✅ Site diaries created');
 
   // ========== 17. Proposals ==========
   await db.proposal.createMany({
@@ -832,7 +833,7 @@ async function main() {
       },
     ],
   });
-  console.log('✅ Proposals created');
+  logger.info('✅ Proposals created');
 
   // ========== 18. Knowledge Articles ==========
   await db.knowledgeArticle.createMany({
@@ -863,7 +864,7 @@ async function main() {
       },
     ],
   });
-  console.log('✅ Knowledge articles created');
+  logger.info('✅ Knowledge articles created');
 
   // ========== 19. Schedule Phases ==========
   const schedulePhases = [
@@ -883,7 +884,7 @@ async function main() {
   for (const phase of schedulePhases) {
     await db.schedulePhase.create({ data: phase });
   }
-  console.log('✅ Schedule phases created');
+  logger.info('✅ Schedule phases created');
 
   // ========== 20. BOQ Items ==========
   await db.bOQItem.createMany({
@@ -895,7 +896,7 @@ async function main() {
       { projectId: project1.id, code: 'ELC-001', description: 'لوحة توزيع رئيسية', unit: 'لوحة', quantity: 1, unitPrice: 8500, total: 8500, category: 'electrical' },
     ],
   });
-  console.log('✅ BOQ items created');
+  logger.info('✅ BOQ items created');
 
   // ========== 21. Notifications ==========
   await db.notification.createMany({
@@ -954,26 +955,26 @@ async function main() {
       },
     ],
   });
-  console.log('✅ Demo notifications created (5 notifications)');
+  logger.info('✅ Demo notifications created (5 notifications)');
 
-  console.log('\n🎉 BluePrint database seeded successfully!');
-  console.log('📧 Admin login: admin@blueprint.ae (check console for password)');
-  console.log('⚠️  Passwords are randomly generated. Check the seed output above for credentials.');
-  console.log('📊 Summary:');
-  console.log('   - 18 users (1 admin, 1 PM, 8 engineers, 1 accountant, 1 secretary, 1 HR, 1 viewer, 4 legacy users)');
-  console.log('   - 5 employees');
-  console.log('   - 4 clients');
-  console.log('   - 5 projects (3 active, 1 completed, 1 delayed)');
-  console.log('   - 9 tasks');
-  console.log('   - 6 invoices');
-  console.log('   - 3 contracts');
-  console.log('   - 3 site visits');
-  console.log('   - 3 meetings');
-  console.log('   - 3 suppliers');
-  console.log('   - 2 site diaries');
-  console.log('   - 3 knowledge articles');
-  console.log('   - 1 proposal');
-  console.log('   - 5 notifications (3 unread, 2 read)');
+  logger.info('\n🎉 BluePrint database seeded successfully!');
+  logger.info('📧 Admin login: admin@blueprint.ae (check console for password)');
+  logger.info('⚠️  Passwords are randomly generated. Check the seed output above for credentials.');
+  logger.info('📊 Summary:');
+  logger.info('   - 18 users (1 admin, 1 PM, 8 engineers, 1 accountant, 1 secretary, 1 HR, 1 viewer, 4 legacy users)');
+  logger.info('   - 5 employees');
+  logger.info('   - 4 clients');
+  logger.info('   - 5 projects (3 active, 1 completed, 1 delayed)');
+  logger.info('   - 9 tasks');
+  logger.info('   - 6 invoices');
+  logger.info('   - 3 contracts');
+  logger.info('   - 3 site visits');
+  logger.info('   - 3 meetings');
+  logger.info('   - 3 suppliers');
+  logger.info('   - 2 site diaries');
+  logger.info('   - 3 knowledge articles');
+  logger.info('   - 1 proposal');
+  logger.info('   - 5 notifications (3 unread, 2 read)');
 }
 
 main()
