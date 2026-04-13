@@ -1,5 +1,7 @@
 import { db } from "@/lib/db";
 import { NextRequest, NextResponse } from "next/server";
+import { invoiceSchema } from '@/lib/validation-schemas';
+import { sanitizeObject } from '@/lib/security/sanitize';
 
 export async function GET(request: NextRequest) {
   try {
@@ -32,14 +34,21 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
-    const { number, clientId, projectId, issueDate, dueDate, status, items } = body;
+    const rawBody = await request.json();
+    const body = sanitizeObject(rawBody);
 
-    if (!clientId || !projectId || !issueDate || !dueDate) {
-      return NextResponse.json({ error: "Client, project, and dates are required" }, { status: 400 });
+    // Zod validation for invoice fields
+    const validation = invoiceSchema.safeParse(body);
+    if (!validation.success) {
+      return NextResponse.json({ error: validation.error.issues[0].message }, { status: 400 });
     }
+    const validatedData = validation.data;
+    const { number, clientId, projectId, issueDate, dueDate, status } = validatedData;
+    const rawItems = (rawBody as Record<string, unknown>).items;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const items: any[] = Array.isArray(rawItems) ? rawItems : [];
 
-    const lineItems = items || [];
+    const lineItems = items;
     const subtotal = lineItems.reduce((sum: number, item: { quantity: number; unitPrice: number }) => sum + (item.quantity * item.unitPrice), 0);
     const tax = subtotal * 0.05;
     const total = subtotal + tax;

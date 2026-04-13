@@ -1,5 +1,7 @@
 import { db } from "@/lib/db";
 import { NextRequest, NextResponse } from "next/server";
+import { contractSchema } from '@/lib/validation-schemas';
+import { sanitizeObject } from '@/lib/security/sanitize';
 
 export async function GET(request: NextRequest) {
   try {
@@ -37,7 +39,18 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
+    const rawBody = await request.json();
+    const body = sanitizeObject(rawBody);
+
+    // Zod validation for contract fields
+    const validation = contractSchema.safeParse(body);
+    if (!validation.success) {
+      return NextResponse.json(
+        { error: validation.error.issues[0].message },
+        { status: 400 }
+      );
+    }
+    const validatedData = validation.data;
     const {
       number,
       title,
@@ -48,14 +61,7 @@ export async function POST(request: NextRequest) {
       status,
       startDate,
       endDate,
-    } = body;
-
-    if (!title || !clientId || !projectId) {
-      return NextResponse.json(
-        { error: "Title, client, and project are required" },
-        { status: 400 }
-      );
-    }
+    } = validatedData;
 
     const contract = await db.contract.create({
       data: {

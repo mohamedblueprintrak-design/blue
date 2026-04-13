@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { validateRequest, changePasswordSchema } from '@/lib/api-validation';
 
 /**
  * PUT /api/profile/password - Change password
@@ -18,29 +19,14 @@ export async function PUT(request: Request) {
     }
 
     const body = await request.json();
-    const { currentPassword, newPassword, confirmPassword } = body;
-
-    // Validate input
-    if (!currentPassword) {
+    const validation = validateRequest(changePasswordSchema, body);
+    if (!validation.success) {
       return NextResponse.json(
-        { error: "كلمة المرور الحالية مطلوبة" },
+        { error: validation.error },
         { status: 400 }
       );
     }
-
-    if (!newPassword || newPassword.length < 6) {
-      return NextResponse.json(
-        { error: "كلمة المرور الجديدة يجب أن تكون 6 أحرف على الأقل" },
-        { status: 400 }
-      );
-    }
-
-    if (newPassword !== confirmPassword) {
-      return NextResponse.json(
-        { error: "كلمات المرور غير متطابقة" },
-        { status: 400 }
-      );
-    }
+    const { currentPassword, newPassword, confirmPassword } = validation.data;
 
     const user = await db.user.findUnique({
       where: { email: session.user.email },

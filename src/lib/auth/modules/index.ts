@@ -61,7 +61,6 @@ export {
   rateLimiter,
   checkRateLimit,
   withRateLimit,
-  RATE_LIMIT_CONFIGS,
   type RateLimitType,
   type RateLimitConfig,
   type RateLimitResult,

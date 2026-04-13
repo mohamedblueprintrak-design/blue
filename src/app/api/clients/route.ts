@@ -1,6 +1,7 @@
 import { db } from "@/lib/db";
 import { NextRequest, NextResponse } from "next/server";
 import { sanitizeObject, sanitizeEmail } from '@/lib/security/sanitize';
+import { clientSchema } from '@/lib/validation-schemas';
 
 export async function GET(request: NextRequest) {
   try {
@@ -40,33 +41,28 @@ export async function POST(request: NextRequest) {
   try {
     const rawBody = await request.json();
     const body = sanitizeObject(rawBody);
-    const {
-      name,
-      company,
-      email,
-      phone,
-      address,
-      taxNumber,
-      creditLimit,
-      paymentTerms,
-    } = body;
 
-    const sanitizedEmail = email ? sanitizeEmail(email as string) : "";
-
-    if (!name) {
-      return NextResponse.json({ error: "Name is required" }, { status: 400 });
+    // Zod validation for client fields
+    const validation = clientSchema.safeParse(body);
+    if (!validation.success) {
+      return NextResponse.json(
+        { error: validation.error.issues[0].message },
+        { status: 400 }
+      );
     }
+    const validatedData = validation.data;
+    const sanitizedEmail = validatedData.email ? sanitizeEmail(validatedData.email) : "";
 
     const client = await db.client.create({
       data: {
-        name,
-        company: company || "",
+        name: validatedData.name,
+        company: validatedData.company || "",
         email: sanitizedEmail,
-        phone: phone || "",
-        address: address || "",
-        taxNumber: taxNumber || "",
-        creditLimit: creditLimit ? parseFloat(creditLimit) : 0,
-        paymentTerms: paymentTerms || "",
+        phone: validatedData.phone || "",
+        address: validatedData.address || "",
+        taxNumber: validatedData.taxNumber || "",
+        creditLimit: validatedData.creditLimit ? parseFloat(validatedData.creditLimit) : 0,
+        paymentTerms: validatedData.paymentTerms || "",
       },
       include: {
         _count: {

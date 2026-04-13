@@ -1,18 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { hash } from "bcryptjs";
+import { validateRequest, resetPasswordSchema } from '@/lib/api-validation';
 
 export async function POST(request: NextRequest) {
   try {
-    const { token, password } = await request.json();
-
-    if (!token || !password) {
-      return NextResponse.json({ error: "البيانات غير مكتملة" }, { status: 400 });
+    const body = await request.json();
+    const validation = validateRequest(resetPasswordSchema, body);
+    if (!validation.success) {
+      return NextResponse.json({ error: validation.error }, { status: 400 });
     }
-
-    if (password.length < 8) {
-      return NextResponse.json({ error: "كلمة المرور يجب أن تكون 8 أحرف على الأقل" }, { status: 400 });
-    }
+    const { token, password } = validation.data;
 
     // Find user with valid token
     const user = await db.user.findFirst({

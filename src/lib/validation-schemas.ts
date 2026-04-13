@@ -88,6 +88,7 @@ export const contractSchema = z.object({
   projectId: z.string().min(1, "Project is required"),
   value: z.string().min(1, "Value is required").default("0"),
   type: z.string().min(1, "Type is required").default("engineering_services"),
+  status: z.string().optional().default("draft"),
   startDate: z.string().optional().default(""),
   endDate: z.string().optional().default(""),
 });

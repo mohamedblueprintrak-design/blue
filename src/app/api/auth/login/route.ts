@@ -3,6 +3,7 @@ import { db } from "@/lib/db";
 import bcrypt from "bcryptjs";
 import { SignJWT } from "jose";
 import { getJwtSecretBytes } from '@/lib/auth/jwt-secret';
+import { validateRequest, loginSchema } from '@/lib/api-validation';
 
 const COOKIE_NAME = 'blue_token';
 
@@ -22,14 +23,14 @@ async function generateJWT(user: { id: string; email: string; name: string; role
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { email, password } = body;
-
-    if (!email || !password) {
+    const validation = validateRequest(loginSchema, body);
+    if (!validation.success) {
       return NextResponse.json(
-        { error: "البريد الإلكتروني وكلمة المرور مطلوبان" },
+        { error: validation.error },
         { status: 400 }
       );
     }
+    const { email, password } = validation.data;
 
     const user = await db.user.findUnique({
       where: { email },

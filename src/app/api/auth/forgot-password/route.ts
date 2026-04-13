@@ -3,14 +3,16 @@ import { db } from "@/lib/db";
 import { randomBytes } from "crypto";
 import { sendEmail } from "@/lib/email";
 import { emailTemplates } from "@/lib/email-templates";
+import { validateRequest, forgotPasswordSchema } from '@/lib/api-validation';
 
 export async function POST(request: NextRequest) {
   try {
-    const { email } = await request.json();
-
-    if (!email) {
-      return NextResponse.json({ error: "البريد الإلكتروني مطلوب" }, { status: 400 });
+    const body = await request.json();
+    const validation = validateRequest(forgotPasswordSchema, body);
+    if (!validation.success) {
+      return NextResponse.json({ error: validation.error }, { status: 400 });
     }
+    const { email } = validation.data;
 
     // Find user
     const user = await db.user.findUnique({

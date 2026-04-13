@@ -1,13 +1,23 @@
 import { db } from '../src/lib/db';
 import bcrypt from 'bcryptjs';
+import crypto from 'crypto';
 
 /**
  * BluePrint Combined Seed Script
  * Runs both main seed data and approval/comment seed data
  */
 
+/**
+ * Generate a cryptographically secure random password
+ * ينشئ كلمة مرور عشوائية آمنة تشفيرياً
+ */
+function generateSecurePassword(): string {
+  return crypto.randomBytes(12).toString('base64url');
+}
+
 async function main() {
-  console.log('🌱 Seeding BluePrint database...\n');
+  console.log('🌱 Seeding BluePrint database...');
+  console.log('⚠️ Demo passwords are auto-generated. Use /api/init to get credentials.\n');
 
   // ========== 0. Clean existing data (idempotent seeding) ==========
   console.log('🧹 Cleaning existing data...');
@@ -37,7 +47,7 @@ async function main() {
   console.log('✅ Existing data cleaned\n');
 
   // ========== 1. Admin User ==========
-  const adminHash = await bcrypt.hash('admin123', 10);
+  const adminHash = await bcrypt.hash(generateSecurePassword(), 10);
   const adminUser = await db.user.upsert({
     where: { email: 'admin@blueprint.ae' },
     update: { password: adminHash },
@@ -54,7 +64,7 @@ async function main() {
   });
   console.log('✅ Admin user created');
 
-  const engineerHash = await bcrypt.hash('admin123', 10);
+  const engineerHash = await bcrypt.hash(generateSecurePassword(), 10);
   const engineerUser = await db.user.upsert({
     where: { email: 'eng@blueprint.ae' },
     update: { password: engineerHash },
@@ -64,7 +74,7 @@ async function main() {
     },
   });
 
-  const structuralHash = await bcrypt.hash('admin123', 10);
+  const structuralHash = await bcrypt.hash(generateSecurePassword(), 10);
   const structuralUser = await db.user.upsert({
     where: { email: 'hr@blueprint.ae' },
     update: { password: structuralHash },
@@ -74,7 +84,7 @@ async function main() {
     },
   });
 
-  const mepHash = await bcrypt.hash('admin123', 10);
+  const mepHash = await bcrypt.hash(generateSecurePassword(), 10);
   const mepUser = await db.user.upsert({
     where: { email: 'sec@blueprint.ae' },
     update: { password: mepHash },
@@ -84,7 +94,7 @@ async function main() {
     },
   });
 
-  const accountantHash = await bcrypt.hash('admin123', 10);
+  const accountantHash = await bcrypt.hash(generateSecurePassword(), 10);
   const accountantUser = await db.user.upsert({
     where: { email: 'acc@blueprint.ae' },
     update: { password: accountantHash },
@@ -94,7 +104,7 @@ async function main() {
     },
   });
 
-  const pmHash = await bcrypt.hash('admin123', 10);
+  const pmHash = await bcrypt.hash(generateSecurePassword(), 10);
   const pmUser = await db.user.upsert({
     where: { email: 'pm@blueprint.ae' },
     update: { password: pmHash },
@@ -326,7 +336,7 @@ async function main() {
   }
 
   console.log('\n🎉 BluePrint database seeded successfully!');
-  console.log('📧 Admin login: admin@blueprint.ae / admin123');
+  console.log('📧 Demo passwords are auto-generated on first run. Use /api/init to retrieve credentials.');
 }
 
 main()
