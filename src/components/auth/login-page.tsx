@@ -81,6 +81,14 @@ const FEATURES = [
   },
 ];
 
+interface DemoCredential {
+  email: string;
+  password: string;
+  role: string;
+  labelAr: string;
+  labelEn: string;
+}
+
 export default function LoginPage({ language }: LoginPageProps) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -90,18 +98,23 @@ export default function LoginPage({ language }: LoginPageProps) {
   const [rememberMe, setRememberMe] = useState(false);
   const [selectedRole, setSelectedRole] = useState("");
   const [featureIndex, setFeatureIndex] = useState(0);
+  const [demoCredentials, setDemoCredentials] = useState<DemoCredential[]>([]);
   const { login } = useAuthStore();
   const { toast } = useToast();
 
   const isAr = language === "ar";
 
-  // Auto-initialize database on mount (seeds admin user if DB is empty)
+  // Auto-initialize database on mount and fetch demo credentials
   useEffect(() => {
     fetch("/api/init", { method: "POST" })
       .then((res) => res.json())
       .then((data) => {
-        if (data.initialized && data.userCount === 0) {
-          console.log("Database auto-seeded:", data.message);
+        if (data.initialized) {
+          console.log("Database initialized:", data.message);
+        }
+        // Store demo credentials for auto-fill (only available in dev/demo mode)
+        if (data.demoCredentials && Array.isArray(data.demoCredentials)) {
+          setDemoCredentials(data.demoCredentials);
         }
       })
       .catch(() => {
@@ -157,7 +170,13 @@ export default function LoginPage({ language }: LoginPageProps) {
   const handleRoleSelect = (value: string) => {
     setSelectedRole(value);
     setEmail(value);
-    // Password must be entered manually for security
+    // Auto-fill demo password if available (dev/demo mode only)
+    const cred = demoCredentials.find((c) => c.email === value);
+    if (cred) {
+      setPassword(cred.password);
+    } else {
+      setPassword("");
+    }
   };
 
   const handleForgotPassword = () => {
@@ -505,6 +524,18 @@ export default function LoginPage({ language }: LoginPageProps) {
                     )}
                   </Button>
                 </form>
+
+                {/* Demo Mode Banner */}
+                {demoCredentials.length > 0 && selectedRole && (
+                  <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/50 rounded-lg px-3 py-2 animate-scale-in">
+                    <div className="flex items-center gap-2">
+                      <div className="w-1.5 h-1.5 rounded-full bg-amber-500 flex-shrink-0" />
+                      <span className="text-[11px] text-amber-700 dark:text-amber-400 font-medium">
+                        {isAr ? "وضع العرض — كلمة المرور تم تعبأتها تلقائياً" : "Demo mode — Password auto-filled"}
+                      </span>
+                    </div>
+                  </div>
+                )}
 
                 {/* Separator */}
                 <Separator className="bg-slate-200/80 dark:bg-slate-800" />

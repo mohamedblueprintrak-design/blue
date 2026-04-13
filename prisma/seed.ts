@@ -1,23 +1,19 @@
 import { db } from '../src/lib/db';
 import bcrypt from 'bcryptjs';
-import crypto from 'crypto';
+import { DEMO_CREDENTIALS } from '../src/lib/demo-credentials';
 
 /**
  * BluePrint Combined Seed Script
  * Runs both main seed data and approval/comment seed data
+ *
+ * Demo passwords are defined in src/lib/demo-credentials.ts
+ * وثائق كلمات المرور التجريبية في src/lib/demo-credentials.ts
  */
-
-/**
- * Generate a cryptographically secure random password
- * ينشئ كلمة مرور عشوائية آمنة تشفيرياً
- */
-function generateSecurePassword(): string {
-  return crypto.randomBytes(12).toString('base64url');
-}
 
 async function main() {
   console.log('🌱 Seeding BluePrint database...');
-  console.log('⚠️ Demo passwords are auto-generated. Use /api/init to get credentials.\n');
+  console.log('📧 Demo passwords are defined in src/lib/demo-credentials.ts');
+  console.log('⚠️  These are for development/demo only — never use in production!\n');
 
   // ========== 0. Clean existing data (idempotent seeding) ==========
   console.log('🧹 Cleaning existing data...');
@@ -46,74 +42,43 @@ async function main() {
   ]);
   console.log('✅ Existing data cleaned\n');
 
-  // ========== 1. Admin User ==========
-  const adminHash = await bcrypt.hash(generateSecurePassword(), 10);
-  const adminUser = await db.user.upsert({
-    where: { email: 'admin@blueprint.ae' },
-    update: { password: adminHash },
-    create: {
-      email: 'admin@blueprint.ae',
-      password: adminHash,
-      name: 'المدير العام',
-      phone: '+971-50-123-4567',
-      role: 'admin',
-      department: 'الإدارة',
-      position: 'مدير عام',
-      isActive: true,
-    },
-  });
-  console.log('✅ Admin user created');
+  // ========== 1. Create All Demo Users from Shared Credentials ==========
+  const userMap: Record<string, { id: string }> = {};
 
-  const engineerHash = await bcrypt.hash(generateSecurePassword(), 10);
-  const engineerUser = await db.user.upsert({
-    where: { email: 'eng@blueprint.ae' },
-    update: { password: engineerHash },
-    create: {
-      email: 'eng@blueprint.ae', password: engineerHash, name: 'أحمد محمد',
-      phone: '+971-50-234-5678', role: 'engineer', department: 'القسم المعماري', position: 'مهندس معماري أول', isActive: true,
-    },
-  });
+  for (const cred of DEMO_CREDENTIALS) {
+    const hash = await bcrypt.hash(cred.password, 10);
+    const user = await db.user.upsert({
+      where: { email: cred.email },
+      update: { password: hash, name: cred.nameAr, role: cred.role as never, isActive: true },
+      create: {
+        email: cred.email,
+        password: hash,
+        name: cred.nameAr,
+        phone: '',
+        role: cred.role as never,
+        department: '',
+        position: '',
+        isActive: true,
+      },
+    });
+    userMap[cred.email] = user;
+  }
 
-  const structuralHash = await bcrypt.hash(generateSecurePassword(), 10);
-  const structuralUser = await db.user.upsert({
-    where: { email: 'hr@blueprint.ae' },
-    update: { password: structuralHash },
-    create: {
-      email: 'hr@blueprint.ae', password: structuralHash, name: 'سارة علي',
-      phone: '+971-50-345-6789', role: 'hr', department: 'الموارد البشرية', position: 'مدير الموارد البشرية', isActive: true,
-    },
-  });
+  // Map old variable names for backward compatibility with seed data below
+  const adminUser = userMap['admin@blueprint.ae'];
+  const pmUser = userMap['pm@blueprint.ae'];
+  const engineerUser = userMap['eng@blueprint.ae'] || userMap['arch@blueprint.ae'] || adminUser;
+  const structuralUser = userMap['struct@blueprint.ae'] || userMap['hr@blueprint.ae'] || adminUser;
+  const mepUser = userMap['mep@blueprint.ae'] || userMap['elec@blueprint.ae'] || adminUser;
+  const accountantUser = userMap['acc@blueprint.ae'] || adminUser;
 
-  const mepHash = await bcrypt.hash(generateSecurePassword(), 10);
-  const mepUser = await db.user.upsert({
-    where: { email: 'sec@blueprint.ae' },
-    update: { password: mepHash },
-    create: {
-      email: 'sec@blueprint.ae', password: mepHash, name: 'خالد سعيد',
-      phone: '+971-50-456-7890', role: 'secretary', department: 'السكرتارية', position: 'سكرتير تنفيذي', isActive: true,
-    },
-  });
-
-  const accountantHash = await bcrypt.hash(generateSecurePassword(), 10);
-  const accountantUser = await db.user.upsert({
-    where: { email: 'acc@blueprint.ae' },
-    update: { password: accountantHash },
-    create: {
-      email: 'acc@blueprint.ae', password: accountantHash, name: 'فاطمة حسن',
-      phone: '+971-50-567-8901', role: 'accountant', department: 'المالية', position: 'محاسبة', isActive: true,
-    },
-  });
-
-  const pmHash = await bcrypt.hash(generateSecurePassword(), 10);
-  const pmUser = await db.user.upsert({
-    where: { email: 'pm@blueprint.ae' },
-    update: { password: pmHash },
-    create: {
-      email: 'pm@blueprint.ae', password: pmHash, name: 'عمر يوسف',
-      phone: '+971-50-678-9012', role: 'project_manager', department: 'إدارة المشاريع', position: 'مدير مشاريع', isActive: true,
-    },
-  });
-  console.log('✅ 6 demo users created');
+  console.log(`✅ ${DEMO_CREDENTIALS.length} demo users created from shared credentials`);
+  // Print demo credentials for developer convenience
+  console.log('\n📧 Demo Credentials (development only):');
+  for (const cred of DEMO_CREDENTIALS) {
+    console.log(`   ${cred.labelAr} (${cred.email}): ${cred.password}`);
+  }
+  console.log('');
 
   // ========== Company Settings ==========
   await db.companySettings.upsert({
@@ -336,7 +301,8 @@ async function main() {
   }
 
   console.log('\n🎉 BluePrint database seeded successfully!');
-  console.log('📧 Demo passwords are auto-generated on first run. Use /api/init to retrieve credentials.');
+  console.log('📧 Demo passwords are defined in src/lib/demo-credentials.ts');
+  console.log('⚠️  These are for development/demo only — never use in production!');
 }
 
 main()
