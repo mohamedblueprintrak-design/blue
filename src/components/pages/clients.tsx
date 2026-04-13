@@ -882,36 +882,60 @@ export default function ClientsPage({ language, projectId, initialTab }: Clients
                       </div>
                     </div>
 
-                    {/* ID Photo Upload Placeholder */}
+                    {/* ID Photo Upload */}
                     <div className="space-y-2">
                       <Label className="text-sm">{ar ? "صورة الهوية" : "ID Photo"}</Label>
                       <div className="flex items-center gap-3">
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          className="gap-2"
-                          onClick={() => {
-                            const input = document.createElement("input");
-                            input.type = "file";
-                            input.accept = "image/*";
-                            input.onchange = () => {
-                              if (input.files && input.files[0]) {
-                                setValue("idPhoto" as any, input.files[0].name);
-                              }
-                            };
-                            input.click();
-                          }}
-                        >
-                          <Upload className="h-3.5 w-3.5" />
-                          {ar ? "اختيار ملف" : "Choose File"}
-                        </Button>
-                        {(watch as any)("idPhoto") && (
-                          <span className="text-xs text-slate-500 flex items-center gap-1">
-                            <FileText className="h-3 w-3" />
-                            {(watch as any)("idPhoto")}
-                          </span>
-                        )}
+                        <div className="relative">
+                          {(watch as any)("idPhoto") ? (
+                            <div className="w-16 h-16 rounded-xl border-2 border-slate-200 dark:border-slate-700 overflow-hidden bg-slate-100 dark:bg-slate-800">
+                              <div className="w-full h-full flex items-center justify-center">
+                                <FileText className="h-6 w-6 text-teal-500" />
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="w-16 h-16 rounded-xl border-2 border-dashed border-slate-300 dark:border-slate-600 flex items-center justify-center bg-slate-50 dark:bg-slate-800/50">
+                              <Upload className="h-5 w-5 text-slate-400" />
+                            </div>
+                          )}
+                        </div>
+                        <div className="flex flex-col gap-1.5">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            className="gap-2 h-8 text-xs rounded-lg"
+                            onClick={() => {
+                              const input = document.createElement("input");
+                              input.type = "file";
+                              input.accept = "image/jpeg,image/png,image/webp";
+                              input.onchange = () => {
+                                if (input.files && input.files[0]) {
+                                  const file = input.files[0];
+                                  // Validate file size (max 5MB)
+                                  if (file.size > 5 * 1024 * 1024) {
+                                    alert(ar ? "حجم الملف يجب أن يكون أقل من 5 ميجابايت" : "File size must be less than 5MB");
+                                    return;
+                                  }
+                                  setValue("idPhoto" as any, file.name);
+                                }
+                              };
+                              input.click();
+                            }}
+                          >
+                            <Upload className="h-3.5 w-3.5" />
+                            {ar ? "اختيار ملف" : "Choose File"}
+                          </Button>
+                          {(watch as any)("idPhoto") && (
+                            <span className="text-xs text-slate-500 flex items-center gap-1">
+                              <FileText className="h-3 w-3" />
+                              {(watch as any)("idPhoto")}
+                            </span>
+                          )}
+                          <p className="text-[10px] text-slate-400">
+                            {ar ? "JPG, PNG أو WebP - حد أقصى 5 ميجابايت" : "JPG, PNG or WebP - Max 5MB"}
+                          </p>
+                        </div>
                       </div>
                       <input type="hidden" {...(register as any)("idPhoto")} />
                     </div>

@@ -1,16 +1,32 @@
 import { db } from '@/lib/db';
 import bcrypt from 'bcryptjs';
+import { randomBytes } from 'crypto';
 
 /**
  * BluePrint Seed Script
  * Creates demo data for the engineering consultancy management system
+ * SECURITY: Uses randomly generated passwords for seed users
  */
+
+/**
+ * Generate a secure random password
+ */
+function generateSecurePassword(): string {
+  const chars = 'ABCDEFGHJKMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789!@#$%&';
+  let password = '';
+  const bytes = randomBytes(20);
+  for (let i = 0; i < 20; i++) {
+    password += chars[bytes[i] % chars.length];
+  }
+  return password;
+}
 
 async function main() {
   console.log('🌱 Seeding BluePrint database...\n');
 
   // ========== 1. Admin User ==========
-  const adminHash = await bcrypt.hash('admin123', 10);
+  const adminPassword = generateSecurePassword();
+  const adminHash = await bcrypt.hash(adminPassword, 10);
   const adminUser = await db.user.upsert({
     where: { email: 'admin@blueprint.ae' },
     update: { password: adminHash },
@@ -43,7 +59,7 @@ async function main() {
     { email: 'viewer@blueprint.ae', name: 'عبدالرحمن الزيودي', phone: '+971-50-999-0011', role: 'viewer', department: 'الإدارة', position: 'مشاهد' },
   ];
 
-  const userHash = await bcrypt.hash('admin123', 10);
+  const userHash = await bcrypt.hash(generateSecurePassword(), 10);
   const createdUsers: Record<string, { id: string; name: string }> = {};
 
   for (const u of additionalUsers) {
@@ -941,7 +957,8 @@ async function main() {
   console.log('✅ Demo notifications created (5 notifications)');
 
   console.log('\n🎉 BluePrint database seeded successfully!');
-  console.log('📧 Admin login: admin@blueprint.ae / admin123');
+  console.log('📧 Admin login: admin@blueprint.ae (check console for password)');
+  console.log('⚠️  Passwords are randomly generated. Check the seed output above for credentials.');
   console.log('📊 Summary:');
   console.log('   - 18 users (1 admin, 1 PM, 8 engineers, 1 accountant, 1 secretary, 1 HR, 1 viewer, 4 legacy users)');
   console.log('   - 5 employees');

@@ -1,6 +1,21 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import bcrypt from 'bcryptjs';
+import { randomBytes } from 'crypto';
+
+/**
+ * Generate a secure random password
+ * SECURITY: Used for initial seed users instead of hardcoded passwords
+ */
+function generateSecurePassword(): string {
+  const chars = 'ABCDEFGHJKMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789!@#$%&';
+  let password = '';
+  const bytes = randomBytes(20);
+  for (let i = 0; i < 20; i++) {
+    password += chars[bytes[i] % chars.length];
+  }
+  return password;
+}
 
 /**
  * POST /api/init - Auto-initialize database with seed data if empty
@@ -21,7 +36,8 @@ export async function POST() {
 
     console.log('🌱 Auto-seeding database (no users found)...');
 
-    const adminHash = await bcrypt.hash('admin123', 10);
+    const adminPassword = generateSecurePassword();
+    const adminHash = await bcrypt.hash(adminPassword, 10);
 
     // Create admin user
     const adminUser = await db.user.create({
@@ -48,7 +64,7 @@ export async function POST() {
 
     const createdUsers = [adminUser];
     for (const u of usersData) {
-      const hash = await bcrypt.hash('admin123', 10);
+      const hash = await bcrypt.hash(generateSecurePassword(), 10);
       const user = await db.user.create({ data: { ...u, password: hash, isActive: true } });
       createdUsers.push(user);
     }
@@ -204,13 +220,15 @@ export async function POST() {
     }
 
     console.log('✅ Auto-seed completed successfully');
+    // SECURITY: Log admin password to server console only (never in API response)
+    console.log(`📧 Admin credentials: admin@blueprint.ae / ${adminPassword}`);
 
     return NextResponse.json({
       initialized: true,
-      message: 'Database initialized with demo data',
+      message: 'Database initialized with demo data. Check server console for admin credentials.',
       userCount: createdUsers.length,
       adminEmail: 'admin@blueprint.ae',
-      adminPassword: 'admin123',
+      // Password is logged to server console only — never returned in API response for security
     });
   } catch (error) {
     console.error('❌ Auto-init error:', error);

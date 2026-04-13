@@ -2,64 +2,18 @@ import { NextRequest } from 'next/server';
 import * as jose from 'jose';
 import { AuthenticatedUser, DemoUser } from '../types';
 import { getDb } from './db';
+import { getJwtSecretBytes as _getJwtSecretBytes } from '@/lib/auth/jwt-secret';
 
 // ============================================
 // Security Configuration
 // ============================================
 
-/**
- * Get JWT secret bytes
- * SECURITY: JWT_SECRET is REQUIRED and must be at least 32 characters
- * - In production: Throws error if JWT_SECRET is not set
- * - In development/test: Shows warning but allows a dev secret
- */
-function getJwtSecretBytes(): Uint8Array {
-  const jwtSecret = process.env.JWT_SECRET;
-  const nodeEnv = process.env.NODE_ENV;
-  
-  // Production: JWT_SECRET is MANDATORY
-  if (nodeEnv === 'production') {
-    if (!jwtSecret) {
-      throw new Error(
-        'FATAL: JWT_SECRET environment variable is required in production. ' +
-        'Set JWT_SECRET to a secure random string of at least 32 characters. ' +
-        'Generate one with: openssl rand -base64 32'
-      );
-    }
-    
-    if (jwtSecret.length < 32) {
-      throw new Error(
-        'FATAL: JWT_SECRET must be at least 32 characters long. ' +
-        `Current length: ${jwtSecret.length} characters. ` +
-        'Generate a secure secret with: openssl rand -base64 32'
-      );
-    }
-    
-    return new TextEncoder().encode(jwtSecret);
-  }
-  
-  // Development/Test: Allow dev secret with strong warning
-  if (!jwtSecret || jwtSecret.length < 32) {
-    console.warn(
-      '\n' + '='.repeat(70) +
-      '\n⚠️  SECURITY WARNING: JWT_SECRET is not properly configured!' +
-      '\n   Using development-only secret. DO NOT use in production!' +
-      '\n   Set JWT_SECRET in your .env file (min 32 characters)' +
-      '\n   Generate with: openssl rand -base64 32' +
-      '\n' + '='.repeat(70) + '\n'
-    );
-    
-    // Use a development-only secret — MUST match middleware.ts and demo-config.ts
-    return new TextEncoder().encode('blueprint-dev-secret-do-not-use-in-production-min32chars!');
-  }
-  
-  return new TextEncoder().encode(jwtSecret);
-}
+// JWT secret is now managed centrally in @/lib/auth/jwt-secret
 
 // Export JWT_SECRET as a function that returns Uint8Array
 // This allows lazy evaluation and prevents build-time errors
 export function getJWTSecret(): Uint8Array {
-  return getJwtSecretBytes();
+  return _getJwtSecretBytes();
 }
 
 /**

@@ -3,11 +3,11 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   output: "standalone",
   poweredByHeader: false,
-  allowedDevOrigins: ["*"],
+  allowedDevOrigins: ["http://localhost:3000", "http://127.0.0.1:3000"],
   typescript: {
-    ignoreBuildErrors: true,
+    // Build errors should be caught during CI/CD, not silently ignored
   },
-  reactStrictMode: false,
+  reactStrictMode: true,
 
   // Turbopack is the default bundler in Next.js 16
   turbopack: {},
@@ -66,8 +66,8 @@ const nextConfig: NextConfig = {
         // API routes — stricter CSP, CORS headers
         source: '/api/:path*',
         headers: [
-          // CORS headers
-          { key: 'Access-Control-Allow-Origin', value: process.env.CORS_ORIGINS?.split(',')[0]?.trim() || '*' },
+          // CORS headers — restrict to configured origins in production
+          { key: 'Access-Control-Allow-Origin', value: process.env.CORS_ORIGINS?.split(',')[0]?.trim() || (process.env.NODE_ENV === 'development' ? 'http://localhost:3000' : '') },
           { key: 'Access-Control-Allow-Methods', value: 'GET, POST, PUT, PATCH, DELETE, OPTIONS' },
           { key: 'Access-Control-Allow-Headers', value: 'Authorization, Content-Type, X-CSRF-Token, Cache-Control' },
           { key: 'Access-Control-Allow-Credentials', value: 'true' },

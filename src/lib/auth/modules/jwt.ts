@@ -7,6 +7,7 @@
  */
 
 import { SignJWT, jwtVerify } from 'jose';
+import { getJwtSecretBytes } from '@/lib/auth/jwt-secret';
 
 // ============================================
 // Constants
@@ -47,11 +48,7 @@ export interface TokenOptions {
  * Get JWT secret key
  */
 function getJwtSecret(): Uint8Array {
-  const secret = process.env.JWT_SECRET;
-  if (!secret) {
-    throw new Error('JWT_SECRET is not configured');
-  }
-  return new TextEncoder().encode(secret);
+  return getJwtSecretBytes();
 }
 
 /**

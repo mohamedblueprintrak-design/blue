@@ -395,20 +395,30 @@ export default function SiteVisits({ language, projectId }: SiteVisitsProps) {
                   </div>
                 )}
 
-                {/* Map Placeholder */}
+                {/* Location Map */}
                 <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-800">
                   <div className="flex items-center gap-1.5 text-[10px] text-slate-400 dark:text-slate-500">
                     <MapPin className="h-3 w-3" />
                     <span>{ar ? "خريطة الموقع" : "Location Map"}</span>
                   </div>
-                  <div className="mt-1.5 h-16 rounded-lg bg-gradient-to-br from-slate-100 to-slate-50 dark:from-slate-800 dark:to-slate-800/50 border border-slate-200/50 dark:border-slate-700/30 flex items-center justify-center">
-                    <div className="text-center">
-                      <MapPin className="h-4 w-4 mx-auto text-slate-300 dark:text-slate-600" />
-                      <span className="text-[9px] text-slate-400 dark:text-slate-500 mt-0.5 block">
-                        {visit.municipality ? getMunicipalityLabel(visit.municipality, ar) : (ar ? "عرض الخريطة" : "View Map")}
-                      </span>
-                    </div>
+                  <div className="mt-1.5 h-32 rounded-lg overflow-hidden border border-slate-200/50 dark:border-slate-700/30">
+                    <iframe
+                      title={ar ? "خريطة الموقع" : "Location Map"}
+                      width="100%"
+                      height="100%"
+                      style={{ border: 0 }}
+                      loading="lazy"
+                      src={`https://www.openstreetmap.org/export/embed.html?bbox=55.2%2C24.9%2C56.0%2C25.5&layer=mapnik&marker=25.2%2C55.3`}
+                    />
                   </div>
+                  <a
+                    href={`https://www.openstreetmap.org/?mlat=25.2&mlon=55.3#map=13/25.2/55.3`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-[9px] text-teal-500 hover:text-teal-600 mt-1 inline-block"
+                  >
+                    {ar ? "فتح الخريطة بحجم كبير" : "Open larger map"}
+                  </a>
                 </div>
               </Card>
             );

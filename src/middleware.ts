@@ -8,6 +8,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { jwtVerify } from 'jose';
+import { getJwtSecretBytes } from '@/lib/auth/jwt-secret';
 
 // ============================================
 // Types
@@ -210,22 +211,9 @@ function rateLimitResponse(resetTime: number, type: RateLimitType, language: 'ar
 // JWT Verification (Edge Runtime Compatible)
 // ============================================
 
-const DEV_JWT_SECRET = 'blueprint-dev-secret-do-not-use-in-production-min32chars!';
-
-function getJwtSecret(): Uint8Array {
-  const secret = process.env.JWT_SECRET;
-  if (secret && secret.length >= 32) {
-    return new TextEncoder().encode(secret);
-  }
-  if (process.env.NODE_ENV === 'production') {
-    throw new Error('JWT_SECRET environment variable is required in production');
-  }
-  return new TextEncoder().encode(DEV_JWT_SECRET);
-}
-
 async function verifyToken(token: string): Promise<JwtPayload | null> {
   try {
-    const secret = getJwtSecret();
+    const secret = getJwtSecretBytes();
     const { payload } = await jwtVerify(token, secret);
 
     return {

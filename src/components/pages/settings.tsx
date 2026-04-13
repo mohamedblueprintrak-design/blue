@@ -867,21 +867,24 @@ export default function SettingsPage({ language: lang }: Props) {
                     desc: isAr ? "إرسال الإشعارات إلى قنوات Slack" : "Send notifications to Slack channels",
                     color: "bg-purple-50 dark:bg-purple-950 text-purple-600",
                     icon: "💬",
-                    soon: true,
+                    soon: false,
+                    connected: false,
                   },
                   {
                     name: "Google Drive",
                     desc: isAr ? "ربط المستندات مع Google Drive" : "Link documents with Google Drive",
                     color: "bg-blue-50 dark:bg-blue-950 text-blue-600",
                     icon: "📁",
-                    soon: true,
+                    soon: false,
+                    connected: false,
                   },
                   {
                     name: "Dropbox",
                     desc: isAr ? "مزامنة الملفات مع Dropbox" : "Sync files with Dropbox",
                     color: "bg-sky-50 dark:bg-sky-950 text-sky-600",
                     icon: "📦",
-                    soon: true,
+                    soon: false,
+                    connected: false,
                   },
                 ].map((integration) => (
                   <div
@@ -895,17 +898,27 @@ export default function SettingsPage({ language: lang }: Props) {
                       <div>
                         <p className="text-sm font-medium text-slate-900 dark:text-white flex items-center gap-2">
                           {integration.name}
-                          {integration.soon && (
-                            <Badge className="bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-300 text-[10px] h-5 px-1.5 border-0">
-                              {isAr ? "قريباً" : "Coming Soon"}
+                          {integration.connected && (
+                            <Badge className="bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300 text-[10px] h-5 px-1.5 border-0">
+                              {isAr ? "متصل" : "Connected"}
                             </Badge>
                           )}
                         </p>
                         <p className="text-xs text-slate-500 dark:text-slate-400">{integration.desc}</p>
                       </div>
                     </div>
-                    <Button variant="outline" size="sm" disabled className="h-8 rounded-lg">
-                      {isAr ? "قريباً" : "Coming Soon"}
+                    <Button
+                      variant={integration.connected ? "outline" : "default"}
+                      size="sm"
+                      className={cn(
+                        "h-8 rounded-lg",
+                        !integration.connected && "bg-teal-600 hover:bg-teal-700 text-white"
+                      )}
+                    >
+                      {integration.connected
+                        ? (isAr ? "إلغاء الربط" : "Disconnect")
+                        : (isAr ? "ربط" : "Connect")
+                      }
                     </Button>
                   </div>
                 ))}

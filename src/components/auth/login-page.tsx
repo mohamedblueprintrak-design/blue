@@ -157,16 +157,12 @@ export default function LoginPage({ language }: LoginPageProps) {
   const handleRoleSelect = (value: string) => {
     setSelectedRole(value);
     setEmail(value);
-    setPassword("admin123");
+    // Password must be entered manually for security
   };
 
   const handleForgotPassword = () => {
-    toast({
-      title: isAr ? "قريباً" : "Coming Soon",
-      description: isAr
-        ? "ستتوفر هذه الميزة في تحديث مستقبلي"
-        : "This feature will be available in a future update",
-    });
+    // Navigate to the forgot-password page
+    window.location.href = '/forgot-password';
   };
 
   const toggleLanguage = () => {

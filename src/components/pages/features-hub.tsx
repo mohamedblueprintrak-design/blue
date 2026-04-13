@@ -777,11 +777,23 @@ export default function FeaturesHub({ language }: FeaturesHubProps) {
           <div style={{ direction: 'ltr' }}>
             <ProjectMap
               projects={mapProjects}
-              selectedProject={selectedRealProject || (selectedProject ? {
+              selectedProject={selectedRealProject ? {
+                id: selectedRealProject.id,
+                name: selectedRealProject.name,
+                nameEn: selectedRealProject.nameEn,
+                client: selectedRealProject.client,
+                status: selectedRealProject.status,
+                progress: selectedRealProject.progress,
+                latitude: selectedRealProject.latitude ?? 0,
+                longitude: selectedRealProject.longitude ?? 0,
+                budget: selectedRealProject.budget,
+                type: selectedRealProject.type,
+                location: selectedRealProject.location,
+              } : (selectedProject ? {
                 id: selectedProject.id,
                 name: selectedProject.name,
                 nameEn: selectedProject.name,
-                client: { id: selectedProject.id, name: selectedProject.client, company: '' },
+                client: { name: selectedProject.client, company: '' },
                 status: selectedProject.status,
                 progress: selectedProject.progress,
                 latitude: selectedProject.lat,
@@ -792,7 +804,20 @@ export default function FeaturesHub({ language }: FeaturesHubProps) {
               } : null)}
               onSelectProject={(p) => {
                 if (p && hasRealData) {
-                  setSelectedRealProject(p)
+                  setSelectedRealProject({
+                    id: p.id,
+                    name: p.name,
+                    nameEn: p.nameEn || '',
+                    location: p.location || '',
+                    type: p.type || '',
+                    status: p.status,
+                    progress: p.progress,
+                    budget: p.budget || 0,
+                    latitude: p.latitude,
+                    longitude: p.longitude,
+                    client: p.client ? { id: '', name: p.client.name, company: p.client.company || '' } : null,
+                    contractor: null,
+                  })
                   setSelectedProject(null)
                 } else {
                   setSelectedRealProject(null)
@@ -800,11 +825,11 @@ export default function FeaturesHub({ language }: FeaturesHubProps) {
                     id: p.id,
                     name: p.name,
                     client: p.client?.name || '',
-                    status: p.status,
+                    status: (['active', 'delayed', 'completed', 'on_hold'].includes(p.status) ? p.status : 'active') as 'active' | 'delayed' | 'completed' | 'on_hold',
                     progress: p.progress,
                     lat: p.latitude,
                     lng: p.longitude,
-                    budget: p.budget,
+                    budget: p.budget || 0,
                     type: p.type || '',
                     startDate: '',
                     endDate: '',
@@ -846,10 +871,11 @@ export default function FeaturesHub({ language }: FeaturesHubProps) {
                       name: project.name,
                       nameEn: project.nameEn,
                       client: project.client,
+                      contractor: null,
                       status: project.status,
                       progress: project.progress || 0,
-                      latitude: project.latitude!,
-                      longitude: project.longitude!,
+                      latitude: project.latitude ?? 0,
+                      longitude: project.longitude ?? 0,
                       budget: project.budget || 0,
                       type: project.type,
                       location: project.location,

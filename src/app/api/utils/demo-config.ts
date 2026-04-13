@@ -13,6 +13,7 @@ import * as jose from 'jose';
 import { DemoUser, AuthenticatedUser } from '../types';
 import { hash } from 'bcryptjs';
 import { DEMO_USERS as DB_DEMO_USERS } from './db';
+import { getJwtSecretBytes } from '@/lib/auth/jwt-secret';
 
 // ============================================
 // Environment Check
@@ -37,34 +38,10 @@ function isDemoModeAllowed(): boolean {
 // JWT Secret Handling
 // ============================================
 
-let _jwtSecretBytes: Uint8Array | null = null;
-
-// Stable development JWT secret (same as middleware fallback)
-const DEV_JWT_SECRET = 'blueprint-dev-secret-do-not-use-in-production-min32chars!';
-
-function getJWTSecretBytes(): Uint8Array {
-  if (_jwtSecretBytes) return _jwtSecretBytes;
-  
-  const secret = process.env.JWT_SECRET;
-  
-  if (!secret) {
-    if (process.env.NODE_ENV === 'production') {
-      console.error('CRITICAL: JWT_SECRET not set in production!');
-      throw new Error('JWT_SECRET must be set in production');
-    } else {
-      console.warn('WARNING: Using development JWT secret. Set JWT_SECRET in production!');
-    }
-    // Use a STABLE development-only fallback (NOT Date.now() - sessions would break on restart)
-    _jwtSecretBytes = new TextEncoder().encode(DEV_JWT_SECRET);
-  } else {
-    _jwtSecretBytes = new TextEncoder().encode(secret);
-  }
-  
-  return _jwtSecretBytes;
-}
+// JWT secret is now managed centrally in @/lib/auth/jwt-secret
 
 // Export for use in JWT verification
-const JWT_SECRET = { get bytes() { return getJWTSecretBytes(); } };
+const JWT_SECRET = { get bytes() { return getJwtSecretBytes(); } };
 
 // ============================================
 // Demo Users - Generated at Runtime

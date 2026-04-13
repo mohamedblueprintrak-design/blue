@@ -17,6 +17,8 @@
  * - File upload security
  */
 
+import { getJwtSecretBytes } from '@/lib/auth/jwt-secret';
+
 // ============================================
 // Environment Helpers
 // ============================================
@@ -58,20 +60,7 @@ export const isTest = process.env.NODE_ENV === 'test'
  */
 export const JWT_CONFIG = {
   get secret(): Uint8Array {
-    const secret = isProduction
-      ? requireEnv('JWT_SECRET')
-      : getEnv('JWT_SECRET', 'development-secret-key-at-least-32-characters-long')
-
-    if (isDevelopment && secret === 'development-secret-key-at-least-32-characters-long') {
-      console.warn('⚠️ Using development JWT secret. Set JWT_SECRET in production!')
-    }
-
-    // Validate minimum length
-    if (!secret || secret.length < 32) {
-      throw new Error('JWT_SECRET must be at least 32 characters long')
-    }
-
-    return new TextEncoder().encode(secret)
+    return getJwtSecretBytes();
   },
 
   /** JWT signing algorithm — must match across all token operations */

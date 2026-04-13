@@ -2,17 +2,9 @@ import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import bcrypt from "bcryptjs";
 import { SignJWT } from "jose";
+import { getJwtSecretBytes } from '@/lib/auth/jwt-secret';
 
 const COOKIE_NAME = 'blue_token';
-const DEV_JWT_SECRET = 'blueprint-dev-secret-do-not-use-in-production-min32chars!';
-
-function getJwtSecret(): Uint8Array {
-  const secret = process.env.JWT_SECRET;
-  if (secret && secret.length >= 32) {
-    return new TextEncoder().encode(secret);
-  }
-  return new TextEncoder().encode(DEV_JWT_SECRET);
-}
 
 async function generateJWT(user: { id: string; email: string; name: string; role: string }): Promise<string> {
   return new SignJWT({
@@ -24,7 +16,7 @@ async function generateJWT(user: { id: string; email: string; name: string; role
     .setProtectedHeader({ alg: 'HS256' })
     .setExpirationTime('7d')
     .setIssuedAt()
-    .sign(getJwtSecret());
+    .sign(getJwtSecretBytes());
 }
 
 export async function POST(request: Request) {

@@ -1,16 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { jwtVerify } from "jose";
 import { db } from "@/lib/db";
-
-const DEV_JWT_SECRET = 'blueprint-dev-secret-do-not-use-in-production-min32chars!';
-
-function getJwtSecret(): Uint8Array {
-  const secret = process.env.JWT_SECRET;
-  if (secret && secret.length >= 32) {
-    return new TextEncoder().encode(secret);
-  }
-  return new TextEncoder().encode(DEV_JWT_SECRET);
-}
+import { getJwtSecretBytes } from "@/lib/auth/jwt-secret";
 
 export async function GET(request: NextRequest) {
   try {
@@ -34,7 +25,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Verify JWT
-    const { payload } = await jwtVerify(token, getJwtSecret());
+    const { payload } = await jwtVerify(token, getJwtSecretBytes());
     const userId = payload.userId as string;
 
     if (!userId) {

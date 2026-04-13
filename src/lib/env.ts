@@ -10,7 +10,7 @@ const requiredEnvVars = ['DATABASE_URL'] as const;
 
 // Optional environment variables with defaults
 const envDefaults = {
-  JWT_SECRET: 'blueprint-dev-secret-do-not-use-in-production-min32chars!',
+  JWT_SECRET: '', // No default - must be set via environment for security
   NEXT_PUBLIC_APP_URL: 'http://localhost:3000',
   NODE_ENV: 'development',
 } as const;
