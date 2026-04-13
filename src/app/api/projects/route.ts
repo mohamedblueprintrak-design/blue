@@ -1,6 +1,7 @@
 import { db } from "@/lib/db";
 import { NextRequest, NextResponse } from "next/server";
 import { sanitizeObject } from '@/lib/security/sanitize';
+import { projectSchema } from '@/lib/validation-schemas';
 
 export async function GET(request: NextRequest) {
   try {
@@ -77,6 +78,26 @@ export async function POST(request: NextRequest) {
   try {
     const rawBody = await request.json();
     const body = sanitizeObject(rawBody);
+
+    // Zod validation for project fields
+    const validation = projectSchema.safeParse(body);
+    if (!validation.success) {
+      return NextResponse.json(
+        { error: validation.error.issues[0].message },
+        { status: 400 }
+      );
+    }
+    const validatedData = validation.data;
+
+    // createdById is not part of the schema but still required
+    const { createdById, latitude, longitude } = body as Record<string, unknown>;
+    if (!createdById) {
+      return NextResponse.json(
+        { error: "createdById is required" },
+        { status: 400 }
+      );
+    }
+
     const {
       number,
       name,
@@ -84,23 +105,13 @@ export async function POST(request: NextRequest) {
       clientId,
       contractorId,
       location,
-      latitude,
-      longitude,
       plotNumber,
       type,
       budget,
       startDate,
       endDate,
       description,
-      createdById,
-    } = body;
-
-    if (!number || !name || !clientId || !createdById) {
-      return NextResponse.json(
-        { error: "Missing required fields: number, name, clientId, createdById" },
-        { status: 400 }
-      );
-    }
+    } = validatedData;
 
     const project = await db.project.create({
       data: {
@@ -110,15 +121,15 @@ export async function POST(request: NextRequest) {
         clientId,
         contractorId: contractorId || null,
         location: location || "",
-        latitude: latitude ?? null,
-        longitude: longitude ?? null,
+        latitude: typeof latitude === 'number' ? latitude : null,
+        longitude: typeof longitude === 'number' ? longitude : null,
         plotNumber: plotNumber || "",
         type: type || "villa",
-        budget: budget || 0,
+        budget: typeof budget === 'string' ? parseFloat(budget) : (budget || 0),
         startDate: startDate ? new Date(startDate) : null,
         endDate: endDate ? new Date(endDate) : null,
         description: description || "",
-        createdById,
+        createdById: createdById as string,
       },
       include: {
         client: {

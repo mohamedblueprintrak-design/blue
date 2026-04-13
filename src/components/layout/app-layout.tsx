@@ -82,11 +82,29 @@ import {
   BookMarked,
   type LucideIcon,
 } from "lucide-react";
-import Dashboard from "@/components/pages/dashboard";
+import dynamic from 'next/dynamic';
+
+// Loading fallback for dynamic imports
+const PageLoading = () => (
+  <div className="flex items-center justify-center p-12">
+    <div className="space-y-4 w-full max-w-lg">
+      <div className="h-8 w-48 rounded-lg bg-slate-200 dark:bg-slate-700 animate-pulse" />
+      <div className="h-64 rounded-xl bg-slate-100 dark:bg-slate-800 animate-pulse" />
+    </div>
+  </div>
+);
+
+// Heavy components loaded dynamically for better initial load time
+const Dashboard = dynamic(() => import("@/components/pages/dashboard"), { loading: PageLoading });
+const ProjectDetail = dynamic(() => import("@/components/pages/project-detail"), { loading: PageLoading });
+const FeaturesHub = dynamic(() => import("@/components/pages/features-hub"), { loading: PageLoading });
+const AIAssistant = dynamic(() => import("@/components/pages/ai-assistant"), { loading: PageLoading });
+const ContractorsPage = dynamic(() => import("@/components/pages/contractors"), { loading: PageLoading });
+const ClientsPage = dynamic(() => import("@/components/pages/clients"), { loading: PageLoading });
+const ApprovalsPage = dynamic(() => import("@/components/pages/approvals"), { loading: PageLoading });
+
+// Lighter components imported statically (loaded quickly)
 import ProjectsList from "@/components/pages/projects";
-import ProjectDetail from "@/components/pages/project-detail";
-import ContractorsPage from "@/components/pages/contractors";
-import ClientsPage from "@/components/pages/clients";
 import ReportsPage from "@/components/pages/reports";
 import FinanceRevenuePage from "@/components/pages/finance-revenue";
 import FinanceExpensesPage from "@/components/pages/finance-expenses";
@@ -94,8 +112,6 @@ import EmployeesHub from "@/components/pages/employees-hub";
 import NotificationsPage from "@/components/pages/notifications";
 import SettingsPage from "@/components/pages/settings";
 import AdminPanel from "@/components/pages/admin";
-import FeaturesHub from "@/components/pages/features-hub";
-import AIAssistant from "@/components/pages/ai-assistant";
 import KnowledgePage from "@/components/pages/knowledge";
 import CalendarPage from "@/components/pages/calendar";
 import SearchPage from "@/components/pages/search";

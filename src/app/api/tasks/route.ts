@@ -1,6 +1,7 @@
 import { db } from "@/lib/db";
 import { NextRequest, NextResponse } from "next/server";
 import { sanitizeObject } from '@/lib/security/sanitize';
+import { taskSchema } from '@/lib/validation-schemas';
 
 export async function GET(request: NextRequest) {
   try {
@@ -68,6 +69,20 @@ export async function POST(request: NextRequest) {
   try {
     const rawBody = await request.json();
     const body = sanitizeObject(rawBody);
+
+    // Zod validation for task fields
+    const validation = taskSchema.safeParse(body);
+    if (!validation.success) {
+      return NextResponse.json(
+        { error: validation.error.issues[0].message },
+        { status: 400 }
+      );
+    }
+    const validatedData = validation.data;
+
+    // progress is not part of the schema but may be passed
+    const { progress } = body as Record<string, unknown>;
+
     const {
       title,
       description,
@@ -79,12 +94,7 @@ export async function POST(request: NextRequest) {
       dueDate,
       isGovernmental,
       slaDays,
-      progress,
-    } = body;
-
-    if (!title) {
-      return NextResponse.json({ error: "Title is required" }, { status: 400 });
-    }
+    } = validatedData;
 
     const task = await db.task.create({
       data: {
@@ -98,7 +108,7 @@ export async function POST(request: NextRequest) {
         dueDate: dueDate ? new Date(dueDate) : null,
         isGovernmental: isGovernmental || false,
         slaDays: slaDays ? parseInt(slaDays) : null,
-        progress: progress || 0,
+        progress: typeof progress === 'number' ? progress : (parseInt(String(progress)) || 0),
       },
       include: {
         project: {
