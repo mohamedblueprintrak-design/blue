@@ -40,7 +40,7 @@ export async function POST() {
       return NextResponse.json(response);
     }
 
-    console.log('🌱 Auto-seeding database (no users found)...');
+    // Auto-seeding database (no users found)
 
     // Create all demo users using shared credentials
     const createdUsers: UserRecord[] = [];
@@ -205,7 +205,7 @@ export async function POST() {
       // Suppliers may already exist
     }
 
-    console.log('✅ Auto-seed completed successfully');
+    // Auto-seed completed successfully
 
     // Build response
     const response: Record<string, unknown> = {
@@ -227,7 +227,7 @@ export async function POST() {
 
     return NextResponse.json(response);
   } catch (error) {
-    console.error('❌ Auto-init error:', error);
+    // Auto-init error
     return NextResponse.json(
       { error: 'Initialization failed', details: String(error) },
       { status: 500 }

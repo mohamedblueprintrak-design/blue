@@ -38,7 +38,17 @@ import {
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Skeleton } from "@/components/ui/skeleton";
-import MapPicker from "@/components/ui/map-picker";
+import dynamic from "next/dynamic";
+
+// Dynamic import for MapPicker to avoid SSR crash (react-leaflet requires window)
+const MapPicker = dynamic(() => import("@/components/ui/map-picker"), {
+  ssr: false,
+  loading: () => (
+    <div className="w-full rounded-lg border border-slate-200 bg-slate-50 flex items-center justify-center text-slate-400 text-sm" style={{ height: "300px" }}>
+      جارٍ تحميل الخريطة...
+    </div>
+  ),
+});
 import {
   Plus,
   Search,

@@ -188,11 +188,8 @@ const quickActions = [
   },
 ];
 
-const aiModels = [
-  { value: "gpt-4", label: "GPT-4", desc: "Advanced" },
-  { value: "gpt-3.5", label: "GPT-3.5", desc: "Fast" },
-  { value: "claude-3", label: "Claude 3", desc: "Balanced" },
-];
+// Model selector removed - the server uses z-ai-web-dev-sdk which auto-configures
+// and does not support model switching. Keeping selectedModel for API compatibility.
 
 // Code block with copy button component
 function CodeBlock({ className, children }: { className?: string; children?: React.ReactNode }) {
@@ -559,7 +556,7 @@ export default function AIAssistant({ language: lang, projectId }: Props) {
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [conversationId, setConversationId] = useState(() => `conv-${Date.now()}`);
-  const [selectedModel, setSelectedModel] = useState("gpt-4");
+  const selectedModel = "gpt-4"; // Fixed - server auto-configures model via z-ai-web-dev-sdk
   const [clearDialogOpen, setClearDialogOpen] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [conversations, setConversations] = useState<ConversationMeta[]>([]);
@@ -1164,20 +1161,10 @@ export default function AIAssistant({ language: lang, projectId }: Props) {
             </div>
             <div className="flex items-center gap-2">
               {/* Model Selector */}
-              <Select value={selectedModel} onValueChange={setSelectedModel}>
-                <SelectTrigger className="h-8 w-auto gap-1.5 text-xs rounded-lg border-slate-200 dark:border-slate-700">
-                  <Zap className="h-3 w-3 text-violet-500" />
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {aiModels.map((model) => (
-                    <SelectItem key={model.value} value={model.value} className="text-xs">
-                      <span className="font-medium">{model.label}</span>
-                      <span className="text-slate-400 ms-2">({model.desc})</span>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <div className="flex items-center gap-1.5 h-8 px-2.5 rounded-lg border border-slate-200 dark:border-slate-700 text-xs text-slate-500 dark:text-slate-400">
+                <Zap className="h-3 w-3 text-violet-500" />
+                <span className="font-medium">BluePrint AI</span>
+              </div>
 
               {/* Export Chat */}
               {messages.length > 0 && (

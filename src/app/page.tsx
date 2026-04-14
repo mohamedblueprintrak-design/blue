@@ -47,11 +47,11 @@ import LogoImage from "@/components/ui/logo-image";
 
 // ==================== NAVIGATION ====================
 const NAV_LINKS = [
-  { href: "#", label: "الرئيسية" },
-  { href: "#services", label: "خدماتنا" },
-  { href: "#about", label: "من نحن" },
-  { href: "/calculator", label: "حاسبة التكاليف" },
-  { href: "/quote", label: "طلب عرض سعر" },
+  { href: "#", label: "الرئيسية", labelEn: "Home" },
+  { href: "#services", label: "خدماتنا", labelEn: "Services" },
+  { href: "#about", label: "من نحن", labelEn: "About" },
+  { href: "/calculator", label: "حاسبة التكاليف", labelEn: "Cost Calculator" },
+  { href: "/quote", label: "طلب عرض سعر", labelEn: "Get Quote" },
 ];
 
 // ==================== SERVICES DATA ====================
@@ -61,45 +61,51 @@ const SERVICES = [
     title: "التصميم المعماري",
     titleEn: "Architectural Design",
     desc: "تصاميم معمارية إبداعية ومبتكرة تتوافق مع أعلى معايير الجودة ومتطلبات بلدية رأس الخيمة",
+    descEn: "Creative and innovative architectural designs that comply with the highest quality standards and RAK Municipality requirements",
   },
   {
     icon: HardHat,
     title: "التصميم الإنشائي",
     titleEn: "Structural Design",
     desc: "تصاميم إنشائية دقيقة وموثوقة تضمن سلامة وأمان المباني لجميع أنواع المشاريع السكنية والتجارية",
+    descEn: "Precise and reliable structural designs ensuring safety and security for all residential and commercial project types",
   },
   {
     icon: Zap,
     title: "التصميم الكهروميكانيكي",
     titleEn: "MEP Design",
     desc: "تصاميم متكاملة للأنظمة الكهربائية والميكانيكية والسباكة وأنظمة مكافحة الحريق",
+    descEn: "Comprehensive designs for electrical, mechanical, plumbing, and fire fighting systems",
   },
   {
     icon: FileCheck,
     title: "رخص البلدية",
     titleEn: "Municipality Licenses",
     desc: "استخراج رخص البناء من بلدية رأس الخيمة بخطوات سلسة ومتابعة مستمرة حتى الموافقة النهائية",
+    descEn: "Obtaining building permits from RAK Municipality with smooth procedures and continuous follow-up until final approval",
   },
   {
     icon: Eye,
     title: "الإشراف على التنفيذ",
     titleEn: "Construction Supervision",
     desc: "إشراف هندسي دقيق على جميع مراحل التنفيذ لضمان أعلى معايير الجودة والمطابقة للمخططات",
+    descEn: "Precise engineering supervision across all execution phases ensuring the highest quality standards and compliance with plans",
   },
   {
     icon: ClipboardCheck,
     title: "الاستشارات الهندسية",
     titleEn: "Engineering Consultation",
     desc: "تقديم استشارات هندسية متخصصة في جميع المجالات المدنية والمعمارية والإنشائية",
+    descEn: "Specialized engineering consultation services in all civil, architectural, and structural fields",
   },
 ];
 
 // ==================== STATS ====================
 const STATS = [
-  { value: 250, label: "مشروع مكتمل", icon: Building2, suffix: "+" },
-  { value: 180, label: "عميل راضٍ", icon: Users, suffix: "+" },
-  { value: 6, label: "تخصصات هندسية", icon: Award, suffix: "" },
-  { value: 50, label: "مشروع قيد التنفيذ", icon: Compass, suffix: "+" },
+  { value: 250, label: "مشروع مكتمل", labelEn: "Projects Completed", icon: Building2, suffix: "+" },
+  { value: 180, label: "عميل راضٍ", labelEn: "Satisfied Clients", icon: Users, suffix: "+" },
+  { value: 6, label: "تخصصات هندسية", labelEn: "Engineering Disciplines", icon: Award, suffix: "" },
+  { value: 50, label: "مشروع قيد التنفيذ", labelEn: "Ongoing Projects", icon: Compass, suffix: "+" },
 ];
 
 // ==================== WHY CHOOSE US ====================
@@ -107,32 +113,44 @@ const WHY_US = [
   {
     icon: Users,
     title: "فريق مهني متخصص",
+    titleEn: "Specialized Professional Team",
     desc: "مهندسون معتمدون ذوو خبرات واسعة ومتنوعة في مشاريع رأس الخيمة والإمارات، يقدمون أعلى مستويات الجودة والإتقان",
+    descEn: "Certified engineers with extensive and diverse experience in RAK and UAE projects, delivering the highest quality standards",
   },
   {
     icon: FileCheck,
     title: "خبرة في الموافقات الحكومية",
+    titleEn: "Government Approvals Expertise",
     desc: "علاقات مميزة مع البلدية والدفاع المدني وجهات الترخيص لضمان سرعة الإنجاز",
+    descEn: "Strong relationships with the Municipality, Civil Defense, and licensing authorities to ensure fast completion",
   },
   {
     icon: Zap,
     title: "نهج رقمي متطور",
+    titleEn: "Advanced Digital Approach",
     desc: "نستخدم أحدث التقنيات والبرامج الهندسية لإدارة المشاريع والتواصل مع العملاء بكفاءة",
+    descEn: "We use the latest technologies and engineering software for efficient project management and client communication",
   },
   {
     icon: Star,
     title: "أسعار تنافسية",
+    titleEn: "Competitive Pricing",
     desc: "أسعار شفافة وعادلة مع الحفاظ على أعلى مستويات الجودة في جميع مراحل العمل",
+    descEn: "Transparent and fair pricing while maintaining the highest quality standards throughout all project phases",
   },
   {
     icon: Target,
     title: "التزام بالمواعيد",
+    titleEn: "Commitment to Deadlines",
     desc: "التزام صارم بجدول المواعيد الزمنية وتسليم المشاريع في الوقت المحدد دون تأخير",
+    descEn: "Strict commitment to project timelines and delivering projects on schedule without delays",
   },
   {
     icon: Headphones,
     title: "دعم متواصل",
+    titleEn: "Continuous Support",
     desc: "فريق خدمة عملاء متاح على مدار الساعة للإجابة على استفساراتكم ومتابعة مشاريعكم",
+    descEn: "Customer service team available around the clock to answer your inquiries and follow up on your projects",
   },
 ];
 
@@ -142,21 +160,27 @@ const TESTIMONIALS = [
     name: "خالد المنصوري",
     nameEn: "Khalid Al Mansouri",
     role: "صاحب فيلا",
+    roleEn: "Villa Owner",
     text: "تجربة ممتازة من البداية للنهاية. فريق BluePrint محترف جداً في التصميم والتعامل مع البلدية. تم إنجاز مشروع فيلتي قبل الموعد المحدد بـ أسبوعين.",
+    textEn: "An excellent experience from start to finish. The BluePrint team is very professional in design and dealing with the municipality. My villa project was completed two weeks ahead of schedule.",
     rating: 5,
   },
   {
     name: "سارة الحربي",
     nameEn: "Sara Al Harbi",
     role: "مديرة شركة",
+    roleEn: "Company Director",
     text: "نظام إدارة المشاريع الخاص بهم سهل جداً. أقدر أتابع تقدم مشروعي لحظة بلحظة. التطبيق ساعدنا كثيراً في التواصل مع فريق الهندسة.",
+    textEn: "Their project management system is very easy to use. I can track my project progress in real-time. The app helped us greatly in communicating with the engineering team.",
     rating: 5,
   },
   {
     name: "عبدالله الرمحي",
     nameEn: "Abdullah Al Ramahi",
     role: "مستثمر عقاري",
+    roleEn: "Real Estate Investor",
     text: "أفضل مكتب استشارات تعاملت معه في رأس الخيمة. جودة التصميم الإنشائي ممتازة وخدمة ما بعد التسليم مميزة. أنصح بهم بشدة.",
+    textEn: "The best consultancy office I've dealt with in Ras Al Khaimah. Excellent structural design quality and outstanding post-delivery service. I highly recommend them.",
     rating: 5,
   },
 ];
@@ -303,7 +327,7 @@ export default function LandingPage() {
               <div>
                 <h1 className="text-lg font-bold text-slate-900">BluePrint</h1>
                 <p className="text-[10px] text-teal-600 font-medium">
-                  مكتب الاستشارات الهندسية
+                  {t("مكتب الاستشارات الهندسية", "Engineering Consultancy Office")}
                 </p>
               </div>
             </Link>
@@ -312,11 +336,11 @@ export default function LandingPage() {
             <nav className="hidden md:flex items-center gap-1">
               {NAV_LINKS.map((link) => (
                 <Link
-                  key={link.href + link.label}
+                  key={link.href + link.labelEn}
                   href={link.href}
                   className="px-3 py-2 text-sm text-slate-600 hover:text-teal-600 hover:bg-teal-50 rounded-lg transition-all duration-200 font-medium"
                 >
-                  {link.label}
+                  {t(link.label, link.labelEn)}
                 </Link>
               ))}
               <button
@@ -355,17 +379,17 @@ export default function LandingPage() {
               <div className="px-4 py-3 space-y-1">
                 {NAV_LINKS.map((link) => (
                   <Link
-                    key={link.href + link.label}
+                    key={link.href + link.labelEn}
                     href={link.href}
                     onClick={() => setMobileMenuOpen(false)}
                     className="block px-3 py-2.5 text-sm text-slate-600 hover:text-teal-600 hover:bg-teal-50 rounded-lg transition-all font-medium"
                   >
-                    {link.label}
+                    {t(link.label, link.labelEn)}
                   </Link>
                 ))}
                 <Link href="/dashboard" onClick={() => setMobileMenuOpen(false)}>
                   <Button className="w-full mt-2 bg-gradient-to-r from-teal-500 to-cyan-500 text-white">
-                    لوحة التحكم
+                    {t("لوحة التحكم", "Dashboard")}
                   </Button>
                 </Link>
               </div>
@@ -402,7 +426,7 @@ export default function LandingPage() {
             <motion.div variants={fadeInUp} custom={0} className="mb-6">
               <span className="inline-flex items-center gap-2 bg-teal-500/10 border border-teal-500/20 rounded-full px-4 py-1.5 text-teal-400 text-sm font-medium">
                 <div className="w-2 h-2 rounded-full bg-teal-400 animate-pulse" />
-                رأس الخيمة - الإمارات العربية المتحدة
+                {t("رأس الخيمة - الإمارات العربية المتحدة", "Ras Al Khaimah - UAE")}
               </span>
             </motion.div>
 
@@ -416,10 +440,10 @@ export default function LandingPage() {
                 BluePrint
               </span>
               <br />
-              مكتب الاستشارات الهندسية
+              {t("مكتب الاستشارات الهندسية", "Engineering Consultancy Office")}
               <br />
               <span className="text-3xl sm:text-4xl lg:text-5xl text-slate-300 font-medium">
-                في رأس الخيمة
+                {t("في رأس الخيمة", "in Ras Al Khaimah")}
               </span>
             </motion.h1>
 
@@ -429,7 +453,7 @@ export default function LandingPage() {
               custom={2}
               className="mt-6 text-lg text-slate-400 max-w-2xl mx-auto leading-relaxed"
             >
-              نقدم خدمات هندسية شاملة من التصميم حتى التسليم، بفريق متخصص ذو خبرات واسعة في سوق رأس الخيمة. نلتزم بأعلى معايير الجودة ومطابقة الأنظمة والمتطلبات لكل مشروع.
+              {t("نقدم خدمات هندسية شاملة من التصميم حتى التسليم، بفريق متخصص ذو خبرات واسعة في سوق رأس الخيمة. نلتزم بأعلى معايير الجودة ومطابقة الأنظمة والمتطلبات لكل مشروع.", "We provide comprehensive engineering services from design to delivery, with a specialized team with extensive experience in the Ras Al Khaimah market. We commit to the highest quality standards and compliance with regulations and requirements for every project.")}
             </motion.p>
 
             {/* CTA Buttons */}
@@ -441,7 +465,7 @@ export default function LandingPage() {
               <Link href="/quote">
                 <Button className="w-full sm:w-auto px-8 h-12 text-base bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-600 hover:to-cyan-600 text-white shadow-xl shadow-teal-500/25 rounded-xl">
                   <Calculator className="w-5 h-5 me-2" />
-                  طلب عرض سعر
+                  {t("طلب عرض سعر", "Get Quote")}
                 </Button>
               </Link>
               <a href="tel:+971501611234">
@@ -450,7 +474,7 @@ export default function LandingPage() {
                   className="w-full sm:w-auto px-8 h-12 text-base border-slate-600 text-slate-300 hover:bg-slate-800 hover:text-white rounded-xl"
                 >
                   <Phone className="w-5 h-5 me-2" />
-                  اتصل بنا
+                  {t("اتصل بنا", "Call Us")}
                 </Button>
               </a>
             </motion.div>
@@ -462,13 +486,13 @@ export default function LandingPage() {
               className="mt-12 flex flex-wrap items-center justify-center gap-6 text-sm"
             >
               {[
-                { label: "+250 مشروع", icon: Building2 },
-                { label: "+180 عميل", icon: Users },
-                { label: "فريق متخصص", icon: Award },
+                { labelAr: "+250 مشروع", labelEn: "+250 Projects", icon: Building2 },
+                { labelAr: "+180 عميل", labelEn: "+180 Clients", icon: Users },
+                { labelAr: "فريق متخصص", labelEn: "Specialized Team", icon: Award },
               ].map((item) => (
-                <div key={item.label} className="flex items-center gap-2 text-teal-400/80">
+                <div key={item.labelEn} className="flex items-center gap-2 text-teal-400/80">
                   <item.icon className="w-4 h-4" />
-                  <span>{item.label}</span>
+                  <span>{t(item.labelAr, item.labelEn)}</span>
                 </div>
               ))}
             </motion.div>
@@ -513,7 +537,7 @@ export default function LandingPage() {
                   <div className="text-4xl font-bold text-slate-900 tabular-nums">
                     {counter.count}{stat.suffix}
                   </div>
-                  <div className="text-sm text-slate-500 mt-1">{stat.label}</div>
+                  <div className="text-sm text-slate-500 mt-1">{t(stat.label, stat.labelEn)}</div>
                 </motion.div>
               );
             })}
@@ -534,13 +558,13 @@ export default function LandingPage() {
           >
             <span className="inline-flex items-center gap-2 bg-teal-100 text-teal-700 rounded-full px-4 py-1.5 text-sm font-medium mb-4">
               <Compass className="w-4 h-4" />
-              خدماتنا
+              {t("خدماتنا", "Services")}
             </span>
             <h2 className="text-3xl sm:text-4xl font-bold text-slate-900">
-              حلول هندسية شاملة
+              {t("حلول هندسية شاملة", "Comprehensive Engineering Solutions")}
             </h2>
             <p className="mt-3 text-slate-500 max-w-2xl mx-auto">
-              نقدم مجموعة متكاملة من الخدمات الهندسية التي تغطي جميع مراحل المشروع من الفكرة حتى التسليم النهائي
+              {t("نقدم مجموعة متكاملة من الخدمات الهندسية التي تغطي جميع مراحل المشروع من الفكرة حتى التسليم النهائي", "We offer an integrated suite of engineering services covering all project phases from concept to final delivery")}
             </p>
           </motion.div>
 
@@ -563,8 +587,8 @@ export default function LandingPage() {
                   <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-teal-500 to-cyan-500 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300 shadow-md shadow-teal-500/20">
                     <Icon className="w-6 h-6 text-white" />
                   </div>
-                  <h3 className="text-lg font-semibold text-slate-900 mb-2">{service.title}</h3>
-                  <p className="text-sm text-slate-500 leading-relaxed">{service.desc}</p>
+                  <h3 className="text-lg font-semibold text-slate-900 mb-2">{t(service.title, service.titleEn)}</h3>
+                  <p className="text-sm text-slate-500 leading-relaxed">{t(service.desc, service.descEn)}</p>
                 </motion.div>
               );
             })}
@@ -585,13 +609,13 @@ export default function LandingPage() {
           >
             <span className="inline-flex items-center gap-2 bg-teal-100 text-teal-700 rounded-full px-4 py-1.5 text-sm font-medium mb-4">
               <Award className="w-4 h-4" />
-              لماذا نحن
+              {t("لماذا نحن", "Why Us")}
             </span>
             <h2 className="text-3xl sm:text-4xl font-bold text-slate-900">
-              لماذا تختار BluePrint؟
+              {t("لماذا تختار BluePrint؟", "Why Choose BluePrint?")}
             </h2>
             <p className="mt-3 text-slate-500 max-w-2xl mx-auto">
-              نحن شريكك الهندسي الموثوق في رأس الخيمة - نجمع المشاريع بكل احترافية
+              {t("نحن شريكك الهندسي الموثوق في رأس الخيمة - نجمع المشاريع بكل احترافية", "Your trusted engineering partner in Ras Al Khaimah - delivering projects with the utmost professionalism")}
             </p>
           </motion.div>
 
@@ -614,8 +638,8 @@ export default function LandingPage() {
                   <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-teal-50 text-teal-600 mb-4">
                     <Icon className="w-7 h-7" />
                   </div>
-                  <h3 className="text-lg font-semibold text-slate-900 mb-2">{item.title}</h3>
-                  <p className="text-sm text-slate-500 leading-relaxed">{item.desc}</p>
+                  <h3 className="text-lg font-semibold text-slate-900 mb-2">{t(item.title, item.titleEn)}</h3>
+                  <p className="text-sm text-slate-500 leading-relaxed">{t(item.desc, item.descEn)}</p>
                 </motion.div>
               );
             })}
@@ -636,13 +660,13 @@ export default function LandingPage() {
           >
             <span className="inline-flex items-center gap-2 bg-teal-100 text-teal-700 rounded-full px-4 py-1.5 text-sm font-medium mb-4">
               <Star className="w-4 h-4" />
-              آراء العملاء
+              {t("آراء العملاء", "Client Reviews")}
             </span>
             <h2 className="text-3xl sm:text-4xl font-bold text-slate-900">
-              ماذا يقول عملاؤنا عنّا
+              {t("ماذا يقول عملاؤنا عنّا", "What Our Clients Say About Us")}
             </h2>
             <p className="mt-3 text-slate-500 max-w-2xl mx-auto">
-              ثقة عملائنا هي أكبر شهادة على جودة خدماتنا الهندسية
+              {t("ثقة عملائنا هي أكبر شهادة على جودة خدماتنا الهندسية", "Our clients' trust is the greatest testament to the quality of our engineering services")}
             </p>
           </motion.div>
 
@@ -668,16 +692,16 @@ export default function LandingPage() {
                 </div>
                 {/* Quote */}
                 <p className="text-sm text-slate-600 leading-relaxed mb-6">
-                  &ldquo;{testimonial.text}&rdquo;
+                  &ldquo;{t(testimonial.text, testimonial.textEn)}&rdquo;
                 </p>
                 {/* Author */}
                 <div className="flex items-center gap-3 pt-4 border-t border-slate-100">
                   <div className="w-10 h-10 rounded-full bg-gradient-to-br from-teal-500 to-cyan-500 flex items-center justify-center text-white text-sm font-bold">
-                    {testimonial.name.charAt(0)}
+                    {t(testimonial.name, testimonial.nameEn).charAt(0)}
                   </div>
                   <div>
-                    <div className="text-sm font-semibold text-slate-900">{testimonial.name}</div>
-                    <div className="text-xs text-slate-500">{testimonial.role}</div>
+                    <div className="text-sm font-semibold text-slate-900">{t(testimonial.name, testimonial.nameEn)}</div>
+                    <div className="text-xs text-slate-500">{t(testimonial.role, testimonial.roleEn)}</div>
                   </div>
                 </div>
               </motion.div>
@@ -713,13 +737,13 @@ export default function LandingPage() {
               <motion.div variants={fadeInUp} custom={0}>
                 <span className="inline-flex items-center gap-2 bg-teal-500/10 border border-teal-500/20 rounded-full px-4 py-1.5 text-teal-400 text-sm font-medium mb-6">
                   <MessageCircle className="w-4 h-4" />
-                  تواصل معنا
+                  {t("تواصل معنا", "Contact Us")}
                 </span>
                 <h2 className="text-3xl sm:text-4xl font-bold text-white">
-                  ابدأ مشروعك الآن
+                  {t("ابدأ مشروعك الآن", "Start Your Project Now")}
                 </h2>
                 <p className="mt-4 text-slate-400 leading-relaxed max-w-lg">
-                  أخبرنا عن مشروعك وسنقدم لك استشارة مجانية وعرض سعر تفصيلي خلال 24 ساعة. فريقنا المتخصص جاهز لمساعدتك.
+                  {t("أخبرنا عن مشروعك وسنقدم لك استشارة مجانية وعرض سعر تفصيلي خلال 24 ساعة. فريقنا المتخصص جاهز لمساعدتك.", "Tell us about your project and we'll provide a free consultation and detailed quote within 24 hours. Our specialized team is ready to help you.")}
                 </p>
               </motion.div>
 
@@ -905,16 +929,16 @@ export default function LandingPage() {
               </p>
               {/* Social Media */}
               <div className="flex items-center gap-3 mt-4">
-                <a href="https://wa.me/971501611234" target="_blank" rel="noopener noreferrer" className="h-9 w-9 rounded-lg bg-slate-800 hover:bg-emerald-600 flex items-center justify-center transition-all duration-200 hover:scale-110 hover:shadow-lg hover:shadow-emerald-500/20" title="واتساب">
+                <a href="https://wa.me/971501611234" target="_blank" rel="noopener noreferrer" className="h-9 w-9 rounded-lg bg-slate-800 hover:bg-emerald-600 flex items-center justify-center transition-all duration-200 hover:scale-110 hover:shadow-lg hover:shadow-emerald-500/20" title={t("واتساب", "WhatsApp")}>
                   <MessageCircle className="w-4 h-4 text-slate-400 hover:text-white" />
                 </a>
-                <a href="mailto:info.blueprintrak@gmail.com" className="h-9 w-9 rounded-lg bg-slate-800 hover:bg-blue-600 flex items-center justify-center transition-all duration-200 hover:scale-110 hover:shadow-lg hover:shadow-blue-500/20" title="البريد الإلكتروني">
+                <a href="mailto:info.blueprintrak@gmail.com" className="h-9 w-9 rounded-lg bg-slate-800 hover:bg-blue-600 flex items-center justify-center transition-all duration-200 hover:scale-110 hover:shadow-lg hover:shadow-blue-500/20" title={t("البريد الإلكتروني", "Email")}>
                   <Mail className="w-4 h-4 text-slate-400 hover:text-white" />
                 </a>
-                <a href="tel:+971501611234" className="h-9 w-9 rounded-lg bg-slate-800 hover:bg-teal-600 flex items-center justify-center transition-all duration-200 hover:scale-110 hover:shadow-lg hover:shadow-teal-500/20" title="اتصال">
+                <a href="tel:+971501611234" className="h-9 w-9 rounded-lg bg-slate-800 hover:bg-teal-600 flex items-center justify-center transition-all duration-200 hover:scale-110 hover:shadow-lg hover:shadow-teal-500/20" title={t("اتصال", "Call")}>
                   <Phone className="w-4 h-4 text-slate-400 hover:text-white" />
                 </a>
-                <a href="#" className="h-9 w-9 rounded-lg bg-slate-800 hover:bg-sky-600 flex items-center justify-center transition-all duration-200 hover:scale-110 hover:shadow-lg hover:shadow-sky-500/20" title="انستغرام">
+                <a href="#" className="h-9 w-9 rounded-lg bg-slate-800 hover:bg-sky-600 flex items-center justify-center transition-all duration-200 hover:scale-110 hover:shadow-lg hover:shadow-sky-500/20" title={t("انستغرام", "Instagram")}>
                   <Globe className="w-4 h-4 text-slate-400 hover:text-white" />
                 </a>
               </div>
@@ -1008,7 +1032,7 @@ export default function LandingPage() {
         target="_blank"
         rel="noopener noreferrer"
         className="fixed bottom-6 left-6 z-[60] w-14 h-14 bg-green-500 hover:bg-green-600 rounded-full flex items-center justify-center shadow-xl shadow-green-500/30 hover:shadow-green-500/50 transition-all duration-300 hover:scale-110 group"
-        aria-label="تواصل عبر واتساب"
+        aria-label={t("تواصل عبر واتساب", "Chat on WhatsApp")}
       >
         <MessageCircle className="w-7 h-7 text-white" />
         <span className="absolute inset-0 rounded-full bg-green-500 animate-ping opacity-20" />
@@ -1018,7 +1042,7 @@ export default function LandingPage() {
       <button
         onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
         className={`fixed bottom-6 end-6 z-50 w-12 h-12 bg-teal-600 hover:bg-teal-700 rounded-full flex items-center justify-center shadow-lg shadow-teal-500/20 transition-all duration-300 ${showScrollTop ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4 pointer-events-none"}`}
-        aria-label="العودة للأعلى"
+        aria-label={t("العودة للأعلى", "Back to Top")}
       >
         <ChevronDown className="w-5 h-5 text-white rotate-180" />
       </button>
