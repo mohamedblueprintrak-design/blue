@@ -507,10 +507,12 @@ export default function ProjectsList({ language }: ProjectsListProps) {
                 const isSelected = selectedIds.has(project.id);
                 const healthColor = project.status === "completed" ? "bg-emerald-500" : project.status === "delayed" ? "bg-red-500" : project.progress >= 50 ? "bg-amber-500" : "bg-emerald-500";
                 const healthRing = project.status === "completed" ? "ring-emerald-200 dark:ring-emerald-800" : project.status === "delayed" ? "ring-red-200 dark:ring-red-800" : project.progress >= 50 ? "ring-amber-200 dark:ring-amber-800" : "ring-emerald-200 dark:ring-emerald-800";
+                // Deterministic sparkline based on project id hash (no Math.random in render)
+                const sparklineSeed = project.id.charCodeAt(0) % 10;
                 const sparkline = [
-                  Math.max(5, project.progress * 0.6 + Math.random() * 30),
-                  Math.max(5, project.progress * 0.8 + Math.random() * 20),
-                  Math.max(5, project.progress * 0.9 + Math.random() * 10),
+                  Math.max(5, project.progress * 0.6 + (sparklineSeed % 7) * 4),
+                  Math.max(5, project.progress * 0.8 + (sparklineSeed % 5) * 4),
+                  Math.max(5, project.progress * 0.9 + (sparklineSeed % 3) * 3),
                   Math.max(5, project.progress),
                 ];
                 return (
@@ -720,10 +722,12 @@ export default function ProjectsList({ language }: ProjectsListProps) {
             const tp = typeConfig[project.type] || typeConfig.villa;
             const healthColor = project.status === "completed" ? "bg-emerald-500" : project.status === "delayed" ? "bg-red-500" : project.progress >= 50 ? "bg-amber-500" : "bg-emerald-500";
             const healthRing = project.status === "completed" ? "ring-emerald-200 dark:ring-emerald-800" : project.status === "delayed" ? "ring-red-200 dark:ring-red-800" : project.progress >= 50 ? "ring-amber-200 dark:ring-amber-800" : "ring-emerald-200 dark:ring-emerald-800";
+            // Deterministic sparkline based on project id hash (no Math.random in render)
+            const sparklineSeed = project.id.charCodeAt(0) % 10;
             const sparkline = [
-              Math.max(5, project.progress * 0.6 + Math.random() * 30),
-              Math.max(5, project.progress * 0.8 + Math.random() * 20),
-              Math.max(5, project.progress * 0.9 + Math.random() * 10),
+              Math.max(5, project.progress * 0.6 + (sparklineSeed % 7) * 4),
+              Math.max(5, project.progress * 0.8 + (sparklineSeed % 5) * 4),
+              Math.max(5, project.progress * 0.9 + (sparklineSeed % 3) * 3),
               Math.max(5, project.progress),
             ];
             return (

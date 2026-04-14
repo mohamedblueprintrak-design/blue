@@ -318,37 +318,36 @@ describe('rate-limit.ts — detectRateLimitType', () => {
 // ═══════════════════════════════════════════════════════════════════════
 
 describe('rate-limit.ts — checkRateLimitByType', () => {
-  beforeEach(() => {
-    resetRateLimit('test-client-1', 'auth');
-    resetRateLimit('test-client-1', 'api');
-    resetRateLimit('test-client-1', 'public');
+  beforeEach(async () => {
+    await resetRateLimit('test-client-1', 'auth');
+    await resetRateLimit('test-client-1', 'api');
   });
 
-  it('should allow requests under limit', () => {
-    const result = checkRateLimitByType('test-client-1', 'api');
+  it('should allow requests under limit', async () => {
+    const result = await checkRateLimitByType('test-client-1', 'api');
     expect(result.allowed).toBe(true);
     expect(result.remaining).toBeGreaterThan(0);
   });
 
-  it('should decrement remaining on subsequent requests', () => {
-    const result1 = checkRateLimitByType('test-client-1', 'api');
-    const result2 = checkRateLimitByType('test-client-1', 'api');
+  it('should decrement remaining on subsequent requests', async () => {
+    const result1 = await checkRateLimitByType('test-client-1', 'api');
+    const result2 = await checkRateLimitByType('test-client-1', 'api');
     expect(result1.remaining).toBeGreaterThan(result2.remaining);
   });
 
-  it('should return allowed=true with resetTime', () => {
-    const result = checkRateLimitByType('test-client-1', 'api');
+  it('should return allowed=true with resetTime', async () => {
+    const result = await checkRateLimitByType('test-client-1', 'api');
     expect(result.resetTime).toBeGreaterThan(0);
     expect(typeof result.resetTime).toBe('number');
   });
 
-  it('should handle auth rate limit type', () => {
-    const result = checkRateLimitByType('test-client-1', 'auth');
+  it('should handle auth rate limit type', async () => {
+    const result = await checkRateLimitByType('test-client-1', 'auth');
     expect(result.allowed).toBe(true);
   });
 
-  it('should handle public rate limit type', () => {
-    const result = checkRateLimitByType('test-client-1', 'public');
+  it('should handle strict rate limit type', async () => {
+    const result = await checkRateLimitByType('test-client-1', 'strict');
     expect(result.allowed).toBe(true);
   });
 });

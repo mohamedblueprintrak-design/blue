@@ -28,9 +28,20 @@ export class ApiError extends Error {
 }
 
 /**
- * Build default headers for JSON API requests
+ * Read the CSRF token from the cookie set by middleware
+ * (Double Submit Cookie pattern — the cookie is non-httpOnly so JS can read it)
  */
-function getDefaultHeaders(token?: string | null): HeadersInit {
+function getCsrfToken(): string | null {
+  if (typeof document === 'undefined') return null;
+  const match = document.cookie.match(/(?:^|;\s*)csrf_token=([^;]*)/);
+  return match ? decodeURIComponent(match[1]) : null;
+}
+
+/**
+ * Build default headers for JSON API requests
+ * Includes CSRF token for mutation requests (POST, PUT, PATCH, DELETE)
+ */
+function getDefaultHeaders(token?: string | null, method?: string): HeadersInit {
   const headers: HeadersInit = {
     'Content-Type': 'application/json',
   };
@@ -39,6 +50,14 @@ function getDefaultHeaders(token?: string | null): HeadersInit {
   // the actual JWT lives in an httpOnly cookie sent automatically by the browser.
   if (token && token !== 'httpOnly') {
     headers['Authorization'] = `Bearer ${token}`;
+  }
+  // Attach CSRF token for mutation requests (POST, PUT, PATCH, DELETE)
+  const isMutation = method && ['POST', 'PUT', 'PATCH', 'DELETE'].includes(method.toUpperCase());
+  if (isMutation) {
+    const csrfToken = getCsrfToken();
+    if (csrfToken) {
+      headers['X-CSRF-Token'] = csrfToken;
+    }
   }
   return headers;
 }
@@ -89,7 +108,7 @@ export async function apiRequest<T>(
 
   const options: RequestInit = {
     method,
-    headers: getDefaultHeaders(token),
+    headers: getDefaultHeaders(token, method),
     credentials: 'include', // Always send httpOnly cookies for auth
   };
 
@@ -133,7 +152,7 @@ export async function directApiRequest<T>(
 
   const options: RequestInit = {
     method,
-    headers: getDefaultHeaders(token),
+    headers: getDefaultHeaders(token, method),
     credentials: 'include', // Always send httpOnly cookies for auth
   };
 
@@ -159,6 +178,11 @@ export async function apiUpload<T>(
   const headers: HeadersInit = {};
   if (token && token !== 'httpOnly') {
     headers['Authorization'] = `Bearer ${token}`;
+  }
+  // Attach CSRF token for file upload (POST mutation)
+  const csrfToken = getCsrfToken();
+  if (csrfToken) {
+    headers['X-CSRF-Token'] = csrfToken;
   }
 
   const response = await fetch(endpoint, {
@@ -192,7 +216,7 @@ export async function apiGet<T>(
 
   const response = await fetch(url.toString(), {
     method: 'GET',
-    headers: getDefaultHeaders(token),
+    headers: getDefaultHeaders(token, 'GET'),
     credentials: 'include',
   });
 
@@ -206,7 +230,7 @@ export async function apiPost<T>(
 ): Promise<ApiResponse<T>> {
   const response = await fetch(endpoint, {
     method: 'POST',
-    headers: getDefaultHeaders(token),
+    headers: getDefaultHeaders(token, 'POST'),
     body: data ? JSON.stringify(data) : undefined,
     credentials: 'include',
   });
@@ -221,7 +245,7 @@ export async function apiPut<T>(
 ): Promise<ApiResponse<T>> {
   const response = await fetch(endpoint, {
     method: 'PUT',
-    headers: getDefaultHeaders(token),
+    headers: getDefaultHeaders(token, 'PUT'),
     body: JSON.stringify(data),
     credentials: 'include',
   });
@@ -244,7 +268,7 @@ export async function apiDelete<T>(
 
   const response = await fetch(url.toString(), {
     method: 'DELETE',
-    headers: getDefaultHeaders(token),
+    headers: getDefaultHeaders(token, 'DELETE'),
     credentials: 'include',
   });
 

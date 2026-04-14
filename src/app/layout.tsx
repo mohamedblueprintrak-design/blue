@@ -3,6 +3,7 @@ import { IBM_Plex_Sans_Arabic } from "next/font/google";
 import { ThemeProvider } from "next-themes";
 import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
+import { CsrfProvider } from "@/components/providers/csrf-provider";
 
 const ibmPlexArabic = IBM_Plex_Sans_Arabic({
   variable: "--font-ibm-plex-arabic",
@@ -28,7 +29,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#133371",
+  themeColor: "#0d9488",
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
@@ -59,8 +60,10 @@ export default function RootLayout({
         className={`${ibmPlexArabic.variable} antialiased bg-background text-foreground font-[family-name:var(--font-ibm-plex-arabic)]`}
       >
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false} disableTransitionOnChange>
-          {children}
-          <Toaster />
+          <CsrfProvider>
+            {children}
+            <Toaster />
+          </CsrfProvider>
         </ThemeProvider>
       </body>
     </html>

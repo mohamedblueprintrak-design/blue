@@ -369,12 +369,18 @@ export async function middleware(request: NextRequest) {
   // ============================================
   // Generate CSRF token for page GET requests
   // ============================================
-  if (!pathname.startsWith('/api/') && request.method === 'GET') {
-    const existingCsrf = request.cookies.get('csrf_token');
-    const response = NextResponse.next();
-    if (!existingCsrf?.value) {
-      const token = crypto.randomUUID().replace(/-/g, '');
-      response.cookies.set('csrf_token', token, {
+  // Track whether we need to set a new CSRF cookie on the response.
+  // This must be applied to ALL response paths for page GET requests,
+  // not just the first NextResponse.next() that gets discarded.
+  const isPageGet = !pathname.startsWith('/api/') && request.method === 'GET';
+  const existingCsrf = request.cookies.get('csrf_token');
+  const needsCsrfCookie = isPageGet && !existingCsrf?.value;
+  const csrfTokenValue = needsCsrfCookie ? crypto.randomUUID().replace(/-/g, '') : null;
+
+  /** Helper: attach CSRF cookie to a response if needed */
+  function applyCsrfCookie(resp: NextResponse): NextResponse {
+    if (needsCsrfCookie && csrfTokenValue) {
+      resp.cookies.set('csrf_token', csrfTokenValue, {
         path: '/',
         httpOnly: false, // Must be readable by JS for double-submit
         secure: process.env.NODE_ENV === 'production',
@@ -382,8 +388,7 @@ export async function middleware(request: NextRequest) {
         maxAge: 60 * 60 * 24, // 24 hours
       });
     }
-    // Fall through to auth checks below
-    // Don't return here - we need to continue with auth checks for non-public pages
+    return resp;
   }
 
   // ============================================
@@ -394,10 +399,10 @@ export async function middleware(request: NextRequest) {
   }
 
   // ============================================
-  // Public page routes — skip auth
+  // Public page routes — skip auth (with CSRF cookie)
   // ============================================
   if (!pathname.startsWith('/api/') && isPublicPageRoute(pathname)) {
-    return NextResponse.next();
+    return applyCsrfCookie(NextResponse.next());
   }
 
   // ============================================
@@ -459,7 +464,7 @@ export async function middleware(request: NextRequest) {
   // ============================================
   // Forward user info to API routes via headers
   // ============================================
-  const response = NextResponse.next();
+  const response = applyCsrfCookie(NextResponse.next());
   if (pathname.startsWith('/api/')) {
     response.headers.set('x-user-id', payload.userId);
     response.headers.set('x-user-email', payload.email);

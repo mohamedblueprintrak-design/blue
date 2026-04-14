@@ -245,6 +245,7 @@ export default function LandingPage() {
   const [formMessage, setFormMessage] = useState("");
   const [formSubmitting, setFormSubmitting] = useState(false);
   const [formSuccess, setFormSuccess] = useState(false);
+  const [formError, setFormError] = useState("");
   const [showScrollTop, setShowScrollTop] = useState(false);
   const [language, setLanguage] = useState<"ar" | "en">("ar");
 
@@ -289,8 +290,9 @@ export default function LandingPage() {
   const handleContactSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setFormSubmitting(true);
+    setFormError("");
     try {
-      await fetch("/api/quote-requests", {
+      const res = await fetch("/api/quote-requests", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -301,6 +303,9 @@ export default function LandingPage() {
           message: formMessage,
         }),
       });
+      if (!res.ok) {
+        throw new Error(t("حدث خطأ أثناء إرسال الطلب", "An error occurred while submitting"));
+      }
       setFormSuccess(true);
       setFormName("");
       setFormPhone("");
@@ -308,8 +313,8 @@ export default function LandingPage() {
       setFormType("");
       setFormMessage("");
       setTimeout(() => setFormSuccess(false), 5000);
-    } catch {
-      // silent
+    } catch (err) {
+      setFormError(err instanceof Error ? err.message : t("حدث خطأ غير متوقع", "An unexpected error occurred"));
     } finally {
       setFormSubmitting(false);
     }
@@ -822,6 +827,12 @@ export default function LandingPage() {
                   <p className="text-sm text-slate-500 mb-4">
                     {t("املأ النموذج أدناه وسنعود إليك قريباً", "Fill the form below and we'll get back to you soon")}
                   </p>
+
+                  {formError && (
+                    <div className="p-3 rounded-lg bg-red-50 border border-red-200 text-red-600 text-sm">
+                      {formError}
+                    </div>
+                  )}
 
                   <div className="grid sm:grid-cols-2 gap-4">
                     <div className="space-y-2">

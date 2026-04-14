@@ -31,7 +31,7 @@ export function getCsrfCookieOptions() {
     path: '/',
     httpOnly: false, // Must be readable by JS (for double-submit pattern)
     secure: process.env.NODE_ENV === 'production',
-    sameSite: 'strict' as const,
+    sameSite: 'lax' as const, // Must match middleware.ts (lax, not strict)
     maxAge: 60 * 60 * 24, // 24 hours
   };
 }
@@ -73,9 +73,14 @@ export function requiresCsrfProtection(method: string): boolean {
  * Check if the request is exempt from CSRF (API webhooks, etc.)
  */
 export function isCsrfExempt(pathname: string): boolean {
+  // Must match the CSRF exempt paths in middleware.ts
   const exemptPaths = [
     '/api/stripe/webhook',
     '/api/health',
+    '/api/auth',
+    '/api/init',
+    '/api/seed',
+    '/api/quote-requests',
   ];
   return exemptPaths.some(path => pathname.startsWith(path));
 }
