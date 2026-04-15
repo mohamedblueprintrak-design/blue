@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef } from "react";
 import Link from "next/link";
-import { motion } from "framer-motion";
+import Image from "next/image";
+import { motion, AnimatePresence, useScroll, useTransform } from "framer-motion";
 import {
   Calculator,
   Building2,
@@ -17,6 +18,8 @@ import {
   Eye,
   AlertTriangle,
   Info,
+  Sparkles,
+  TrendingUp,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -38,10 +41,10 @@ interface PricingData {
 }
 
 const BUILDING_TYPES = [
-  { value: "villa", label: "فيلا", icon: Building2 },
-  { value: "apartment", label: "عمارة سكنية", icon: Building2 },
-  { value: "commercial", label: "تجاري", icon: Store },
-  { value: "industrial", label: "صناعي", icon: Factory },
+  { value: "villa", label: "فيلا", icon: Building2, desc: "سكني خاص" },
+  { value: "apartment", label: "عمارة سكنية", icon: Building2, desc: "متعدد الشقق" },
+  { value: "commercial", label: "تجاري", icon: Store, desc: "مكاتب/محلات" },
+  { value: "industrial", label: "صناعي", icon: Factory, desc: "مصنع/ورشة" },
 ];
 
 const AREA_RANGES: Record<string, { label: string; avgSqm: number }> = {
@@ -60,10 +63,10 @@ const FLOOR_OPTIONS = [
 ];
 
 const FINISH_LEVELS = [
-  { value: "standard", label: "عادي", multiplier: 1.0 },
-  { value: "semi-luxury", label: "فاخر جزئي", multiplier: 1.3 },
-  { value: "luxury", label: "فاخر", multiplier: 1.6 },
-  { value: "super-luxury", label: "سوبر لوكس", multiplier: 2.0 },
+  { value: "standard", label: "عادي", multiplier: 1.0, desc: "تشطيب قياسي" },
+  { value: "semi-luxury", label: "فاخر جزئي", multiplier: 1.3, desc: "مواد ممتازة" },
+  { value: "luxury", label: "فاخر", multiplier: 1.6, desc: "تشطيب راقي" },
+  { value: "super-luxury", label: "سوبر لوكس", multiplier: 2.0, desc: "أعلى جودة" },
 ];
 
 // Base pricing per sqm per building type (AED)
@@ -95,13 +98,47 @@ const BASE_PRICING: Record<string, PricingData> = {
 };
 
 const fadeInUp = {
-  hidden: { opacity: 0, y: 20 },
+  hidden: { opacity: 0, y: 30 },
   visible: (i: number) => ({
     opacity: 1,
     y: 0,
-    transition: { delay: i * 0.08, duration: 0.4 },
+    transition: { delay: i * 0.1, duration: 0.5, ease: "easeOut" },
   }),
 };
+
+const staggerContainer = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: { staggerChildren: 0.1 },
+  },
+};
+
+// Animated Counter Component
+function AnimatedCounter({ value, duration = 1500 }: { value: number; duration?: number }) {
+  const [count, setCount] = useState(0);
+  const ref = useRef<HTMLSpanElement>(null);
+
+  useState(() => {
+    let startTime: number | null = null;
+    let animationFrame: number;
+
+    const animate = (timestamp: number) => {
+      if (!startTime) startTime = timestamp;
+      const progress = Math.min((timestamp - startTime) / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      setCount(Math.floor(eased * value));
+      if (progress < 1) {
+        animationFrame = requestAnimationFrame(animate);
+      }
+    };
+
+    animationFrame = requestAnimationFrame(animate);
+    return () => cancelAnimationFrame(animationFrame);
+  });
+
+  return <span ref={ref}>{count.toLocaleString("ar-AE")}</span>;
+}
 
 function formatAED(value: number) {
   return new Intl.NumberFormat("ar-AE", {
@@ -109,6 +146,60 @@ function formatAED(value: number) {
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
   }).format(value) + " درهم";
+}
+
+// Parallax Background Component
+function ParallaxBackground() {
+  const ref = useRef(null);
+  const { scrollYProgress } = useScroll({
+    target: ref,
+    offset: ["start start", "end start"],
+  });
+  const y = useTransform(scrollYProgress, [0, 1], ["0%", "30%"]);
+  const opacity = useTransform(scrollYProgress, [0, 0.5], [1, 0.3]);
+
+  return (
+    <div ref={ref} className="fixed inset-0 -z-10">
+      <motion.div style={{ y, opacity }} className="absolute inset-0">
+        <Image
+          src="/calculator-bg.png"
+          alt="Engineering Calculator"
+          fill
+          className="object-cover"
+          priority
+        />
+        <div className="absolute inset-0 bg-gradient-to-b from-slate-900/95 via-slate-900/90 to-slate-900/95" />
+      </motion.div>
+      {/* Animated Grid Pattern */}
+      <div className="absolute inset-0 opacity-[0.03]">
+        <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <pattern id="calc-grid" width="50" height="50" patternUnits="userSpaceOnUse">
+              <circle cx="25" cy="25" r="1" fill="white" />
+            </pattern>
+          </defs>
+          <rect width="100%" height="100%" fill="url(#calc-grid)" />
+        </svg>
+      </div>
+      {/* Floating Orbs */}
+      <motion.div
+        animate={{
+          scale: [1, 1.3, 1],
+          opacity: [0.1, 0.2, 0.1],
+        }}
+        transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
+        className="absolute top-40 end-20 w-72 h-72 rounded-full bg-cyan-500/20 blur-3xl"
+      />
+      <motion.div
+        animate={{
+          scale: [1, 1.2, 1],
+          opacity: [0.1, 0.15, 0.1],
+        }}
+        transition={{ duration: 6, repeat: Infinity, ease: "easeInOut", delay: 2 }}
+        className="absolute bottom-60 start-20 w-96 h-96 rounded-full bg-teal-500/15 blur-3xl"
+      />
+    </div>
+  );
 }
 
 export default function CalculatorPage() {
@@ -185,32 +276,45 @@ export default function CalculatorPage() {
   ];
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50">
+    <div className="min-h-screen flex flex-col">
+      <ParallaxBackground />
       <PublicHeader />
 
       <main className="flex-1 py-8 sm:py-12">
         <div className="max-w-4xl mx-auto px-4 sm:px-6">
           {/* Header */}
-          <div className="text-center mb-8">
-            <div className="inline-flex items-center gap-2 bg-teal-100 text-teal-700 rounded-full px-4 py-1.5 text-sm font-medium mb-4">
+          <motion.div
+            initial="hidden"
+            animate="visible"
+            variants={staggerContainer}
+            className="text-center mb-10"
+          >
+            <motion.div variants={fadeInUp} custom={0} className="inline-flex items-center gap-2 bg-teal-500/20 backdrop-blur-sm border border-teal-500/30 text-teal-400 rounded-full px-4 py-1.5 text-sm font-medium mb-4">
               <Calculator className="w-4 h-4" />
               حاسبة التكاليف
-            </div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">
+            </motion.div>
+            <motion.h1 variants={fadeInUp} custom={1} className="text-2xl sm:text-3xl font-bold text-white">
               تقدير تكلفة مشروعك
-            </h1>
-            <p className="text-slate-500 mt-2 max-w-xl mx-auto">
+            </motion.h1>
+            <motion.p variants={fadeInUp} custom={2} className="text-slate-400 mt-2 max-w-xl mx-auto">
               أدخل تفاصيل مشروعك واحصل على تقدير تقريبي لتكاليف التصميم والترخيص في رأس الخيمة
-            </p>
-          </div>
+            </motion.p>
+          </motion.div>
 
           {/* Calculator Form */}
           <div className="grid lg:grid-cols-5 gap-6">
             {/* Form */}
-            <div className="lg:col-span-2 space-y-5">
-              <div className="bg-white rounded-2xl p-6 shadow-lg border border-slate-200/80 space-y-5">
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.2 }}
+              className="lg:col-span-2 space-y-5"
+            >
+              <div className="bg-white/95 backdrop-blur-md rounded-3xl p-6 shadow-2xl border border-white/20 space-y-5">
                 <h2 className="text-lg font-semibold text-slate-900 flex items-center gap-2">
-                  <Layers className="w-5 h-5 text-teal-500" />
+                  <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-teal-500 to-cyan-500 flex items-center justify-center">
+                    <Layers className="w-4 h-4 text-white" />
+                  </div>
                   تفاصيل المشروع
                 </h2>
 
@@ -218,22 +322,29 @@ export default function CalculatorPage() {
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-slate-700">نوع المبنى</label>
                   <div className="grid grid-cols-2 gap-2">
-                    {BUILDING_TYPES.map((b) => {
+                    {BUILDING_TYPES.map((b, i) => {
                       const Icon = b.icon;
                       const isSelected = buildingType === b.value;
                       return (
-                        <button
+                        <motion.button
                           key={b.value}
+                          initial={{ opacity: 0, scale: 0.9 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          transition={{ delay: i * 0.05 }}
                           onClick={() => { setBuildingType(b.value); setShowResult(false); }}
-                          className={`p-3 rounded-xl border-2 text-center transition-all duration-200 cursor-pointer text-xs ${
+                          className={`p-3 rounded-2xl border-2 text-center transition-all duration-300 cursor-pointer group ${
                             isSelected
-                              ? "border-teal-500 bg-teal-50"
-                              : "border-slate-200 hover:border-teal-300"
+                              ? "border-teal-500 bg-gradient-to-br from-teal-50 to-cyan-50 shadow-lg shadow-teal-500/10"
+                              : "border-slate-200 hover:border-teal-300 hover:bg-teal-50/50 hover:shadow-md"
                           }`}
                         >
-                          <Icon className={`w-6 h-6 mx-auto mb-1 ${isSelected ? "text-teal-500" : "text-slate-400"}`} />
-                          {b.label}
-                        </button>
+                          <Icon className={`w-8 h-8 mx-auto mb-2 transition-all duration-300 ${
+                            isSelected ? "text-teal-500 scale-110" : "text-slate-400 group-hover:text-teal-500"
+                          }`} />
+                          <div className={`text-xs font-medium transition-colors ${isSelected ? "text-teal-700" : "text-slate-700"}`}>
+                            {b.label}
+                          </div>
+                        </motion.button>
                       );
                     })}
                   </div>
@@ -243,7 +354,7 @@ export default function CalculatorPage() {
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-slate-700">نطاق المساحة</label>
                   <Select value={areaRange} onValueChange={(v) => { setAreaRange(v); setShowResult(false); }}>
-                    <SelectTrigger className="w-full h-11 border-slate-200">
+                    <SelectTrigger className="w-full h-12 border-slate-200 rounded-xl hover:border-teal-300 transition-colors">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -258,7 +369,7 @@ export default function CalculatorPage() {
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-slate-700">عدد الأدوار</label>
                   <Select value={floors} onValueChange={(v) => { setFloors(v); setShowResult(false); }}>
-                    <SelectTrigger className="w-full h-11 border-slate-200">
+                    <SelectTrigger className="w-full h-12 border-slate-200 rounded-xl hover:border-teal-300 transition-colors">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -273,119 +384,172 @@ export default function CalculatorPage() {
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-slate-700">مستوى التشطيب</label>
                   <Select value={finishLevel} onValueChange={(v) => { setFinishLevel(v); setShowResult(false); }}>
-                    <SelectTrigger className="w-full h-11 border-slate-200">
+                    <SelectTrigger className="w-full h-12 border-slate-200 rounded-xl hover:border-teal-300 transition-colors">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
                       {FINISH_LEVELS.map((f) => (
-                        <SelectItem key={f.value} value={f.value}>{f.label}</SelectItem>
+                        <SelectItem key={f.value} value={f.value}>
+                          <span>{f.label}</span>
+                          <span className="text-slate-400 text-xs me-2">({f.desc})</span>
+                        </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                 </div>
 
-                <Button
-                  onClick={() => setShowResult(true)}
-                  className="w-full h-12 bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-600 hover:to-cyan-600 text-white shadow-lg shadow-teal-500/20 rounded-xl text-base"
-                >
-                  <BarChart3 className="w-5 h-5 me-2" />
-                  احسب التكلفة
-                </Button>
+                <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                  <Button
+                    onClick={() => setShowResult(true)}
+                    className="w-full h-12 bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-600 hover:to-cyan-600 text-white shadow-lg shadow-teal-500/20 rounded-xl text-base"
+                  >
+                    <TrendingUp className="w-5 h-5 me-2" />
+                    احسب التكلفة
+                  </Button>
+                </motion.div>
               </div>
-            </div>
+            </motion.div>
 
             {/* Results */}
             <div className="lg:col-span-3">
-              {showResult && calculation ? (
-                <motion.div
-                  initial="hidden"
-                  animate="visible"
-                  className="space-y-4"
-                >
-                  {/* Total Card */}
+              <AnimatePresence mode="wait">
+                {showResult && calculation ? (
                   <motion.div
-                    variants={fadeInUp}
-                    custom={0}
-                    className="bg-gradient-to-br from-teal-500 to-cyan-600 rounded-2xl p-6 text-white shadow-xl shadow-teal-500/20"
+                    initial="hidden"
+                    animate="visible"
+                    exit="hidden"
+                    className="space-y-4"
                   >
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-teal-100 text-sm">التكلفة التقديرية الإجمالية</span>
-                      <DollarSign className="w-5 h-5 text-teal-200" />
-                    </div>
-                    <div className="text-3xl sm:text-4xl font-bold mb-1">
-                      {formatAED(calculation.total.min)} - {formatAED(calculation.total.max)}
-                    </div>
-                    <p className="text-teal-200 text-sm">
-                      للمساحة التقريبية {areaData.label} ({areaData.avgSqm} م²)
+                    {/* Total Card */}
+                    <motion.div
+                      variants={fadeInUp}
+                      custom={0}
+                      className="bg-gradient-to-br from-teal-500 to-cyan-600 rounded-3xl p-8 text-white shadow-2xl shadow-teal-500/30 relative overflow-hidden"
+                    >
+                      {/* Animated background pattern */}
+                      <div className="absolute inset-0 opacity-10">
+                        <div className="absolute inset-0" style={{
+                          backgroundImage: `radial-gradient(circle at 20% 50%, white 1px, transparent 1px)`,
+                          backgroundSize: "30px 30px"
+                        }} />
+                      </div>
+                      
+                      <div className="relative">
+                        <div className="flex items-center justify-between mb-3">
+                          <span className="text-teal-100 text-sm">التكلفة التقديرية الإجمالية</span>
+                          <motion.div
+                            animate={{ rotate: 360 }}
+                            transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                            className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center"
+                          >
+                            <DollarSign className="w-5 h-5 text-white" />
+                          </motion.div>
+                        </div>
+                        <motion.div
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: 0.2 }}
+                          className="text-3xl sm:text-4xl font-bold mb-2"
+                        >
+                          {formatAED(calculation.total.min)} - {formatAED(calculation.total.max)}
+                        </motion.div>
+                        <p className="text-teal-200 text-sm">
+                          للمساحة التقريبية {areaData.label} ({areaData.avgSqm} م²)
+                        </p>
+                      </div>
+                    </motion.div>
+
+                    {/* Breakdown */}
+                    {breakdown.map((item, i) => {
+                      const Icon = item.icon;
+                      return (
+                        <motion.div
+                          key={item.label}
+                          variants={fadeInUp}
+                          custom={i + 1}
+                          whileHover={{ scale: 1.02, x: 5 }}
+                          className="bg-white/95 backdrop-blur-md rounded-2xl p-5 shadow-lg border border-white/20 flex items-center gap-4 cursor-pointer transition-all duration-300 hover:shadow-xl"
+                        >
+                          <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${item.color} flex items-center justify-center shrink-0 shadow-md`}>
+                            <Icon className="w-6 h-6 text-white" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="text-sm font-medium text-slate-900">{item.label}</div>
+                            <div className="text-xs text-slate-500 mt-0.5">
+                              {item.data ? `${formatAED(item.data.min)} - ${formatAED(item.data.max)}` : "-"}
+                            </div>
+                          </div>
+                          <div className="text-lg font-bold text-slate-900">
+                            {item.data ? formatAED(Math.round((item.data.min + item.data.max) / 2)) : "-"}
+                          </div>
+                        </motion.div>
+                      );
+                    })}
+
+                    {/* Disclaimer */}
+                    <motion.div
+                      variants={fadeInUp}
+                      custom={5}
+                      className="flex items-start gap-3 p-5 bg-amber-50/90 backdrop-blur-sm border border-amber-200/50 rounded-2xl"
+                    >
+                      <div className="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center shrink-0">
+                        <AlertTriangle className="w-5 h-5 text-amber-600" />
+                      </div>
+                      <div>
+                        <div className="text-sm font-medium text-amber-800">تنبيه مهم</div>
+                        <p className="text-xs text-amber-700 mt-1 leading-relaxed">
+                          هذه الأرقام تقديرية فقط بناءً على متوسط أسعار السوق في رأس الخيمة.
+                          التكلفة الفعلية تعتمد على تفاصيل المشروع ومتطلبات البلدية والدفاع المدني.
+                          للحصول على عرض سعر دقيق، يرجى{" "}
+                          <Link href="/quote" className="underline font-medium hover:text-amber-900">طلب عرض سعر</Link>.
+                        </p>
+                      </div>
+                    </motion.div>
+
+                    {/* CTA */}
+                    <motion.div
+                      variants={fadeInUp}
+                      custom={6}
+                      className="flex flex-col sm:flex-row gap-3"
+                    >
+                      <Link href="/quote" className="flex-1">
+                        <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                          <Button className="w-full bg-gradient-to-r from-teal-500 to-cyan-500 text-white shadow-lg shadow-teal-500/20 h-12 rounded-xl">
+                            <Sparkles className="w-4 h-4 me-2" />
+                            طلب عرض سعر مفصل
+                          </Button>
+                        </motion.div>
+                      </Link>
+                      <Link href="/" className="flex-1">
+                        <Button variant="outline" className="w-full border-slate-300 text-slate-300 hover:bg-slate-800 hover:text-white h-12 rounded-xl">
+                          العودة للرئيسية
+                        </Button>
+                      </Link>
+                    </motion.div>
+                  </motion.div>
+                ) : (
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="bg-white/95 backdrop-blur-md rounded-3xl p-10 shadow-2xl border border-white/20 text-center"
+                  >
+                    <motion.div
+                      animate={{ y: [0, -10, 0] }}
+                      transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                      className="w-20 h-20 rounded-2xl bg-gradient-to-br from-teal-500 to-cyan-500 flex items-center justify-center mx-auto mb-6 shadow-lg shadow-teal-500/20"
+                    >
+                      <BarChart3 className="w-10 h-10 text-white" />
+                    </motion.div>
+                    <h3 className="text-xl font-semibold text-slate-900 mb-3">
+                      جاهز لحساب التكلفة؟
+                    </h3>
+                    <p className="text-sm text-slate-500 max-w-sm mx-auto">
+                      أدخل تفاصيل مشروعك ثم اضغط &quot;احسب التكلفة&quot; للحصول على تقدير فوري
                     </p>
                   </motion.div>
-
-                  {/* Breakdown */}
-                  {breakdown.map((item, i) => {
-                    const Icon = item.icon;
-                    return (
-                      <motion.div
-                        key={item.label}
-                        variants={fadeInUp}
-                        custom={i + 1}
-                        className="bg-white rounded-xl p-4 shadow-sm border border-slate-200/80 flex items-center gap-4"
-                      >
-                        <div className={`w-10 h-10 rounded-lg bg-gradient-to-br ${item.color} flex items-center justify-center shrink-0`}>
-                          <Icon className="w-5 h-5 text-white" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="text-sm font-medium text-slate-900">{item.label}</div>
-                          <div className="text-xs text-slate-500 mt-0.5">
-                            {item.data ? `${formatAED(item.data.min)} - ${formatAED(item.data.max)}` : "-"}
-                          </div>
-                        </div>
-                        <div className="text-sm font-bold text-slate-900">
-                          {item.data ? formatAED(Math.round((item.data.min + item.data.max) / 2)) : "-"}
-                        </div>
-                      </motion.div>
-                    );
-                  })}
-
-                  {/* Disclaimer */}
-                  <motion.div variants={fadeInUp} custom={6} className="flex items-start gap-3 p-4 bg-amber-50 border border-amber-200 rounded-xl">
-                    <AlertTriangle className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
-                    <div>
-                      <div className="text-sm font-medium text-amber-800">تنبيه مهم</div>
-                      <p className="text-xs text-amber-700 mt-1 leading-relaxed">
-                        هذه الأرقام تقديرية فقط بناءً على متوسط أسعار السوق في رأس الخيمة.
-                        التكلفة الفعلية تعتمد على تفاصيل المشروع ومتطلبات البلدية والدفاع المدني.
-                        للحصول على عرض سعر دقيق، يرجى <Link href="/quote" className="underline font-medium hover:text-amber-900">طلب عرض سعر</Link>.
-                      </p>
-                    </div>
-                  </motion.div>
-
-                  {/* CTA */}
-                  <motion.div variants={fadeInUp} custom={7} className="flex flex-col sm:flex-row gap-3">
-                    <Link href="/quote" className="flex-1">
-                      <Button className="w-full bg-gradient-to-r from-teal-500 to-cyan-500 text-white shadow-lg shadow-teal-500/20">
-                        طلب عرض سعر مفصل
-                      </Button>
-                    </Link>
-                    <Link href="/" className="flex-1">
-                      <Button variant="outline" className="w-full border-slate-200">
-                        العودة للرئيسية
-                      </Button>
-                    </Link>
-                  </motion.div>
-                </motion.div>
-              ) : (
-                <div className="bg-white rounded-2xl p-10 shadow-lg border border-slate-200/80 text-center">
-                  <div className="w-16 h-16 rounded-full bg-teal-50 flex items-center justify-center mx-auto mb-4">
-                    <BarChart3 className="w-8 h-8 text-teal-500" />
-                  </div>
-                  <h3 className="text-lg font-semibold text-slate-900 mb-2">
-                    جاهز لحساب التكلفة؟
-                  </h3>
-                  <p className="text-sm text-slate-500">
-                    أدخل تفاصيل مشروعك ثم اضغط &quot;احسب التكلفة&quot; للحصول على تقدير فوري
-                  </p>
-                </div>
-              )}
+                )}
+              </AnimatePresence>
             </div>
           </div>
         </div>
