@@ -32,7 +32,7 @@ fi
 
 echo ""
 echo "[2/4] Installing dependencies..."
-npm install
+npm install --legacy-peer-deps
 echo "  [OK] Dependencies installed"
 
 echo ""

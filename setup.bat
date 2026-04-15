@@ -41,7 +41,7 @@ if not exist .env (
 
 echo.
 echo [2/4] Installing dependencies...
-call npm install
+call npm install --legacy-peer-deps
 if %ERRORLEVEL% NEQ 0 (
     color 0C
     echo [ERROR] npm install failed!
