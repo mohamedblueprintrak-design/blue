@@ -21,7 +21,7 @@ export type { RateLimitConfig, RateLimitResult } from '@/lib/rate-limiter';
 import { NextRequest, NextResponse } from 'next/server';
 import { rateLimiters, getClientIP, createRateLimitResponse } from '@/lib/rate-limiter';
 
-export type RateLimitType = 'auth' | 'api' | 'strict' | 'passwordReset' | 'emailVerification';
+export type RateLimitType = 'auth' | 'api' | 'public' | 'strict' | 'passwordReset' | 'emailVerification';
 
 const RATE_LIMIT_CONFIGS = {
   auth: { maxRequests: 10, windowMs: 60000 },
@@ -105,9 +105,20 @@ export function rateLimitError(
   type: RateLimitType = 'api',
   language: 'ar' | 'en' = 'ar'
 ): NextResponse {
+  const config = RATE_LIMIT_CONFIGS[type as keyof typeof RATE_LIMIT_CONFIGS] || RATE_LIMIT_CONFIGS.api;
+  
   return NextResponse.json(
     { success: false, error: { code: 'RATE_LIMIT_EXCEEDED', message: language === 'ar' ? 'تم تجاوز الحد المسموح' : 'Rate limit exceeded' } },
-    { status: 429, headers: { 'Retry-After': '60', 'X-RateLimit-Reset': resetTime.toString() } }
+    { 
+      status: 429, 
+      headers: { 
+        'Retry-After': '60', 
+        'X-RateLimit-Limit': config.maxRequests.toString(),
+        'X-RateLimit-Remaining': '0',
+        'X-RateLimit-Reset': resetTime.toString(),
+        'X-RateLimit-Type': type
+      } 
+    }
   );
 }
 
@@ -148,7 +159,27 @@ export function getRateLimitStats() {
  * Detect rate limit type based on request path
  */
 export function detectRateLimitType(pathname: string): RateLimitType {
-  if (pathname.includes('/api/auth/') || pathname.includes('/login')) return 'auth';
-  if (pathname.includes('/api/health') || pathname.includes('/api/public')) return 'api';
+  // Auth endpoints - more restrictive rate limiting
+  if (
+    pathname.includes('/api/auth/') ||
+    pathname.includes('/login') ||
+    pathname.includes('/signup') ||
+    pathname.includes('/register') ||
+    pathname.includes('/forgot-password') ||
+    pathname.includes('/reset-password')
+  ) {
+    return 'auth';
+  }
+
+  // Public endpoints - higher rate limit for webhooks, health checks, etc.
+  if (
+    pathname.includes('/api/health') ||
+    pathname.includes('/api/public') ||
+    pathname.includes('/api/stripe/webhook')
+  ) {
+    return 'public';
+  }
+
+  // Default to api for all other endpoints
   return 'api';
 }

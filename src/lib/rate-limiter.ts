@@ -270,6 +270,16 @@ export const rateLimiters = {
   }),
 
   /**
+   * Public rate limiter: 200 requests per minute
+   * Used for public endpoints like webhooks, health checks
+   */
+  public: new RateLimiter({
+    maxRequests: 200,
+    windowMs: 60000,
+    keyPrefix: 'public',
+  }),
+
+  /**
    * Strict rate limiter: 5 requests per minute
    * Used for sensitive operations
    */
@@ -304,12 +314,16 @@ export const rateLimiters = {
 
 /**
  * Get client IP from request headers
+ * 
+ * Accepts either:
+ * - A Headers object
+ * - A Request-like object with a headers property
  *
  * SECURITY NOTE: In production with a trusted proxy, only the rightmost IP in
  * X-Forwarded-For (the one appended by the trusted proxy) should be trusted.
  * This sanitization is a baseline defense; configure TRUSTED_PROXY_IPS for full protection.
  */
-export function getClientIP(headers: Headers): string {
+export function getClientIP(headersOrRequest: Headers | { headers: Headers }): string {
   const ipRegex = /^[0-9a-fA-F.:]+$/;
   const maxIPLength = 45; // Max IPv6 address length
 
@@ -318,6 +332,9 @@ export function getClientIP(headers: Headers): string {
     if (cleaned.length > maxIPLength || !ipRegex.test(cleaned)) return 'unknown';
     return cleaned;
   }
+
+  // Extract headers from either Headers object or Request-like object
+  const headers = 'headers' in headersOrRequest ? headersOrRequest.headers : headersOrRequest;
 
   const forwarded = headers.get('x-forwarded-for');
   if (forwarded) {
@@ -346,7 +363,7 @@ export function getClientIP(headers: Headers): string {
  */
 export function createRateLimitResponse(
   result: RateLimitResult,
-  type: 'auth' | 'api' | 'strict' | 'passwordReset' | 'emailVerification',
+  type: 'auth' | 'api' | 'public' | 'strict' | 'passwordReset' | 'emailVerification',
   language: 'ar' | 'en' = 'ar'
 ): Response {
   const messages: Record<string, Record<string, string>> = {
@@ -357,6 +374,10 @@ export function createRateLimitResponse(
     api: {
       ar: 'تم تجاوز الحد المسموح من الطلبات. يرجى المحاولة لاحقاً.',
       en: 'Rate limit exceeded. Please try again later.',
+    },
+    public: {
+      ar: 'تم تجاوز الحد المسموح من الطلبات العامة. يرجى المحاولة لاحقاً.',
+      en: 'Public endpoint rate limit exceeded. Please try again later.',
     },
     strict: {
       ar: 'تم تجاوز الحد المسموح من العمليات الحساسة. يرجى الانتظار.',
