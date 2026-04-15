@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
-import { motion, AnimatePresence, useInView, Variants } from "framer-motion";
+import Image from "next/image";
+import { motion, AnimatePresence, useInView, Variants, useScroll, useTransform } from "framer-motion";
 import {
   Building2,
   Compass,
@@ -31,6 +32,7 @@ import {
   BarChart3,
   Headphones,
   Globe,
+  ArrowUpRight,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -49,9 +51,80 @@ import LogoImage from "@/components/ui/logo-image";
 const NAV_LINKS = [
   { href: "#", label: "الرئيسية", labelEn: "Home" },
   { href: "#services", label: "خدماتنا", labelEn: "Services" },
+  { href: "#projects", label: "مشاريعنا", labelEn: "Projects" },
   { href: "#about", label: "من نحن", labelEn: "About" },
   { href: "/calculator", label: "حاسبة التكاليف", labelEn: "Cost Calculator" },
   { href: "/quote", label: "طلب عرض سعر", labelEn: "Get Quote" },
+];
+
+// ==================== PROJECTS DATA (DHK Style) ====================
+const PROJECTS = [
+  {
+    id: 1,
+    title: "برج الأعمال التجاري",
+    titleEn: "Commercial Business Tower",
+    category: "تجاري",
+    categoryEn: "Commercial",
+    image: "/project-1.png",
+    year: "2024",
+    location: "رأس الخيمة",
+    locationEn: "Ras Al Khaimah",
+  },
+  {
+    id: 2,
+    title: "فيلا الواحة السكنية",
+    titleEn: "Oasis Residential Villa",
+    category: "سكني",
+    categoryEn: "Residential",
+    image: "/project-2.png",
+    year: "2024",
+    location: "رأس الخيمة",
+    locationEn: "Ras Al Khaimah",
+  },
+  {
+    id: 3,
+    title: "مشروع البناء المتكامل",
+    titleEn: "Integrated Construction Project",
+    category: "إنشائي",
+    categoryEn: "Structural",
+    image: "/project-3.png",
+    year: "2023",
+    location: "رأس الخيمة",
+    locationEn: "Ras Al Khaimah",
+  },
+  {
+    id: 4,
+    title: "تصميم مكاتب عصرية",
+    titleEn: "Modern Office Design",
+    category: "تصميم داخلي",
+    categoryEn: "Interior Design",
+    image: "/project-4.png",
+    year: "2024",
+    location: "رأس الخيمة",
+    locationEn: "Ras Al Khaimah",
+  },
+  {
+    id: 5,
+    title: "مجمع طبي متخصص",
+    titleEn: "Specialized Medical Complex",
+    category: "صحي",
+    categoryEn: "Healthcare",
+    image: "/project-5.png",
+    year: "2023",
+    location: "رأس الخيمة",
+    locationEn: "Ras Al Khaimah",
+  },
+  {
+    id: 6,
+    title: "مركز تسوق حديث",
+    titleEn: "Modern Shopping Center",
+    category: "تجاري",
+    categoryEn: "Commercial",
+    image: "/project-6.png",
+    year: "2024",
+    location: "رأس الخيمة",
+    locationEn: "Ras Al Khaimah",
+  },
 ];
 
 // ==================== SERVICES DATA ====================
@@ -185,6 +258,16 @@ const TESTIMONIALS = [
   },
 ];
 
+// ==================== MARQUEE TEXT ====================
+const MARQUEE_ITEMS = [
+  { ar: "تصميم معماري", en: "Architectural Design" },
+  { ar: "تصميم إنشائي", en: "Structural Design" },
+  { ar: "تصميم كهروميكانيكي", en: "MEP Design" },
+  { ar: "رخص البلدية", en: "Municipality Permits" },
+  { ar: "إشراف التنفيذ", en: "Construction Supervision" },
+  { ar: "استشارات هندسية", en: "Engineering Consultation" },
+];
+
 // ==================== COUNTER HOOK ====================
 function useCounter(end: number, duration: number = 2000, startOnView: boolean = false) {
   const [count, setCount] = useState(0);
@@ -233,6 +316,133 @@ const staggerContainer = {
   },
 };
 
+// ==================== PARALLAX IMAGE COMPONENT ====================
+function ParallaxHeroImage() {
+  const ref = useRef(null);
+  const { scrollYProgress } = useScroll({
+    target: ref,
+    offset: ["start start", "end start"],
+  });
+  const y = useTransform(scrollYProgress, [0, 1], ["0%", "30%"]);
+  const opacity = useTransform(scrollYProgress, [0, 0.5], [1, 0]);
+
+  return (
+    <motion.div ref={ref} className="absolute inset-0 overflow-hidden">
+      <motion.div style={{ y, opacity }} className="absolute inset-0">
+        <Image
+          src="/hero-bg.png"
+          alt="Engineering Architecture"
+          fill
+          className="object-cover"
+          priority
+        />
+        <div className="absolute inset-0 bg-gradient-to-b from-slate-900/80 via-slate-900/70 to-slate-900/90" />
+      </motion.div>
+    </motion.div>
+  );
+}
+
+// ==================== MARQUEE COMPONENT ====================
+function MarqueeSection({ language }: { language: "ar" | "en" }) {
+  const t = (ar: string, en: string) => (language === "ar" ? ar : en);
+
+  return (
+    <div className="relative py-8 bg-gradient-to-r from-teal-600 via-teal-500 to-cyan-500 overflow-hidden">
+      {/* Animated gradient overlay */}
+      <div className="absolute inset-0 bg-gradient-to-r from-teal-600/50 via-transparent to-cyan-500/50 animate-pulse" />
+      
+      <div className="flex overflow-hidden">
+        {/* First row */}
+        <motion.div
+          className="flex gap-8 whitespace-nowrap"
+          animate={{ x: language === "ar" ? ["0%", "-50%"] : ["0%", "-50%"] }}
+          transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+        >
+          {[...MARQUEE_ITEMS, ...MARQUEE_ITEMS, ...MARQUEE_ITEMS, ...MARQUEE_ITEMS].map((item, i) => (
+            <div
+              key={i}
+              className="flex items-center gap-3 text-white/90 px-4"
+            >
+              <span className="text-lg font-medium">{t(item.ar, item.en)}</span>
+              <div className="w-1.5 h-1.5 rounded-full bg-white/40" />
+            </div>
+          ))}
+        </motion.div>
+      </div>
+    </div>
+  );
+}
+
+// ==================== PROJECT CARD COMPONENT ====================
+function ProjectCard({
+  project,
+  index,
+  language,
+}: {
+  project: typeof PROJECTS[0];
+  index: number;
+  language: "ar" | "en";
+}) {
+  const t = (ar: string, en: string) => (language === "ar" ? ar : en);
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 40 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, amount: 0.2 }}
+      transition={{ delay: index * 0.1, duration: 0.6, ease: "easeOut" }}
+      className="group relative overflow-hidden rounded-2xl cursor-pointer"
+    >
+      {/* Image Container */}
+      <div className="relative aspect-[4/3] overflow-hidden">
+        <Image
+          src={project.image}
+          alt={t(project.title, project.titleEn)}
+          fill
+          className="object-cover transition-transform duration-700 group-hover:scale-110"
+        />
+        {/* Overlay */}
+        <div className="absolute inset-0 bg-gradient-to-t from-slate-900/90 via-slate-900/40 to-transparent opacity-60 group-hover:opacity-80 transition-opacity duration-300" />
+        
+        {/* Category Badge */}
+        <div className="absolute top-4 start-4">
+          <span className="px-3 py-1.5 bg-white/90 backdrop-blur-sm rounded-full text-xs font-medium text-teal-700">
+            {t(project.category, project.categoryEn)}
+          </span>
+        </div>
+
+        {/* Hover Arrow */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.5 }}
+          whileHover={{ opacity: 1, scale: 1 }}
+          className="absolute top-4 end-4 w-10 h-10 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300"
+        >
+          <ArrowUpRight className="w-5 h-5 text-teal-700" />
+        </motion.div>
+      </div>
+
+      {/* Content */}
+      <div className="absolute bottom-0 inset-x-0 p-6">
+        <motion.div
+          initial={{ y: 20, opacity: 0 }}
+          whileInView={{ y: 0, opacity: 1 }}
+          viewport={{ once: true }}
+          transition={{ delay: index * 0.1 + 0.2 }}
+        >
+          <h3 className="text-xl font-bold text-white mb-2">
+            {t(project.title, project.titleEn)}
+          </h3>
+          <div className="flex items-center gap-3 text-white/70 text-sm">
+            <span>{project.year}</span>
+            <span>•</span>
+            <span>{t(project.location, project.locationEn)}</span>
+          </div>
+        </motion.div>
+      </div>
+    </motion.div>
+  );
+}
+
 // NOTE: i18n is handled by the `t` function inside the component using React state,
 // so language changes trigger proper re-renders.
 
@@ -263,7 +473,7 @@ export default function LandingPage() {
     document.documentElement.lang = newLang;
   };
 
-  const t = (ar: string, en: string) => language === "ar" ? ar : en;
+  const t = (ar: string, en: string) => (language === "ar" ? ar : en);
 
   // Track scroll position for back-to-top button
   useEffect(() => {
@@ -403,23 +613,43 @@ export default function LandingPage() {
         </AnimatePresence>
       </header>
 
-      {/* ===== HERO SECTION ===== */}
-      <section className="relative pt-16 overflow-hidden">
-        {/* Background */}
-        <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-slate-800 to-teal-900">
-          <div className="absolute inset-0 opacity-[0.04]">
-            <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
-              <defs>
-                <pattern id="hero-grid" width="40" height="40" patternUnits="userSpaceOnUse">
-                  <path d="M 40 0 L 0 0 0 40" fill="none" stroke="white" strokeWidth="0.5" />
-                </pattern>
-              </defs>
-              <rect width="100%" height="100%" fill="url(#hero-grid)" />
-            </svg>
-          </div>
-          <div className="absolute top-20 -start-20 w-72 h-72 rounded-full bg-teal-500/10 blur-3xl" />
-          <div className="absolute bottom-10 -end-20 w-96 h-96 rounded-full bg-cyan-500/10 blur-3xl" />
+      {/* ===== HERO SECTION WITH PARALLAX ===== */}
+      <section className="relative pt-16 min-h-screen overflow-hidden">
+        {/* Parallax Background Image */}
+        <ParallaxHeroImage />
+
+        {/* Gradient Overlay */}
+        <div className="absolute inset-0 bg-gradient-to-br from-slate-900/60 via-slate-800/50 to-teal-900/60" />
+
+        {/* Animated Grid Pattern */}
+        <div className="absolute inset-0 opacity-[0.04]">
+          <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <pattern id="hero-grid" width="40" height="40" patternUnits="userSpaceOnUse">
+                <path d="M 40 0 L 0 0 0 40" fill="none" stroke="white" strokeWidth="0.5" />
+              </pattern>
+            </defs>
+            <rect width="100%" height="100%" fill="url(#hero-grid)" />
+          </svg>
         </div>
+
+        {/* Glowing Orbs */}
+        <motion.div
+          animate={{
+            scale: [1, 1.2, 1],
+            opacity: [0.1, 0.15, 0.1],
+          }}
+          transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute top-20 -start-20 w-72 h-72 rounded-full bg-teal-500/20 blur-3xl"
+        />
+        <motion.div
+          animate={{
+            scale: [1, 1.3, 1],
+            opacity: [0.1, 0.2, 0.1],
+          }}
+          transition={{ duration: 5, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
+          className="absolute bottom-10 -end-20 w-96 h-96 rounded-full bg-cyan-500/20 blur-3xl"
+        />
 
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 sm:py-32 lg:py-40">
           <motion.div
@@ -429,8 +659,12 @@ export default function LandingPage() {
           >
             {/* Badge */}
             <motion.div variants={fadeInUp} custom={0} className="mb-6">
-              <span className="inline-flex items-center gap-2 bg-teal-500/10 border border-teal-500/20 rounded-full px-4 py-1.5 text-teal-400 text-sm font-medium">
-                <div className="w-2 h-2 rounded-full bg-teal-400 animate-pulse" />
+              <span className="inline-flex items-center gap-2 bg-teal-500/10 border border-teal-500/20 rounded-full px-4 py-1.5 text-teal-400 text-sm font-medium backdrop-blur-sm">
+                <motion.div
+                  animate={{ scale: [1, 1.2, 1] }}
+                  transition={{ duration: 1.5, repeat: Infinity }}
+                  className="w-2 h-2 rounded-full bg-teal-400"
+                />
                 {t("رأس الخيمة - الإمارات العربية المتحدة", "Ras Al Khaimah - UAE")}
               </span>
             </motion.div>
@@ -456,9 +690,12 @@ export default function LandingPage() {
             <motion.p
               variants={fadeInUp}
               custom={2}
-              className="mt-6 text-lg text-slate-400 max-w-2xl mx-auto leading-relaxed"
+              className="mt-6 text-lg text-slate-300 max-w-2xl mx-auto leading-relaxed"
             >
-              {t("نقدم خدمات هندسية شاملة من التصميم حتى التسليم، بفريق متخصص ذو خبرات واسعة في سوق رأس الخيمة. نلتزم بأعلى معايير الجودة ومطابقة الأنظمة والمتطلبات لكل مشروع.", "We provide comprehensive engineering services from design to delivery, with a specialized team with extensive experience in the Ras Al Khaimah market. We commit to the highest quality standards and compliance with regulations and requirements for every project.")}
+              {t(
+                "نقدم خدمات هندسية شاملة من التصميم حتى التسليم، بفريق متخصص ذو خبرات واسعة في سوق رأس الخيمة. نلتزم بأعلى معايير الجودة ومطابقة الأنظمة والمتطلبات لكل مشروع.",
+                "We provide comprehensive engineering services from design to delivery, with a specialized team with extensive experience in the Ras Al Khaimah market. We commit to the highest quality standards and compliance with regulations and requirements for every project."
+              )}
             </motion.p>
 
             {/* CTA Buttons */}
@@ -468,19 +705,29 @@ export default function LandingPage() {
               className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4"
             >
               <Link href="/quote">
-                <Button className="w-full sm:w-auto px-8 h-12 text-base bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-600 hover:to-cyan-600 text-white shadow-xl shadow-teal-500/25 rounded-xl">
-                  <Calculator className="w-5 h-5 me-2" />
-                  {t("طلب عرض سعر", "Get Quote")}
-                </Button>
+                <motion.div
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  <Button className="w-full sm:w-auto px-8 h-12 text-base bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-600 hover:to-cyan-600 text-white shadow-xl shadow-teal-500/25 rounded-xl">
+                    <Calculator className="w-5 h-5 me-2" />
+                    {t("طلب عرض سعر", "Get Quote")}
+                  </Button>
+                </motion.div>
               </Link>
               <a href="tel:+971501611234">
-                <Button
-                  variant="outline"
-                  className="w-full sm:w-auto px-8 h-12 text-base border-slate-600 text-slate-300 hover:bg-slate-800 hover:text-white rounded-xl"
+                <motion.div
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
                 >
-                  <Phone className="w-5 h-5 me-2" />
-                  {t("اتصل بنا", "Call Us")}
-                </Button>
+                  <Button
+                    variant="outline"
+                    className="w-full sm:w-auto px-8 h-12 text-base border-white/30 text-white hover:bg-white/10 hover:text-white rounded-xl backdrop-blur-sm"
+                  >
+                    <Phone className="w-5 h-5 me-2" />
+                    {t("اتصل بنا", "Call Us")}
+                  </Button>
+                </motion.div>
               </a>
             </motion.div>
 
@@ -495,7 +742,7 @@ export default function LandingPage() {
                 { labelAr: "+180 عميل", labelEn: "+180 Clients", icon: Users },
                 { labelAr: "فريق متخصص", labelEn: "Specialized Team", icon: Award },
               ].map((item) => (
-                <div key={item.labelEn} className="flex items-center gap-2 text-teal-400/80">
+                <div key={item.labelEn} className="flex items-center gap-2 text-teal-400/90">
                   <item.icon className="w-4 h-4" />
                   <span>{t(item.labelAr, item.labelEn)}</span>
                 </div>
@@ -514,6 +761,9 @@ export default function LandingPage() {
           </svg>
         </div>
       </section>
+
+      {/* ===== MARQUEE SECTION ===== */}
+      <MarqueeSection language={language} />
 
       {/* ===== STATS SECTION WITH COUNTER ANIMATION ===== */}
       <section className="py-16 sm:py-20 bg-white">
@@ -540,7 +790,8 @@ export default function LandingPage() {
                     <Icon className="w-7 h-7 text-white" />
                   </div>
                   <div className="text-4xl font-bold text-slate-900 tabular-nums">
-                    {counter.count}{stat.suffix}
+                    {counter.count}
+                    {stat.suffix}
                   </div>
                   <div className="text-sm text-slate-500 mt-1">{t(stat.label, stat.labelEn)}</div>
                 </motion.div>
@@ -550,8 +801,67 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* ===== PROJECTS GRID (DHK Style) ===== */}
+      <section id="projects" className="py-16 sm:py-24 bg-slate-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+            variants={fadeInUp}
+            custom={0}
+            className="text-center mb-12"
+          >
+            <span className="inline-flex items-center gap-2 bg-teal-100 text-teal-700 rounded-full px-4 py-1.5 text-sm font-medium mb-4">
+              <Building2 className="w-4 h-4" />
+              {t("أعمالنا", "Our Work")}
+            </span>
+            <h2 className="text-3xl sm:text-4xl font-bold text-slate-900">
+              {t("مشاريع مميزة", "Featured Projects")}
+            </h2>
+            <p className="mt-3 text-slate-500 max-w-2xl mx-auto">
+              {t(
+                "نعرض لكم مجموعة من أبرز المشاريع التي قمنا بتنفيذها بكفاءة واحترافية عالية",
+                "We present to you a selection of the most prominent projects we have executed with high efficiency and professionalism"
+              )}
+            </p>
+          </motion.div>
+
+          {/* Projects Grid */}
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {PROJECTS.map((project, index) => (
+              <ProjectCard
+                key={project.id}
+                project={project}
+                index={index}
+                language={language}
+              />
+            ))}
+          </div>
+
+          {/* View All Button */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.4 }}
+            className="text-center mt-12"
+          >
+            <Link href="/dashboard">
+              <Button
+                variant="outline"
+                className="px-8 h-12 border-2 border-teal-500 text-teal-600 hover:bg-teal-50 rounded-xl"
+              >
+                {t("عرض جميع المشاريع", "View All Projects")}
+                <ArrowUpRight className="w-4 h-4 ms-2" />
+              </Button>
+            </Link>
+          </motion.div>
+        </div>
+      </section>
+
       {/* ===== SERVICES SECTION ===== */}
-      <section id="services" className="py-16 sm:py-24 bg-slate-50">
+      <section id="services" className="py-16 sm:py-24 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div
             initial="hidden"
@@ -569,7 +879,10 @@ export default function LandingPage() {
               {t("حلول هندسية شاملة", "Comprehensive Engineering Solutions")}
             </h2>
             <p className="mt-3 text-slate-500 max-w-2xl mx-auto">
-              {t("نقدم مجموعة متكاملة من الخدمات الهندسية التي تغطي جميع مراحل المشروع من الفكرة حتى التسليم النهائي", "We offer an integrated suite of engineering services covering all project phases from concept to final delivery")}
+              {t(
+                "نقدم مجموعة متكاملة من الخدمات الهندسية التي تغطي جميع مراحل المشروع من الفكرة حتى التسليم النهائي",
+                "We offer an integrated suite of engineering services covering all project phases from concept to final delivery"
+              )}
             </p>
           </motion.div>
 
@@ -602,7 +915,7 @@ export default function LandingPage() {
       </section>
 
       {/* ===== WHY CHOOSE US ===== */}
-      <section id="about" className="py-16 sm:py-24 bg-white">
+      <section id="about" className="py-16 sm:py-24 bg-slate-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div
             initial="hidden"
@@ -620,7 +933,10 @@ export default function LandingPage() {
               {t("لماذا تختار BluePrint؟", "Why Choose BluePrint?")}
             </h2>
             <p className="mt-3 text-slate-500 max-w-2xl mx-auto">
-              {t("نحن شريكك الهندسي الموثوق في رأس الخيمة - نجمع المشاريع بكل احترافية", "Your trusted engineering partner in Ras Al Khaimah - delivering projects with the utmost professionalism")}
+              {t(
+                "نحن شريكك الهندسي الموثوق في رأس الخيمة - نجمع المشاريع بكل احترافية",
+                "Your trusted engineering partner in Ras Al Khaimah - delivering projects with the utmost professionalism"
+              )}
             </p>
           </motion.div>
 
@@ -653,7 +969,7 @@ export default function LandingPage() {
       </section>
 
       {/* ===== TESTIMONIALS ===== */}
-      <section className="py-16 sm:py-24 bg-slate-50">
+      <section className="py-16 sm:py-24 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div
             initial="hidden"
@@ -671,7 +987,10 @@ export default function LandingPage() {
               {t("ماذا يقول عملاؤنا عنّا", "What Our Clients Say About Us")}
             </h2>
             <p className="mt-3 text-slate-500 max-w-2xl mx-auto">
-              {t("ثقة عملائنا هي أكبر شهادة على جودة خدماتنا الهندسية", "Our clients' trust is the greatest testament to the quality of our engineering services")}
+              {t(
+                "ثقة عملائنا هي أكبر شهادة على جودة خدماتنا الهندسية",
+                "Our clients' trust is the greatest testament to the quality of our engineering services"
+              )}
             </p>
           </motion.div>
 
@@ -744,11 +1063,12 @@ export default function LandingPage() {
                   <MessageCircle className="w-4 h-4" />
                   {t("تواصل معنا", "Contact Us")}
                 </span>
-                <h2 className="text-3xl sm:text-4xl font-bold text-white">
-                  {t("ابدأ مشروعك الآن", "Start Your Project Now")}
-                </h2>
+                <h2 className="text-3xl sm:text-4xl font-bold text-white">{t("ابدأ مشروعك الآن", "Start Your Project Now")}</h2>
                 <p className="mt-4 text-slate-400 leading-relaxed max-w-lg">
-                  {t("أخبرنا عن مشروعك وسنقدم لك استشارة مجانية وعرض سعر تفصيلي خلال 24 ساعة. فريقنا المتخصص جاهز لمساعدتك.", "Tell us about your project and we'll provide a free consultation and detailed quote within 24 hours. Our specialized team is ready to help you.")}
+                  {t(
+                    "أخبرنا عن مشروعك وسنقدم لك استشارة مجانية وعرض سعر تفصيلي خلال 24 ساعة. فريقنا المتخصص جاهز لمساعدتك.",
+                    "Tell us about your project and we'll provide a free consultation and detailed quote within 24 hours. Our specialized team is ready to help you."
+                  )}
                 </p>
               </motion.div>
 
@@ -759,7 +1079,9 @@ export default function LandingPage() {
                   </div>
                   <div>
                     <div className="text-white font-medium">{t("اتصل بنا", "Call Us")}</div>
-                    <div className="text-slate-400 text-sm mt-1" dir="ltr">+971 50 161 1234</div>
+                    <div className="text-slate-400 text-sm mt-1" dir="ltr">
+                      +971 50 161 1234
+                    </div>
                   </div>
                 </div>
                 <div className="flex items-start gap-4">
@@ -786,7 +1108,9 @@ export default function LandingPage() {
                   </div>
                   <div>
                     <div className="text-white font-medium">{t("ساعات العمل", "Working Hours")}</div>
-                    <div className="text-slate-400 text-sm mt-1">{t("الأحد - الخميس: 8:30 ص - 2:00 م / 5:00 م - 8:30 م", "Sun - Thu: 8:30 AM - 2:00 PM / 5:00 PM - 8:30 PM")}</div>
+                    <div className="text-slate-400 text-sm mt-1">
+                      {t("الأحد - الخميس: 8:30 ص - 2:00 م / 5:00 م - 8:30 م", "Sun - Thu: 8:30 AM - 2:00 PM / 5:00 PM - 8:30 PM")}
+                    </div>
                   </div>
                 </div>
                 <div className="flex items-start gap-4">
@@ -812,26 +1136,16 @@ export default function LandingPage() {
               {formSuccess ? (
                 <div className="text-center py-10">
                   <CheckCircle2 className="w-16 h-16 text-teal-500 mx-auto mb-4" />
-                  <h3 className="text-xl font-bold text-slate-900 mb-2">
-                    {t("تم إرسال طلبك بنجاح!", "Request Sent Successfully!")}
-                  </h3>
-                  <p className="text-slate-500">
-                    {t("سنتواصل معك خلال 24 ساعة", "We'll get back to you within 24 hours")}
-                  </p>
+                  <h3 className="text-xl font-bold text-slate-900 mb-2">{t("تم إرسال طلبك بنجاح!", "Request Sent Successfully!")}</h3>
+                  <p className="text-slate-500">{t("سنتواصل معك خلال 24 ساعة", "We'll get back to you within 24 hours")}</p>
                 </div>
               ) : (
                 <form onSubmit={handleContactSubmit} className="space-y-5">
-                  <h3 className="text-xl font-bold text-slate-900 mb-2">
-                    {t("طلب استشارة مجانية", "Free Consultation Request")}
-                  </h3>
-                  <p className="text-sm text-slate-500 mb-4">
-                    {t("املأ النموذج أدناه وسنعود إليك قريباً", "Fill the form below and we'll get back to you soon")}
-                  </p>
+                  <h3 className="text-xl font-bold text-slate-900 mb-2">{t("طلب استشارة مجانية", "Free Consultation Request")}</h3>
+                  <p className="text-sm text-slate-500 mb-4">{t("املأ النموذج أدناه وسنعود إليك قريباً", "Fill the form below and we'll get back to you soon")}</p>
 
                   {formError && (
-                    <div className="p-3 rounded-lg bg-red-50 border border-red-200 text-red-600 text-sm">
-                      {formError}
-                    </div>
+                    <div className="p-3 rounded-lg bg-red-50 border border-red-200 text-red-600 text-sm">{formError}</div>
                   )}
 
                   <div className="grid sm:grid-cols-2 gap-4">
@@ -880,21 +1194,20 @@ export default function LandingPage() {
                       <SelectContent>
                         <SelectItem value="design">{t("خدمة تصميم", "Design Service")}</SelectItem>
                         <SelectItem value="supervision">{t("إشراف تنفيذ", "Construction Supervision")}</SelectItem>
-                        <SelectItem value="inspection">{t("فحص هندسي", "Engineering Inspection")}</SelectItem>
-                        <SelectItem value="licensing">{t("ترخيص", "Licensing")}</SelectItem>
-                        <SelectItem value="turnkey">{t("مشروع متكامل", "Turnkey Project")}</SelectItem>
+                        <SelectItem value="consultation">{t("استشارة هندسية", "Engineering Consultation")}</SelectItem>
+                        <SelectItem value="permits">{t("رخص بلدية", "Municipality Permits")}</SelectItem>
                         <SelectItem value="other">{t("أخرى", "Other")}</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
 
                   <div className="space-y-2">
-                    <Label className="text-slate-700 text-sm">{t("رسالتك", "Your Message")}</Label>
+                    <Label className="text-slate-700 text-sm">{t("تفاصيل المشروع", "Project Details")}</Label>
                     <Textarea
-                      placeholder={t("اكتب تفاصيل مشروعك هنا...", "Describe your project details...")}
+                      placeholder={t("أخبرنا المزيد عن مشروعك...", "Tell us more about your project...")}
                       value={formMessage}
                       onChange={(e) => setFormMessage(e.target.value)}
-                      rows={3}
+                      rows={4}
                       className="border-slate-200 focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 resize-none"
                     />
                   </div>
@@ -902,15 +1215,20 @@ export default function LandingPage() {
                   <Button
                     type="submit"
                     disabled={formSubmitting}
-                    className="w-full h-12 bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-600 hover:to-cyan-600 text-white shadow-lg shadow-teal-500/20 rounded-xl text-base font-semibold"
+                    className="w-full h-12 bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-600 hover:to-cyan-600 text-white shadow-lg shadow-teal-500/20 rounded-xl"
                   >
-                    {formSubmitting
-                      ? t("جاري الإرسال...", "Sending...")
-                      : <>
-                        {t("إرسال الطلب", "Submit Request")}
-                        <ArrowLeft className="w-4 h-4 ms-2 rotate-180" />
-                      </>
-                    }
+                    {formSubmitting ? (
+                      <span className="flex items-center gap-2">
+                        <motion.div
+                          animate={{ rotate: 360 }}
+                          transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                          className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full"
+                        />
+                        {t("جاري الإرسال...", "Sending...")}
+                      </span>
+                    ) : (
+                      t("إرسال الطلب", "Submit Request")
+                    )}
                   </Button>
                 </form>
               )}
@@ -920,143 +1238,110 @@ export default function LandingPage() {
       </section>
 
       {/* ===== FOOTER ===== */}
-      <footer className="bg-slate-900 text-white pt-16 pb-8">
+      <footer className="bg-slate-900 text-white py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-10 pb-10 border-b border-slate-800">
-            {/* Company */}
-            <div className="sm:col-span-2 lg:col-span-1">
+          <div className="grid md:grid-cols-4 gap-8">
+            {/* Logo & Info */}
+            <div className="md:col-span-2">
               <div className="flex items-center gap-3 mb-4">
                 <LogoImage size={40} />
                 <div>
-                  <h3 className="text-lg font-bold">BluePrint</h3>
-                  <p className="text-xs text-slate-400">{t("مكتب الاستشارات الهندسية", "Engineering Consultancy")}</p>
+                  <h3 className="text-xl font-bold">BluePrint</h3>
+                  <p className="text-xs text-teal-400">{t("مكتب الاستشارات الهندسية", "Engineering Consultancy Office")}</p>
                 </div>
               </div>
-              <p className="text-sm text-slate-400 leading-relaxed">
+              <p className="text-slate-400 text-sm leading-relaxed max-w-md">
                 {t(
-                  "مكتب هندسي متخصص في رأس الخيمة يقدم خدمات التصميم والترخيص والإشراف الهندسي بأعلى معايير الجودة",
-                  "Specialized engineering consultancy in Ras Al Khaimah offering design, licensing, and construction supervision services"
+                  "نقدم خدمات هندسية متكاملة في رأس الخيمة، من التصميم المعماري والإنشائي حتى الإشراف على التنفيذ واستخراج رخص البلدية.",
+                  "We provide comprehensive engineering services in Ras Al Khaimah, from architectural and structural design to construction supervision and municipality permits."
                 )}
               </p>
-              {/* Social Media */}
-              <div className="flex items-center gap-3 mt-4">
-                <a href="https://wa.me/971501611234" target="_blank" rel="noopener noreferrer" className="h-9 w-9 rounded-lg bg-slate-800 hover:bg-emerald-600 flex items-center justify-center transition-all duration-200 hover:scale-110 hover:shadow-lg hover:shadow-emerald-500/20" title={t("واتساب", "WhatsApp")}>
-                  <MessageCircle className="w-4 h-4 text-slate-400 hover:text-white" />
-                </a>
-                <a href="mailto:info.blueprintrak@gmail.com" className="h-9 w-9 rounded-lg bg-slate-800 hover:bg-blue-600 flex items-center justify-center transition-all duration-200 hover:scale-110 hover:shadow-lg hover:shadow-blue-500/20" title={t("البريد الإلكتروني", "Email")}>
-                  <Mail className="w-4 h-4 text-slate-400 hover:text-white" />
-                </a>
-                <a href="tel:+971501611234" className="h-9 w-9 rounded-lg bg-slate-800 hover:bg-teal-600 flex items-center justify-center transition-all duration-200 hover:scale-110 hover:shadow-lg hover:shadow-teal-500/20" title={t("اتصال", "Call")}>
-                  <Phone className="w-4 h-4 text-slate-400 hover:text-white" />
-                </a>
-                <a href="#" className="h-9 w-9 rounded-lg bg-slate-800 hover:bg-sky-600 flex items-center justify-center transition-all duration-200 hover:scale-110 hover:shadow-lg hover:shadow-sky-500/20" title={t("انستغرام", "Instagram")}>
-                  <Globe className="w-4 h-4 text-slate-400 hover:text-white" />
-                </a>
-              </div>
             </div>
 
             {/* Quick Links */}
             <div>
-              <h4 className="font-semibold text-sm mb-4">{t("روابط سريعة", "Quick Links")}</h4>
-              <ul className="space-y-2.5">
-                <li><Link href="#services" className="text-sm text-slate-400 hover:text-teal-400 transition-colors">{t("خدماتنا", "Services")}</Link></li>
-                <li><Link href="#about" className="text-sm text-slate-400 hover:text-teal-400 transition-colors">{t("من نحن", "About Us")}</Link></li>
-                <li><Link href="/calculator" className="text-sm text-slate-400 hover:text-teal-400 transition-colors">{t("حاسبة التكاليف", "Cost Calculator")}</Link></li>
-                <li><Link href="/quote" className="text-sm text-slate-400 hover:text-teal-400 transition-colors">{t("طلب عرض سعر", "Request Quote")}</Link></li>
-                <li><Link href="/dashboard" className="text-sm text-slate-400 hover:text-teal-400 transition-colors">{t("لوحة التحكم", "Dashboard")}</Link></li>
-              </ul>
-            </div>
-
-            {/* Services */}
-            <div>
-              <h4 className="font-semibold text-sm mb-4">{t("خدماتنا", "Our Services")}</h4>
-              <ul className="space-y-2.5">
-                <li><span className="text-sm text-slate-400">{t("التصميم المعماري", "Architectural Design")}</span></li>
-                <li><span className="text-sm text-slate-400">{t("التصميم الإنشائي", "Structural Design")}</span></li>
-                <li><span className="text-sm text-slate-400">{t("التصميم الكهروميكانيكي", "MEP Design")}</span></li>
-                <li><span className="text-sm text-slate-400">{t("رخص البلدية والدفاع المدني", "Municipality & Civil Defense")}</span></li>
-                <li><span className="text-sm text-slate-400">{t("إشراف التنفيذ", "Construction Supervision")}</span></li>
-                <li><span className="text-sm text-slate-400">{t("الاستشارات الهندسية", "Engineering Consultation")}</span></li>
+              <h4 className="font-semibold mb-4">{t("روابط سريعة", "Quick Links")}</h4>
+              <ul className="space-y-2 text-sm text-slate-400">
+                <li>
+                  <Link href="#services" className="hover:text-teal-400 transition-colors">
+                    {t("خدماتنا", "Services")}
+                  </Link>
+                </li>
+                <li>
+                  <Link href="#projects" className="hover:text-teal-400 transition-colors">
+                    {t("مشاريعنا", "Projects")}
+                  </Link>
+                </li>
+                <li>
+                  <Link href="#about" className="hover:text-teal-400 transition-colors">
+                    {t("من نحن", "About Us")}
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/quote" className="hover:text-teal-400 transition-colors">
+                    {t("طلب عرض سعر", "Get Quote")}
+                  </Link>
+                </li>
               </ul>
             </div>
 
             {/* Contact */}
             <div>
-              <h4 className="font-semibold text-sm mb-4">{t("تواصل معنا", "Contact Us")}</h4>
-              <ul className="space-y-3">
-                <li className="flex items-center gap-2 text-sm text-slate-400">
-                  <MapPin className="w-4 h-4 text-teal-500 shrink-0" />
-                  {t("رأس الخيمة - الإمارات", "Ras Al Khaimah - UAE")}
-                </li>
-                <li className="flex items-center gap-2 text-sm text-slate-400">
-                  <Phone className="w-4 h-4 text-teal-500 shrink-0" />
+              <h4 className="font-semibold mb-4">{t("تواصل معنا", "Contact Us")}</h4>
+              <ul className="space-y-2 text-sm text-slate-400">
+                <li className="flex items-center gap-2">
+                  <Phone className="w-4 h-4 text-teal-400" />
                   <span dir="ltr">+971 50 161 1234</span>
                 </li>
-                <li className="flex items-center gap-2 text-sm text-slate-400">
-                  <Mail className="w-4 h-4 text-teal-500 shrink-0" />
-                  info.blueprintrak@gmail.com
+                <li className="flex items-center gap-2">
+                  <Mail className="w-4 h-4 text-teal-400" />
+                  <span>info.blueprintrak@gmail.com</span>
                 </li>
-                <li className="flex items-center gap-2 text-sm text-slate-400">
-                  <Clock className="w-4 h-4 text-teal-500 shrink-0" />
-                  {t("الأحد - الخميس: 8:30-2 / 5-8:30", "Sun - Thu: 8:30-2 / 5-8:30")}
-                </li>
-                <li className="flex items-center gap-2 text-sm text-slate-400">
-                  <Clock className="w-4 h-4 text-teal-500 shrink-0" />
-                  {t("الجمعة: 8:00 ص - 12:00 م", "Friday: 8:00 AM - 12:00 PM")}
+                <li className="flex items-center gap-2">
+                  <MapPin className="w-4 h-4 text-teal-400" />
+                  <span>{t("رأس الخيمة - الإمارات", "Ras Al Khaimah - UAE")}</span>
                 </li>
               </ul>
             </div>
           </div>
 
-          {/* Certifications / Trust */}
-          <div className="pt-8 border-t border-slate-800">
-            <div className="flex flex-wrap items-center justify-center gap-6">
-              <div className="flex items-center gap-2 text-slate-500 text-xs">
-                <Shield className="w-4 h-4 text-teal-500" />
-                {t("معتمد من البلدية", "Municipality Approved")}
-              </div>
-              <div className="flex items-center gap-2 text-slate-500 text-xs">
-                <Globe className="w-4 h-4 text-teal-500" />
-                ISO 9001:2015
-              </div>
-              <div className="flex items-center gap-2 text-slate-500 text-xs">
-                <Settings className="w-4 h-4 text-teal-500" />
-                {t("عضو جمعية المهندسين الإمارات", "UAE Society of Engineers")}
-              </div>
-              <div className="flex items-center gap-2 text-slate-500 text-xs">
-                <BarChart3 className="w-4 h-4 text-teal-500" />
-                {t("تصنيف فئة أ", "Grade A Classified")}
-              </div>
+          {/* Bottom */}
+          <div className="border-t border-slate-800 mt-8 pt-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <p className="text-sm text-slate-500">
+              © {new Date().getFullYear()} BluePrint. {t("جميع الحقوق محفوظة.", "All rights reserved.")}
+            </p>
+            <div className="flex items-center gap-4">
+              <button
+                onClick={toggleLanguage}
+                className="text-sm text-slate-400 hover:text-teal-400 transition-colors flex items-center gap-1"
+              >
+                <Globe className="w-4 h-4" />
+                {language === "ar" ? "English" : "العربية"}
+              </button>
             </div>
-          </div>
-
-          {/* Copyright */}
-          <div className="pt-8 text-center text-xs text-slate-500">
-            &copy; {new Date().getFullYear()} BluePrint Engineering Consultancy. {t("جميع الحقوق محفوظة.", "All rights reserved.")}
           </div>
         </div>
       </footer>
 
-      {/* ===== FLOATING WHATSAPP ===== */}
-      <a
-        href="https://wa.me/971501611234?text=%D9%85%D8%B1%D8%AD%D8%A8%D8%A7%D8%8C%D8%8C%D8%8C%D8%8C%D8%8C%D8%8C%D8%8C%20%D8%A3%D8%B1%D9%8A%D8%AF%20%D8%A7%D9%84%D8%A7%D8%B3%D8%AA%D9%81%D8%B3%D8%A7%D8%B1%20%D8%B9%D9%86%20%D8%AE%D8%AF%D9%85%D8%A7%D8%AA%D9%83%D9%85"
-        target="_blank"
-        rel="noopener noreferrer"
-        className="fixed bottom-6 left-6 z-[60] w-14 h-14 bg-green-500 hover:bg-green-600 rounded-full flex items-center justify-center shadow-xl shadow-green-500/30 hover:shadow-green-500/50 transition-all duration-300 hover:scale-110 group"
-        aria-label={t("تواصل عبر واتساب", "Chat on WhatsApp")}
-      >
-        <MessageCircle className="w-7 h-7 text-white" />
-        <span className="absolute inset-0 rounded-full bg-green-500 animate-ping opacity-20" />
-      </a>
-
-      {/* ===== SCROLL TO TOP ===== */}
-      <button
-        onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-        className={`fixed bottom-6 end-6 z-50 w-12 h-12 bg-teal-600 hover:bg-teal-700 rounded-full flex items-center justify-center shadow-lg shadow-teal-500/20 transition-all duration-300 ${showScrollTop ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4 pointer-events-none"}`}
-        aria-label={t("العودة للأعلى", "Back to Top")}
-      >
-        <ChevronDown className="w-5 h-5 text-white rotate-180" />
-      </button>
+      {/* ===== BACK TO TOP BUTTON ===== */}
+      <AnimatePresence>
+        {showScrollTop && (
+          <motion.button
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 20 }}
+            onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+            className="fixed bottom-6 end-6 w-12 h-12 bg-gradient-to-r from-teal-500 to-cyan-500 rounded-full shadow-lg shadow-teal-500/30 flex items-center justify-center text-white z-50 hover:shadow-xl transition-shadow"
+          >
+            <motion.div
+              animate={{ y: [0, -3, 0] }}
+              transition={{ duration: 1.5, repeat: Infinity }}
+            >
+              <ArrowUpRight className="w-5 h-5 rotate-[-45deg]" />
+            </motion.div>
+          </motion.button>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
