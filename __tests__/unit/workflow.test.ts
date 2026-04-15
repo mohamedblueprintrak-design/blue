@@ -5,7 +5,7 @@
  * Pure logic extracted from src/lib/workflow-engine.ts — no DB dependencies.
  */
 
-import type { WorkflowProgress, WorkflowStageData, WorkflowStepData } from '@/lib/workflow-engine';
+import type { WorkflowProgress } from '@/lib/workflow-engine';
 
 // ─── Re-implemented Pure Logic from workflow-engine.ts ─────────────────────
 

@@ -16,7 +16,6 @@ import {
   getAuditLogger,
   initAuditLogger,
   auditLog,
-  type LogLevel,
 } from '@/lib/security/audit-logger';
 import {
   sanitizeString,

@@ -23,9 +23,9 @@ test.describe.serial('Full Authentication Flow', () => {
     // Look for email and password input fields
     const pageContent = await page.content();
     // The page should have form inputs for login
-    const hasEmailInput = await page.$('input[type="email"], input[name="email"], input[placeholder*="بريد"], input[placeholder*="email"]').catch(() => null);
-    const hasPasswordInput = await page.$('input[type="password"], input[name="password"], input[placeholder*="كلمة"], input[placeholder*="password"]').catch(() => null);
-    const hasLoginButton = await page.$('button[type="submit"], button:has-text("تسجيل"), button:has-text("دخول"), button:has-text("Login"), button:has-text("Sign")').catch(() => null);
+    const _hasEmailInput = await page.$('input[type="email"], input[name="email"], input[placeholder*="بريد"], input[placeholder*="email"]').catch(() => null);
+    const _hasPasswordInput = await page.$('input[type="password"], input[name="password"], input[placeholder*="كلمة"], input[placeholder*="password"]').catch(() => null);
+    const _hasLoginButton = await page.$('button[type="submit"], button:has-text("تسجيل"), button:has-text("دخول"), button:has-text("Login"), button:has-text("Sign")').catch(() => null);
 
     // At minimum, the page should have loaded with some interactive elements
     expect(pageContent.length).toBeGreaterThan(100);

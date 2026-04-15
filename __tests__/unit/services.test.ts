@@ -248,7 +248,7 @@ describe('Project Template Service — PREDEFINED_TEMPLATES', () => {
   });
 
   it('all templates should have required fields on each task', () => {
-    for (const [code, tasks] of Object.entries(PREDEFINED_TEMPLATES)) {
+    for (const [_code, tasks] of Object.entries(PREDEFINED_TEMPLATES)) {
       for (const task of tasks) {
         expect(task).toHaveProperty('name');
         expect(task).toHaveProperty('slaDays');
@@ -261,7 +261,7 @@ describe('Project Template Service — PREDEFINED_TEMPLATES', () => {
   });
 
   it('tasks should be ordered sequentially', () => {
-    for (const [code, tasks] of Object.entries(PREDEFINED_TEMPLATES)) {
+    for (const [_code, tasks] of Object.entries(PREDEFINED_TEMPLATES)) {
       for (let i = 0; i < tasks.length; i++) {
         expect(tasks[i].order).toBe(i + 1);
       }
@@ -269,13 +269,13 @@ describe('Project Template Service — PREDEFINED_TEMPLATES', () => {
   });
 
   it('first task should not have dependencies', () => {
-    for (const [code, tasks] of Object.entries(PREDEFINED_TEMPLATES)) {
+    for (const [_code, tasks] of Object.entries(PREDEFINED_TEMPLATES)) {
       expect(tasks[0].dependencies).toBeUndefined();
     }
   });
 
   it('subsequent tasks should reference previous order in dependencies', () => {
-    for (const [code, tasks] of Object.entries(PREDEFINED_TEMPLATES)) {
+    for (const [_code, tasks] of Object.entries(PREDEFINED_TEMPLATES)) {
       for (let i = 1; i < tasks.length; i++) {
         expect(tasks[i].dependencies).toBeDefined();
         expect(tasks[i].dependencies!).toContain(tasks[i - 1].order);
@@ -284,7 +284,7 @@ describe('Project Template Service — PREDEFINED_TEMPLATES', () => {
   });
 
   it('all templates should have total SLA > 0', () => {
-    for (const [code, tasks] of Object.entries(PREDEFINED_TEMPLATES)) {
+    for (const [_code, tasks] of Object.entries(PREDEFINED_TEMPLATES)) {
       const totalSLA = tasks.reduce((sum, t) => sum + t.slaDays, 0);
       expect(totalSLA).toBeGreaterThan(0);
     }
