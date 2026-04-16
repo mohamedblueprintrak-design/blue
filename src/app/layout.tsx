@@ -4,6 +4,7 @@ import { ThemeProvider } from "next-themes";
 import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
 import { CsrfProvider } from "@/components/providers/csrf-provider";
+import { ErrorBoundary } from "@/components/common/error-boundary";
 
 const ibmPlexArabic = IBM_Plex_Sans_Arabic({
   variable: "--font-ibm-plex-arabic",
@@ -61,7 +62,9 @@ export default function RootLayout({
       >
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false} disableTransitionOnChange>
           <CsrfProvider>
-            {children}
+            <ErrorBoundary locale="ar">
+              {children}
+            </ErrorBoundary>
             <Toaster />
           </CsrfProvider>
         </ThemeProvider>

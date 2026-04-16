@@ -259,8 +259,10 @@ function HeroVideoBackground() {
           playsInline
           className="absolute inset-0 w-full h-full object-cover"
           style={{ filter: "brightness(0.4)" }}
+          poster="/hero-poster.jpg"
         >
           <source src="https://typefive.b-cdn.net/design-system-hero-new.mp4" type="video/mp4" />
+          {/* Fallback: if CDN video fails, CSS gradient will show through the overlay */}
         </video>
         {/* Navy Blue Overlay */}
         <div className="absolute inset-0 bg-gradient-to-b from-[#0a1628]/90 via-[#0a1628]/80 to-[#0a1628]/95" />

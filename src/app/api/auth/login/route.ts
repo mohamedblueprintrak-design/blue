@@ -51,22 +51,14 @@ export async function POST(request: Request) {
       );
     }
 
-    // Validate password using bcrypt only (security fix: removed plain text fallback)
+    // SECURITY: Validate password using bcrypt only — no plain text fallback.
+    // All passwords must be bcrypt-hashed. If a password is not in bcrypt format,
+    // it is treated as invalid (user must reset their password via forgot-password).
     let isValid = false;
-    if (user.password.startsWith("$2")) {
+    if (user.password && user.password.startsWith("$2")) {
       isValid = await bcrypt.compare(password, user.password);
-    } else {
-      // Legacy plain text passwords - hash them on-the-fly for migration
-      if (user.password === password) {
-        // Auto-migrate: hash the plain text password
-        const hashedPassword = await bcrypt.hash(password, 10);
-        await db.user.update({
-          where: { id: user.id },
-          data: { password: hashedPassword },
-        });
-        isValid = true;
-      }
     }
+    // Non-bcrypt passwords are rejected. The user should use "forgot password" to reset.
 
     if (!isValid) {
       return NextResponse.json(

@@ -61,6 +61,7 @@ const DEFAULT_CSP_DIRECTIVES: Record<string, string> = {
   'style-src': "'self' 'unsafe-inline'",
   'img-src': "'self' data: https: blob:",
   'font-src': "'self' data:",
+  'media-src': "'self' https://typefive.b-cdn.net",  // Hero video from CDN
   'connect-src': "'self'",
   'frame-src': "'none'",
   'object-src': "'none'",

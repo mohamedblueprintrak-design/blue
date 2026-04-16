@@ -4,6 +4,17 @@
  *
  * Edge Runtime Compatible — Uses only Web APIs
  * Protects routes, validates JWT tokens, enforces CSRF, limits request rates
+ *
+ * AUTH ARCHITECTURE:
+ * This middleware uses the CUSTOM JWT system (jose) for authentication,
+ * NOT NextAuth.js. The 'blue_token' cookie is verified against JWT_SECRET.
+ * See src/lib/auth.ts for the full dual-auth architecture overview.
+ *
+ * RATE LIMITING NOTE:
+ * Rate limiting uses in-memory storage (Map), which is suitable for
+ * single-instance deployments. For multi-instance production deployments,
+ * consider using Redis-backed rate limiting or an external service
+ * (Cloudflare Rate Limiting, Nginx limit_req, etc.).
  */
 
 import { NextRequest, NextResponse } from 'next/server';
@@ -98,6 +109,38 @@ const ROLE_PROTECTED_PATHS: Record<string, string[]> = {
 // ============================================
 
 const rateLimitStore = new Map<string, RateLimitRecord>();
+const RATE_LIMIT_MAX_ENTRIES = 10000; // Prevent unbounded memory growth
+const RATE_LIMIT_CLEANUP_INTERVAL = 60000; // Cleanup every 60 seconds
+let lastCleanupTime = 0;
+
+/**
+ * Cleanup expired entries and enforce maximum store size.
+ * Runs automatically before each rate limit check.
+ * This prevents memory leaks in long-running Edge instances.
+ */
+function cleanupRateLimitStore(): void {
+  const now = Date.now();
+  if (now - lastCleanupTime < RATE_LIMIT_CLEANUP_INTERVAL) return;
+  lastCleanupTime = now;
+
+  // Remove expired entries
+  for (const [key, record] of rateLimitStore.entries()) {
+    if (now > record.resetTime) {
+      rateLimitStore.delete(key);
+    }
+  }
+
+  // Enforce maximum size — remove oldest entries first
+  if (rateLimitStore.size > RATE_LIMIT_MAX_ENTRIES) {
+    const entriesToDelete = rateLimitStore.size - RATE_LIMIT_MAX_ENTRIES;
+    let deleted = 0;
+    for (const [key, record] of rateLimitStore.entries()) {
+      if (deleted >= entriesToDelete) break;
+      rateLimitStore.delete(key);
+      deleted++;
+    }
+  }
+}
 
 function getClientIP(request: NextRequest): string {
   const ipRegex = /^[0-9a-fA-F.:]+$/;
@@ -149,6 +192,7 @@ function detectRateLimitType(pathname: string): RateLimitType {
 }
 
 function checkRateLimit(ip: string, type: RateLimitType): RateLimitResult {
+  cleanupRateLimitStore();
   const config = RATE_LIMIT_CONFIGS[type];
   const key = `${ip}:${type}`;
   const now = Date.now();

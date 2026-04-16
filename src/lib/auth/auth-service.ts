@@ -2,7 +2,20 @@
 /**
  * Authentication Service
  * خدمة المصادقة والتخويل
- * 
+ *
+ * PART of the Dual Authentication System — see src/lib/auth.ts for full overview.
+ *
+ * This module implements the CUSTOM JWT authentication system using jose,
+ * which is used by the middleware (src/middleware.ts) for route protection
+ * and by API routes for request authentication.
+ *
+ * Key differences from NextAuth.js (src/lib/auth.ts):
+ * - Uses jose (not NextAuth) for JWT signing/verification
+ * - Tokens stored in 'blue_token' cookie (not NextAuth's session cookie)
+ * - Supports fine-grained RBAC with role hierarchy
+ * - Includes refresh tokens, password reset, email verification, 2FA
+ * - Used by middleware for Edge Runtime-compatible JWT verification
+ *
  * Implements JWT-based authentication with:
  * - Password hashing with bcrypt
  * - JWT token generation and validation
@@ -11,7 +24,7 @@
  * - Password reset functionality
  * - Email verification
  * - Two-factor authentication (2FA)
- * 
+ *
  * Adapted for the current project's Prisma schema (uses `name` instead of `username`/`fullName`)
  */
 

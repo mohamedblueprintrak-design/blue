@@ -1,29 +1,52 @@
 import { db } from "@/lib/db";
 import { NextResponse } from "next/server";
+import { validateRequest, quoteRequestSchema } from "@/lib/api-validation";
+import { sanitizeString, validateXSS, validateSQLInjection } from "@/lib/security/validation";
 
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { name, phone, email, serviceType, buildingType, area, floors, location, message } = body;
 
-    if (!name || !phone) {
+    // Validate input with Zod schema
+    const validation = validateRequest(quoteRequestSchema, body);
+    if (!validation.success) {
       return NextResponse.json(
-        { error: "الاسم ورقم الهاتف مطلوبان" },
+        { error: validation.error },
         { status: 400 }
       );
     }
 
+    const { name, phone, email, serviceType, buildingType, area, floors, location, message } = validation.data;
+
+    // Security: Check for XSS and SQL injection in string fields
+    const stringFields = [name, phone, email || "", serviceType || "", buildingType || "", area || "", location || "", message || ""];
+    for (const field of stringFields) {
+      if (validateXSS(field)) {
+        return NextResponse.json(
+          { error: "تم رفض الإدخال لأسباب أمنية" },
+          { status: 400 }
+        );
+      }
+      if (validateSQLInjection(field)) {
+        return NextResponse.json(
+          { error: "تم رفض الإدخال لأسباب أمنية" },
+          { status: 400 }
+        );
+      }
+    }
+
+    // Sanitize string fields before storing
     const quoteRequest = await db.quoteRequest.create({
       data: {
-        name: name || "",
-        phone: phone || "",
-        email: email || "",
-        serviceType: serviceType || "",
-        buildingType: buildingType || "",
-        area: area || "",
-        floors: typeof floors === "number" ? floors : 1,
-        location: location || "",
-        message: message || "",
+        name: sanitizeString(name),
+        phone: sanitizeString(phone),
+        email: sanitizeString(email || ""),
+        serviceType: sanitizeString(serviceType || ""),
+        buildingType: sanitizeString(buildingType || ""),
+        area: sanitizeString(area || ""),
+        floors: floors || 1,
+        location: sanitizeString(location || ""),
+        message: sanitizeString(message || ""),
         status: "new",
       },
     });
@@ -38,8 +61,18 @@ export async function POST(request: Request) {
   }
 }
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
+    // SECURITY: Only authenticated users with manager+ role can list quote requests
+    // The middleware handles JWT verification and sets x-user-role header
+    const userRole = request.headers.get('x-user-role')?.toLowerCase() || '';
+    if (!['admin', 'manager'].includes(userRole)) {
+      return NextResponse.json(
+        { error: "صلاحيات غير كافية" },
+        { status: 403 }
+      );
+    }
+
     const requests = await db.quoteRequest.findMany({
       orderBy: { createdAt: "desc" },
       take: 50,

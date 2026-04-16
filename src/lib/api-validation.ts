@@ -474,6 +474,31 @@ export const proposalSchema = z.object({
 
 export type ProposalData = z.infer<typeof proposalSchema>;
 
+// ===== Quote Request Schema =====
+
+export const quoteRequestSchema = z.object({
+  name: z.string()
+    .min(2, 'الاسم يجب أن يكون حرفين على الأقل')
+    .max(200, 'الاسم طويل جداً'),
+  phone: z.string()
+    .min(7, 'رقم الهاتف قصير جداً')
+    .max(50, 'رقم الهاتف طويل جداً')
+    .regex(/^[+]?[0-9\s\-().]{7,50}$/, 'صيغة رقم الهاتف غير صحيحة'),
+  email: z.string()
+    .email('صيغة البريد الإلكتروني غير صحيحة')
+    .or(z.literal(''))
+    .optional()
+    .default(''),
+  serviceType: z.string().max(100).optional().default(''),
+  buildingType: z.string().max(100).optional().default(''),
+  area: z.string().max(200).optional().default(''),
+  floors: z.coerce.number().min(1).max(200).optional().default(1),
+  location: z.string().max(300).optional().default(''),
+  message: z.string().max(2000, 'الرسالة طويلة جداً').optional().default(''),
+});
+
+export type QuoteRequestData = z.infer<typeof quoteRequestSchema>;
+
 // ===== Common Schemas =====
 
 export const paginationSchema = z.object({
