@@ -3,8 +3,8 @@ import ZAI from 'z-ai-web-dev-sdk';
 import { db } from '@/lib/db';
 import { validateBody, aiChatSchema } from '@/lib/api-validation';
 
-// In-memory conversation history
-const conversationHistories = new Map<string, Array<{ role: 'user' | 'system' | 'assistant'; content: string }>>();
+// Note: We now use database persistence instead of in-memory storage
+// The conversation history is now saved in AIChatConversation and AIChatMessage tables
 
 // Detect if user message is asking about specific topics
 function detectTopics(message: string): string[] {
@@ -696,19 +696,47 @@ export async function POST(request: NextRequest) {
     if (body instanceof NextResponse) return body;
     const { message, conversationId, userId, language, projectId } = body;
 
-    // Get or create conversation history
-    if (!conversationHistories.has(conversationId)) {
-      conversationHistories.set(conversationId, []);
-    }
-    const history = conversationHistories.get(conversationId)!;
+    // Get or create conversation in database
+    let conversation = await db.aIChatConversation.findUnique({
+      where: { id: conversationId },
+      include: {
+        messages: {
+          orderBy: { createdAt: 'asc' },
+          take: 20,
+        },
+      },
+    });
 
-    // Add user message to history
-    history.push({ role: 'user', content: message });
-
-    // Keep only last 20 messages for context
-    if (history.length > 20) {
-      history.splice(0, history.length - 20);
+    if (!conversation) {
+      // Create new conversation
+      conversation = await db.aIChatConversation.create({
+        data: {
+          id: conversationId,
+          userId: userId || 'anonymous',
+          projectId: projectId || null,
+          title: message.substring(0, 50),
+          messageCount: 0,
+        },
+        include: {
+          messages: true,
+        },
+      });
     }
+
+    // Save user message
+    await db.aIChatMessage.create({
+      data: {
+        conversationId,
+        role: 'user',
+        content: message,
+      },
+    });
+
+    // Build history from database messages
+    const history = conversation.messages.map((m: { role: string; content: string }) => ({
+      role: m.role as 'user' | 'assistant' | 'system',
+      content: m.content,
+    }));
 
     // Fetch user info if userId is provided
     let userInfo: string | null = null;
@@ -828,16 +856,26 @@ Guidelines:
 
     const aiMessage = completion.choices[0]?.message?.content || '';
 
-    // Add AI response to history
-    history.push({ role: 'assistant', content: aiMessage });
+    // Save AI response to database
+    await db.aIChatMessage.create({
+      data: {
+        conversationId,
+        role: 'assistant',
+        content: aiMessage,
+        tokens: completion.usage?.total_tokens || 0,
+        model: 'z-ai-default',
+      },
+    });
 
-    // Cleanup old conversations (keep last 100)
-    if (conversationHistories.size > 100) {
-      const keys = Array.from(conversationHistories.keys());
-      for (let i = 0; i < keys.length - 50; i++) {
-        conversationHistories.delete(keys[i]);
-      }
-    }
+    // Update conversation with new message count and last activity
+    await db.aIChatConversation.update({
+      where: { id: conversationId },
+      data: {
+        lastMessageAt: new Date(),
+        messageCount: { increment: 2 }, // User message + AI response
+        title: conversation.title || message.substring(0, 50),
+      },
+    });
 
     return NextResponse.json({
       message: aiMessage,

@@ -7,12 +7,13 @@ import { validateRequest, loginSchema } from '@/lib/api-validation';
 
 const COOKIE_NAME = 'blue_token';
 
-async function generateJWT(user: { id: string; email: string; name: string; role: string }): Promise<string> {
+async function generateJWT(user: { id: string; email: string; name: string; role: string; twoFactorEnabled?: boolean }): Promise<string> {
   return new SignJWT({
     userId: user.id,
     email: user.email,
     name: user.name,
     role: user.role,
+    twoFactorEnabled: user.twoFactorEnabled || false,
   })
     .setProtectedHeader({ alg: 'HS256' })
     .setExpirationTime('7d')
@@ -74,6 +75,23 @@ export async function POST(request: Request) {
       );
     }
 
+    // Check if 2FA is enabled for this user
+    if (user.twoFactorEnabled) {
+      // Generate a temporary token for 2FA verification
+      const tempToken = crypto.randomUUID().replace(/-/g, '');
+      const tempTokenExpiry = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes
+
+      // Store the pending 2FA session (you could use Redis in production)
+      // For now, we we'll return a special response indicating 2FA is required
+      
+      return NextResponse.json({
+        requires2FA: true,
+        userId: user.id,
+        tempToken,
+        message: "يتطلب التحقق الثنائي. يرجى إدخال رمز التحقق من تطبيق المصادقة الخاص بك."
+      }, { status: 200 });
+    }
+
     // Update last login
     await db.user.update({
       where: { id: user.id },
@@ -93,6 +111,7 @@ export async function POST(request: Request) {
       position: user.position,
       avatar: user.avatar,
       isActive: user.isActive,
+      twoFactorEnabled: user.twoFactorEnabled || false,
     });
 
     response.cookies.set(COOKIE_NAME, token, {
@@ -108,7 +127,7 @@ export async function POST(request: Request) {
     console.error("Login error:", error);
     return NextResponse.json(
       { error: "حدث خطأ في الخادم. يرجى المحاولة لاحقاً" },
-      { status: 500 }
+        { status: 500 }
     );
   }
 }

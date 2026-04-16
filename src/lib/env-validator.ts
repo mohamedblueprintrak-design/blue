@@ -56,8 +56,18 @@ export function validateEnvironment(): EnvValidationResult {
       errors.push('JWT_SECRET is required in production');
     } else if (jwtSecret.length < 32) {
       errors.push('JWT_SECRET must be at least 32 characters long');
-    } else if (jwtSecret.includes('your_') || jwtSecret.includes('change_this')) {
-      errors.push('JWT_SECRET appears to be a placeholder value');
+    } else if (jwtSecret.includes('your_') || jwtSecret.includes('change_this') || jwtSecret === 'blueprint-saas-2024-secret-key-change-in-production') {
+      errors.push('JWT_SECRET appears to be a placeholder value - generate a secure random key');
+    }
+
+    // NEXTAUTH_SECRET validation
+    const nextauthSecret = process.env.NEXTAUTH_SECRET;
+    if (!nextauthSecret) {
+      errors.push('NEXTAUTH_SECRET is required in production');
+    } else if (nextauthSecret.length < 32) {
+      errors.push('NEXTAUTH_SECRET must be at least 32 characters long');
+    } else if (nextauthSecret.includes('change_this') || nextauthSecret.includes('your_')) {
+      errors.push('NEXTAUTH_SECRET appears to be a placeholder value');
     }
 
     // ENCRYPTION_KEY validation
@@ -71,6 +81,12 @@ export function validateEnvironment(): EnvValidationResult {
         errors.push('ENCRYPTION_KEY must be exactly 64 hex characters (32 bytes). Generate with: openssl rand -hex 32');
       }
     }
+
+    // DEMO_MODE must be disabled in production
+    const demoMode = process.env.DEMO_MODE;
+    if (demoMode === 'true' || demoMode !== 'false') {
+      errors.push('DEMO_MODE must be set to "false" in production');
+    } }
 
     // DATABASE_URL validation
     const databaseUrl = process.env.DATABASE_URL;

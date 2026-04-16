@@ -189,6 +189,7 @@ model User {
   approvedCommissions Commission[]  @relation("CommissionApprover")
   referrals        Referral[]    @relation("ReferralReferrer")
   notificationSettings NotificationSettings?
+  aiChatConversations AIChatConversation[]
 
   @@index([organizationId])
   @@index([deletedAt])
@@ -1845,4 +1846,63 @@ model NotificationSettings {
   user                User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
+}
+
+// ==================== AI CHAT PERSISTENCE ====================
+
+/// AI Chat Conversation
+model AIChatConversation {
+  id              String   @id @default(cuid())
+  userId          String
+  title           String   @default("")
+  projectId       String?
+  lastMessageAt   DateTime @default(now())
+  messageCount    Int      @default(0)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  messages        AIChatMessage[]
+
+  @@index([userId])
+  @@index([projectId])
+  @@index([lastMessageAt])
+}
+
+/// AI Chat Message
+model AIChatMessage {
+  id              String   @id @default(cuid())
+  conversationId  String
+  role            String   // 'user' | 'assistant' | 'system'
+  content         String
+  tokens          Int      @default(0)
+  model           String   @default("")
+  createdAt       DateTime @default(now())
+
+  conversation    AIChatConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@index([conversationId])
+  @@index([createdAt])
+}
+
+// ==================== SECURITY AUDIT LOG ====================
+
+/// Security Audit Log for tracking sensitive operations
+model SecurityAuditLog {
+  id              String   @id @default(cuid())
+  userId          String?
+  action          String   // login, logout, 2fa_enable, 2fa_disable, password_change, etc.
+  entityType      String?
+  entityId        String?
+  ipAddress       String?
+  userAgent       String?
+  details         String?  // JSON string for additional details
+  status          String   @default("success") // success, failed, blocked
+  errorMessage    String?
+  createdAt       DateTime @default(now())
+
+  @@index([userId])
+  @@index([action])
+  @@index([status])
+  @@index([createdAt])
 }
