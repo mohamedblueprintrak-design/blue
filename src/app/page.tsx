@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { motion, AnimatePresence, useInView, Variants, useScroll, useTransform } from "framer-motion";
+import { motion, AnimatePresence, useInView, useScroll, useTransform } from "framer-motion";
 import {
   Building2,
   Compass,
@@ -33,6 +33,7 @@ import {
   Headphones,
   Globe,
   ArrowUpRight,
+  Play,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -49,15 +50,13 @@ import LogoImage from "@/components/ui/logo-image";
 
 // ==================== NAVIGATION ====================
 const NAV_LINKS = [
-  { href: "#", label: "الرئيسية", labelEn: "Home" },
   { href: "#services", label: "خدماتنا", labelEn: "Services" },
   { href: "#projects", label: "مشاريعنا", labelEn: "Projects" },
   { href: "#about", label: "من نحن", labelEn: "About" },
-  { href: "/calculator", label: "حاسبة التكاليف", labelEn: "Cost Calculator" },
-  { href: "/quote", label: "طلب عرض سعر", labelEn: "Get Quote" },
+  { href: "/calculator", label: "حاسبة التكاليف", labelEn: "Calculator" },
 ];
 
-// ==================== PROJECTS DATA (DHK Style) ====================
+// ==================== PROJECTS DATA ====================
 const PROJECTS = [
   {
     id: 1,
@@ -134,14 +133,14 @@ const SERVICES = [
     title: "التصميم المعماري",
     titleEn: "Architectural Design",
     desc: "تصاميم معمارية إبداعية ومبتكرة تتوافق مع أعلى معايير الجودة ومتطلبات بلدية رأس الخيمة",
-    descEn: "Creative and innovative architectural designs that comply with the highest quality standards and RAK Municipality requirements",
+    descEn: "Creative and innovative architectural designs that comply with the highest quality standards",
   },
   {
     icon: HardHat,
     title: "التصميم الإنشائي",
     titleEn: "Structural Design",
-    desc: "تصاميم إنشائية دقيقة وموثوقة تضمن سلامة وأمان المباني لجميع أنواع المشاريع السكنية والتجارية",
-    descEn: "Precise and reliable structural designs ensuring safety and security for all residential and commercial project types",
+    desc: "تصاميم إنشائية دقيقة وموثوقة تضمن سلامة وأمان المباني",
+    descEn: "Precise and reliable structural designs ensuring safety and security",
   },
   {
     icon: Zap,
@@ -154,15 +153,15 @@ const SERVICES = [
     icon: FileCheck,
     title: "رخص البلدية",
     titleEn: "Municipality Licenses",
-    desc: "استخراج رخص البناء من بلدية رأس الخيمة بخطوات سلسة ومتابعة مستمرة حتى الموافقة النهائية",
-    descEn: "Obtaining building permits from RAK Municipality with smooth procedures and continuous follow-up until final approval",
+    desc: "استخراج رخص البناء من بلدية رأس الخيمة بخطوات سلسة ومتابعة مستمرة",
+    descEn: "Obtaining building permits from RAK Municipality with smooth procedures",
   },
   {
     icon: Eye,
     title: "الإشراف على التنفيذ",
     titleEn: "Construction Supervision",
-    desc: "إشراف هندسي دقيق على جميع مراحل التنفيذ لضمان أعلى معايير الجودة والمطابقة للمخططات",
-    descEn: "Precise engineering supervision across all execution phases ensuring the highest quality standards and compliance with plans",
+    desc: "إشراف هندسي دقيق على جميع مراحل التنفيذ لضمان أعلى معايير الجودة",
+    descEn: "Precise engineering supervision across all execution phases",
   },
   {
     icon: ClipboardCheck,
@@ -181,93 +180,6 @@ const STATS = [
   { value: 50, label: "مشروع قيد التنفيذ", labelEn: "Ongoing Projects", icon: Compass, suffix: "+" },
 ];
 
-// ==================== WHY CHOOSE US ====================
-const WHY_US = [
-  {
-    icon: Users,
-    title: "فريق مهني متخصص",
-    titleEn: "Specialized Professional Team",
-    desc: "مهندسون معتمدون ذوو خبرات واسعة ومتنوعة في مشاريع رأس الخيمة والإمارات، يقدمون أعلى مستويات الجودة والإتقان",
-    descEn: "Certified engineers with extensive and diverse experience in RAK and UAE projects, delivering the highest quality standards",
-  },
-  {
-    icon: FileCheck,
-    title: "خبرة في الموافقات الحكومية",
-    titleEn: "Government Approvals Expertise",
-    desc: "علاقات مميزة مع البلدية والدفاع المدني وجهات الترخيص لضمان سرعة الإنجاز",
-    descEn: "Strong relationships with the Municipality, Civil Defense, and licensing authorities to ensure fast completion",
-  },
-  {
-    icon: Zap,
-    title: "نهج رقمي متطور",
-    titleEn: "Advanced Digital Approach",
-    desc: "نستخدم أحدث التقنيات والبرامج الهندسية لإدارة المشاريع والتواصل مع العملاء بكفاءة",
-    descEn: "We use the latest technologies and engineering software for efficient project management and client communication",
-  },
-  {
-    icon: Star,
-    title: "أسعار تنافسية",
-    titleEn: "Competitive Pricing",
-    desc: "أسعار شفافة وعادلة مع الحفاظ على أعلى مستويات الجودة في جميع مراحل العمل",
-    descEn: "Transparent and fair pricing while maintaining the highest quality standards throughout all project phases",
-  },
-  {
-    icon: Target,
-    title: "التزام بالمواعيد",
-    titleEn: "Commitment to Deadlines",
-    desc: "التزام صارم بجدول المواعيد الزمنية وتسليم المشاريع في الوقت المحدد دون تأخير",
-    descEn: "Strict commitment to project timelines and delivering projects on schedule without delays",
-  },
-  {
-    icon: Headphones,
-    title: "دعم متواصل",
-    titleEn: "Continuous Support",
-    desc: "فريق خدمة عملاء متاح على مدار الساعة للإجابة على استفساراتكم ومتابعة مشاريعكم",
-    descEn: "Customer service team available around the clock to answer your inquiries and follow up on your projects",
-  },
-];
-
-// ==================== TESTIMONIALS ====================
-const TESTIMONIALS = [
-  {
-    name: "خالد المنصوري",
-    nameEn: "Khalid Al Mansouri",
-    role: "صاحب فيلا",
-    roleEn: "Villa Owner",
-    text: "تجربة ممتازة من البداية للنهاية. فريق BluePrint محترف جداً في التصميم والتعامل مع البلدية. تم إنجاز مشروع فيلتي قبل الموعد المحدد بـ أسبوعين.",
-    textEn: "An excellent experience from start to finish. The BluePrint team is very professional in design and dealing with the municipality. My villa project was completed two weeks ahead of schedule.",
-    rating: 5,
-  },
-  {
-    name: "سارة الحربي",
-    nameEn: "Sara Al Harbi",
-    role: "مديرة شركة",
-    roleEn: "Company Director",
-    text: "نظام إدارة المشاريع الخاص بهم سهل جداً. أقدر أتابع تقدم مشروعي لحظة بلحظة. التطبيق ساعدنا كثيراً في التواصل مع فريق الهندسة.",
-    textEn: "Their project management system is very easy to use. I can track my project progress in real-time. The app helped us greatly in communicating with the engineering team.",
-    rating: 5,
-  },
-  {
-    name: "عبدالله الرمحي",
-    nameEn: "Abdullah Al Ramahi",
-    role: "مستثمر عقاري",
-    roleEn: "Real Estate Investor",
-    text: "أفضل مكتب استشارات تعاملت معه في رأس الخيمة. جودة التصميم الإنشائي ممتازة وخدمة ما بعد التسليم مميزة. أنصح بهم بشدة.",
-    textEn: "The best consultancy office I've dealt with in Ras Al Khaimah. Excellent structural design quality and outstanding post-delivery service. I highly recommend them.",
-    rating: 5,
-  },
-];
-
-// ==================== MARQUEE TEXT ====================
-const MARQUEE_ITEMS = [
-  { ar: "تصميم معماري", en: "Architectural Design" },
-  { ar: "تصميم إنشائي", en: "Structural Design" },
-  { ar: "تصميم كهروميكانيكي", en: "MEP Design" },
-  { ar: "رخص البلدية", en: "Municipality Permits" },
-  { ar: "إشراف التنفيذ", en: "Construction Supervision" },
-  { ar: "استشارات هندسية", en: "Engineering Consultation" },
-];
-
 // ==================== COUNTER HOOK ====================
 function useCounter(end: number, duration: number = 2000, startOnView: boolean = false) {
   const [count, setCount] = useState(0);
@@ -283,7 +195,7 @@ function useCounter(end: number, duration: number = 2000, startOnView: boolean =
     const animate = (timestamp: number) => {
       if (!startTime) startTime = timestamp;
       const progress = Math.min((timestamp - startTime) / duration, 1);
-      const eased = 1 - Math.pow(1 - progress, 3); // easeOutCubic
+      const eased = 1 - Math.pow(1 - progress, 3);
       setCount(Math.floor(eased * end));
       if (progress < 1) {
         animationFrame = requestAnimationFrame(animate);
@@ -297,26 +209,28 @@ function useCounter(end: number, duration: number = 2000, startOnView: boolean =
   return { count, ref };
 }
 
-// ==================== ANIMATION VARIANTS ====================
+// ==================== ANIMATED TEXT COMPONENT ====================
+function AnimatedText({ text, language }: { text: string; language: "ar" | "en" }) {
+  const words = text.split(" ");
+  
+  return (
+    <span className="inline">
+      {words.map((word, i) => (
+        <motion.span
+          key={i}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: i * 0.1, duration: 0.5 }}
+          className="inline-block mr-2"
+        >
+          {word}
+        </motion.span>
+      ))}
+    </span>
+  );
+}
 
-const fadeInUp: Variants = {
-  hidden: { opacity: 0, y: 30 },
-  visible: (i: number) => ({
-    opacity: 1,
-    y: 0,
-    transition: { delay: i * 0.1, duration: 0.5, ease: "easeOut" },
-  }),
-};
-
-const staggerContainer = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: { staggerChildren: 0.08 },
-  },
-};
-
-// ==================== PARALLAX IMAGE COMPONENT ====================
+// ==================== HERO PARALLAX IMAGE ====================
 function ParallaxHeroImage() {
   const ref = useRef(null);
   const { scrollYProgress } = useScroll({
@@ -336,40 +250,9 @@ function ParallaxHeroImage() {
           className="object-cover"
           priority
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-slate-900/80 via-slate-900/70 to-slate-900/90" />
+        <div className="absolute inset-0 bg-gradient-to-b from-stone-900/90 via-stone-900/80 to-stone-900/95" />
       </motion.div>
     </motion.div>
-  );
-}
-
-// ==================== MARQUEE COMPONENT ====================
-function MarqueeSection({ language }: { language: "ar" | "en" }) {
-  const t = (ar: string, en: string) => (language === "ar" ? ar : en);
-
-  return (
-    <div className="relative py-8 bg-gradient-to-r from-teal-600 via-teal-500 to-cyan-500 overflow-hidden">
-      {/* Animated gradient overlay */}
-      <div className="absolute inset-0 bg-gradient-to-r from-teal-600/50 via-transparent to-cyan-500/50 animate-pulse" />
-      
-      <div className="flex overflow-hidden">
-        {/* First row */}
-        <motion.div
-          className="flex gap-8 whitespace-nowrap"
-          animate={{ x: language === "ar" ? ["0%", "-50%"] : ["0%", "-50%"] }}
-          transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-        >
-          {[...MARQUEE_ITEMS, ...MARQUEE_ITEMS, ...MARQUEE_ITEMS, ...MARQUEE_ITEMS].map((item, i) => (
-            <div
-              key={i}
-              className="flex items-center gap-3 text-white/90 px-4"
-            >
-              <span className="text-lg font-medium">{t(item.ar, item.en)}</span>
-              <div className="w-1.5 h-1.5 rounded-full bg-white/40" />
-            </div>
-          ))}
-        </motion.div>
-      </div>
-    </div>
   );
 }
 
@@ -393,7 +276,6 @@ function ProjectCard({
       transition={{ delay: index * 0.1, duration: 0.6, ease: "easeOut" }}
       className="group relative overflow-hidden rounded-2xl cursor-pointer"
     >
-      {/* Image Container */}
       <div className="relative aspect-[4/3] overflow-hidden">
         <Image
           src={project.image}
@@ -401,27 +283,23 @@ function ProjectCard({
           fill
           className="object-cover transition-transform duration-700 group-hover:scale-110"
         />
-        {/* Overlay */}
-        <div className="absolute inset-0 bg-gradient-to-t from-slate-900/90 via-slate-900/40 to-transparent opacity-60 group-hover:opacity-80 transition-opacity duration-300" />
+        <div className="absolute inset-0 bg-gradient-to-t from-stone-900/90 via-stone-900/40 to-transparent opacity-60 group-hover:opacity-80 transition-opacity duration-300" />
         
-        {/* Category Badge */}
         <div className="absolute top-4 start-4">
-          <span className="px-3 py-1.5 bg-white/90 backdrop-blur-sm rounded-full text-xs font-medium text-teal-700">
+          <span className="px-3 py-1.5 bg-white/90 backdrop-blur-sm rounded-full text-xs font-medium text-stone-700">
             {t(project.category, project.categoryEn)}
           </span>
         </div>
 
-        {/* Hover Arrow */}
         <motion.div
           initial={{ opacity: 0, scale: 0.5 }}
           whileHover={{ opacity: 1, scale: 1 }}
           className="absolute top-4 end-4 w-10 h-10 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300"
         >
-          <ArrowUpRight className="w-5 h-5 text-teal-700" />
+          <ArrowUpRight className="w-5 h-5 text-stone-700" />
         </motion.div>
       </div>
 
-      {/* Content */}
       <div className="absolute bottom-0 inset-x-0 p-6">
         <motion.div
           initial={{ y: 20, opacity: 0 }}
@@ -443,9 +321,6 @@ function ProjectCard({
   );
 }
 
-// NOTE: i18n is handled by the `t` function inside the component using React state,
-// so language changes trigger proper re-renders.
-
 export default function LandingPage() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [formName, setFormName] = useState("");
@@ -459,7 +334,6 @@ export default function LandingPage() {
   const [showScrollTop, setShowScrollTop] = useState(false);
   const [language, setLanguage] = useState<"ar" | "en">("ar");
 
-  // Initialize language from localStorage
   useEffect(() => {
     const saved = localStorage.getItem("blueprint-lang") as "ar" | "en" | null;
     if (saved) setLanguage(saved);
@@ -475,7 +349,6 @@ export default function LandingPage() {
 
   const t = (ar: string, en: string) => (language === "ar" ? ar : en);
 
-  // Track scroll position for back-to-top button
   useEffect(() => {
     let ticking = false;
     const handleScroll = () => {
@@ -531,51 +404,55 @@ export default function LandingPage() {
   };
 
   return (
-    <div className="min-h-screen bg-white" dir={language === "ar" ? "rtl" : "ltr"}>
-      {/* ===== HEADER ===== */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-md border-b border-slate-100">
+    <div className="min-h-screen bg-stone-50" dir={language === "ar" ? "rtl" : "ltr"}>
+      {/* ===== HEADER - TYPEFIVE STYLE ===== */}
+      <header className="fixed top-0 left-0 right-0 z-50 transition-all duration-300">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
+          <div className="flex items-center justify-between h-20">
             {/* Logo */}
             <Link href="/" className="flex items-center gap-3">
               <LogoImage size={40} />
               <div>
-                <h1 className="text-lg font-bold text-slate-900">BluePrint</h1>
-                <p className="text-[10px] text-teal-600 font-medium">
-                  {t("مكتب الاستشارات الهندسية", "Engineering Consultancy Office")}
+                <h1 className="text-lg font-bold text-white">BluePrint</h1>
+                <p className="text-[10px] text-stone-400 font-medium">
+                  {t("مكتب الاستشارات الهندسية", "Engineering Consultancy")}
                 </p>
               </div>
             </Link>
 
             {/* Desktop Nav */}
-            <nav className="hidden md:flex items-center gap-1">
+            <nav className="hidden md:flex items-center gap-1 bg-white/10 backdrop-blur-lg rounded-full px-2">
               {NAV_LINKS.map((link) => (
                 <Link
                   key={link.href + link.labelEn}
                   href={link.href}
-                  className="px-3 py-2 text-sm text-slate-600 hover:text-teal-600 hover:bg-teal-50 rounded-lg transition-all duration-200 font-medium"
+                  className="px-4 py-3 text-sm text-stone-300 hover:text-white transition-colors font-medium relative group"
                 >
                   {t(link.label, link.labelEn)}
+                  <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-0 h-0.5 bg-white rounded-full transition-all duration-300 group-hover:w-4" />
                 </Link>
               ))}
               <button
                 onClick={toggleLanguage}
-                className="px-3 py-1.5 text-xs font-medium text-slate-500 hover:text-teal-600 border border-slate-200 hover:border-teal-300 rounded-lg transition-all duration-200 flex items-center gap-1.5"
+                className="px-3 py-2 text-xs font-medium text-stone-400 hover:text-white transition-colors"
               >
-                <Globe className="w-3.5 h-3.5" />
                 {language === "ar" ? "EN" : "عربي"}
               </button>
-              <Link href="/dashboard">
-                <Button className="mr-2 bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-600 hover:to-cyan-600 text-white shadow-lg shadow-teal-500/20">
-                  {t("لوحة التحكم", "Dashboard")}
+            </nav>
+
+            {/* CTA Button */}
+            <div className="hidden md:flex items-center gap-4">
+              <Link href="/quote">
+                <Button className="bg-stone-900 hover:bg-stone-800 text-white rounded-full px-8 py-3 text-sm font-medium transition-all duration-300 hover:scale-105">
+                  {t("ابدأ مشروعك", "Start Your Project")}
                 </Button>
               </Link>
-            </nav>
+            </div>
 
             {/* Mobile Menu Button */}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="md:hidden p-2 text-slate-600 hover:text-teal-600 transition-colors"
+              className="md:hidden p-2 text-white transition-colors"
             >
               {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
             </button>
@@ -589,7 +466,7 @@ export default function LandingPage() {
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: "auto" }}
               exit={{ opacity: 0, height: 0 }}
-              className="md:hidden bg-white border-t border-slate-100 overflow-hidden"
+              className="md:hidden bg-stone-900/95 backdrop-blur-lg border-t border-stone-800 overflow-hidden"
             >
               <div className="px-4 py-3 space-y-1">
                 {NAV_LINKS.map((link) => (
@@ -597,14 +474,14 @@ export default function LandingPage() {
                     key={link.href + link.labelEn}
                     href={link.href}
                     onClick={() => setMobileMenuOpen(false)}
-                    className="block px-3 py-2.5 text-sm text-slate-600 hover:text-teal-600 hover:bg-teal-50 rounded-lg transition-all font-medium"
+                    className="block px-3 py-2.5 text-sm text-stone-300 hover:text-white transition-colors font-medium"
                   >
                     {t(link.label, link.labelEn)}
                   </Link>
                 ))}
-                <Link href="/dashboard" onClick={() => setMobileMenuOpen(false)}>
-                  <Button className="w-full mt-2 bg-gradient-to-r from-teal-500 to-cyan-500 text-white">
-                    {t("لوحة التحكم", "Dashboard")}
+                <Link href="/quote" onClick={() => setMobileMenuOpen(false)}>
+                  <Button className="w-full mt-2 bg-white text-stone-900 rounded-full">
+                    {t("ابدأ مشروعك", "Start Your Project")}
                   </Button>
                 </Link>
               </div>
@@ -613,16 +490,12 @@ export default function LandingPage() {
         </AnimatePresence>
       </header>
 
-      {/* ===== HERO SECTION WITH PARALLAX ===== */}
-      <section className="relative pt-16 min-h-screen overflow-hidden">
-        {/* Parallax Background Image */}
+      {/* ===== HERO SECTION - TYPEFIVE STYLE ===== */}
+      <section className="relative pt-20 min-h-screen overflow-hidden">
         <ParallaxHeroImage />
 
-        {/* Gradient Overlay */}
-        <div className="absolute inset-0 bg-gradient-to-br from-slate-900/60 via-slate-800/50 to-teal-900/60" />
-
-        {/* Animated Grid Pattern */}
-        <div className="absolute inset-0 opacity-[0.04]">
+        {/* Subtle Grid Pattern */}
+        <div className="absolute inset-0 opacity-[0.03]">
           <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
             <defs>
               <pattern id="hero-grid" width="40" height="40" patternUnits="userSpaceOnUse">
@@ -637,18 +510,18 @@ export default function LandingPage() {
         <motion.div
           animate={{
             scale: [1, 1.2, 1],
-            opacity: [0.1, 0.15, 0.1],
+            opacity: [0.05, 0.1, 0.05],
           }}
           transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute top-20 -start-20 w-72 h-72 rounded-full bg-teal-500/20 blur-3xl"
+          className="absolute top-20 -start-20 w-96 h-96 rounded-full bg-amber-500/20 blur-3xl"
         />
         <motion.div
           animate={{
             scale: [1, 1.3, 1],
-            opacity: [0.1, 0.2, 0.1],
+            opacity: [0.05, 0.1, 0.05],
           }}
           transition={{ duration: 5, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
-          className="absolute bottom-10 -end-20 w-96 h-96 rounded-full bg-cyan-500/20 blur-3xl"
+          className="absolute bottom-10 -end-20 w-96 h-96 rounded-full bg-stone-500/20 blur-3xl"
         />
 
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 sm:py-32 lg:py-40">
@@ -657,61 +530,48 @@ export default function LandingPage() {
             animate="visible"
             className="text-center max-w-4xl mx-auto"
           >
-            {/* Badge */}
-            <motion.div variants={fadeInUp} custom={0} className="mb-6">
-              <span className="inline-flex items-center gap-2 bg-teal-500/10 border border-teal-500/20 rounded-full px-4 py-1.5 text-teal-400 text-sm font-medium backdrop-blur-sm">
-                <motion.div
-                  animate={{ scale: [1, 1.2, 1] }}
-                  transition={{ duration: 1.5, repeat: Infinity }}
-                  className="w-2 h-2 rounded-full bg-teal-400"
-                />
-                {t("رأس الخيمة - الإمارات العربية المتحدة", "Ras Al Khaimah - UAE")}
-              </span>
+            {/* Heading - TypeFive Style */}
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, ease: "easeOut" }}
+            >
+              <h1 className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-light text-white leading-tight tracking-tight">
+                <span className="block">{t("منزل لأحلامك.", "A home for your dreams.")}</span>
+              </h1>
             </motion.div>
 
-            {/* Heading */}
-            <motion.h1
-              variants={fadeInUp}
-              custom={1}
-              className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white leading-tight tracking-tight"
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.2, ease: "easeOut" }}
             >
-              <span className="bg-gradient-to-r from-teal-400 to-cyan-400 bg-clip-text text-transparent">
-                BluePrint
-              </span>
-              <br />
-              {t("مكتب الاستشارات الهندسية", "Engineering Consultancy Office")}
-              <br />
-              <span className="text-3xl sm:text-4xl lg:text-5xl text-slate-300 font-medium">
-                {t("في رأس الخيمة", "in Ras Al Khaimah")}
-              </span>
-            </motion.h1>
-
-            {/* Subtitle */}
-            <motion.p
-              variants={fadeInUp}
-              custom={2}
-              className="mt-6 text-lg text-slate-300 max-w-2xl mx-auto leading-relaxed"
-            >
-              {t(
-                "نقدم خدمات هندسية شاملة من التصميم حتى التسليم، بفريق متخصص ذو خبرات واسعة في سوق رأس الخيمة. نلتزم بأعلى معايير الجودة ومطابقة الأنظمة والمتطلبات لكل مشروع.",
-                "We provide comprehensive engineering services from design to delivery, with a specialized team with extensive experience in the Ras Al Khaimah market. We commit to the highest quality standards and compliance with regulations and requirements for every project."
-              )}
-            </motion.p>
+              <h2 className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-light text-stone-400 mt-4 leading-tight">
+                <AnimatedText 
+                  text={t(
+                    "نصمم ونبني بأعلى معايير الجودة والاحترافية",
+                    "Design and build with the highest standards of quality and professionalism"
+                  )}
+                  language={language}
+                />
+              </h2>
+            </motion.div>
 
             {/* CTA Buttons */}
             <motion.div
-              variants={fadeInUp}
-              custom={3}
-              className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4"
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.4, ease: "easeOut" }}
+              className="mt-12 flex flex-col sm:flex-row items-center justify-center gap-4"
             >
               <Link href="/quote">
                 <motion.div
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                 >
-                  <Button className="w-full sm:w-auto px-8 h-12 text-base bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-600 hover:to-cyan-600 text-white shadow-xl shadow-teal-500/25 rounded-xl">
-                    <Calculator className="w-5 h-5 me-2" />
-                    {t("طلب عرض سعر", "Get Quote")}
+                  <Button className="w-full sm:w-auto px-10 h-14 text-base bg-white text-stone-900 hover:bg-stone-100 rounded-full shadow-xl transition-all duration-300">
+                    {t("ابدأ مشروعك الآن", "Start Your Project Now")}
+                    <ArrowUpRight className="w-5 h-5 ms-2" />
                   </Button>
                 </motion.div>
               </Link>
@@ -722,7 +582,7 @@ export default function LandingPage() {
                 >
                   <Button
                     variant="outline"
-                    className="w-full sm:w-auto px-8 h-12 text-base border-white/30 text-white hover:bg-white/10 hover:text-white rounded-xl backdrop-blur-sm"
+                    className="w-full sm:w-auto px-10 h-14 text-base border-stone-600 text-stone-300 hover:bg-stone-800 hover:text-white rounded-full backdrop-blur-sm"
                   >
                     <Phone className="w-5 h-5 me-2" />
                     {t("اتصل بنا", "Call Us")}
@@ -733,16 +593,17 @@ export default function LandingPage() {
 
             {/* Trust Indicators */}
             <motion.div
-              variants={fadeInUp}
-              custom={4}
-              className="mt-12 flex flex-wrap items-center justify-center gap-6 text-sm"
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.6, ease: "easeOut" }}
+              className="mt-16 flex flex-wrap items-center justify-center gap-8 text-sm"
             >
               {[
                 { labelAr: "+250 مشروع", labelEn: "+250 Projects", icon: Building2 },
                 { labelAr: "+180 عميل", labelEn: "+180 Clients", icon: Users },
                 { labelAr: "فريق متخصص", labelEn: "Specialized Team", icon: Award },
               ].map((item) => (
-                <div key={item.labelEn} className="flex items-center gap-2 text-teal-400/90">
+                <div key={item.labelEn} className="flex items-center gap-2 text-stone-400">
                   <item.icon className="w-4 h-4" />
                   <span>{t(item.labelAr, item.labelEn)}</span>
                 </div>
@@ -756,23 +617,19 @@ export default function LandingPage() {
           <svg viewBox="0 0 1440 100" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full">
             <path
               d="M0 50L48 45C96 40 192 30 288 28C384 26 480 32 576 40C672 48 768 58 864 55C960 52 1056 36 1152 30C1248 24 1344 28 1392 30L1440 32V100H1392C1344 100 1248 100 1152 100C1056 100 960 100 864 100C768 100 672 100 576 100C480 100 384 100 288 100C192 100 96 100 48 100H0V50Z"
-              fill="white"
+              fill="#fafaf9"
             />
           </svg>
         </div>
       </section>
 
-      {/* ===== MARQUEE SECTION ===== */}
-      <MarqueeSection language={language} />
-
-      {/* ===== STATS SECTION WITH COUNTER ANIMATION ===== */}
-      <section className="py-16 sm:py-20 bg-white">
+      {/* ===== STATS SECTION ===== */}
+      <section className="py-16 sm:py-20 bg-stone-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div
             initial="hidden"
             whileInView="visible"
             viewport={{ once: true }}
-            variants={staggerContainer}
             className="grid grid-cols-2 lg:grid-cols-4 gap-6"
           >
             {STATS.map((stat, i) => {
@@ -782,18 +639,20 @@ export default function LandingPage() {
                 <motion.div
                   key={stat.label}
                   ref={counter.ref}
-                  variants={fadeInUp}
-                  custom={i}
-                  className="text-center p-8 rounded-2xl bg-gradient-to-br from-teal-50 to-cyan-50 border border-teal-100/50 hover:shadow-xl hover:shadow-teal-200/30 hover:-translate-y-1 transition-all duration-300"
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: i * 0.1 }}
+                  className="text-center p-8 rounded-2xl bg-white border border-stone-200/60 hover:shadow-lg hover:-translate-y-1 transition-all duration-300"
                 >
-                  <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-teal-500 to-cyan-500 mb-4 shadow-lg shadow-teal-500/20">
+                  <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-stone-900 mb-4">
                     <Icon className="w-7 h-7 text-white" />
                   </div>
-                  <div className="text-4xl font-bold text-slate-900 tabular-nums">
+                  <div className="text-4xl font-bold text-stone-900 tabular-nums">
                     {counter.count}
                     {stat.suffix}
                   </div>
-                  <div className="text-sm text-slate-500 mt-1">{t(stat.label, stat.labelEn)}</div>
+                  <div className="text-sm text-stone-500 mt-1">{t(stat.label, stat.labelEn)}</div>
                 </motion.div>
               );
             })}
@@ -801,28 +660,26 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ===== PROJECTS GRID (DHK Style) ===== */}
-      <section id="projects" className="py-16 sm:py-24 bg-slate-50">
+      {/* ===== PROJECTS GRID ===== */}
+      <section id="projects" className="py-16 sm:py-24 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div
-            initial="hidden"
-            whileInView="visible"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            variants={fadeInUp}
-            custom={0}
             className="text-center mb-12"
           >
-            <span className="inline-flex items-center gap-2 bg-teal-100 text-teal-700 rounded-full px-4 py-1.5 text-sm font-medium mb-4">
+            <span className="inline-flex items-center gap-2 bg-stone-100 text-stone-700 rounded-full px-4 py-1.5 text-sm font-medium mb-4">
               <Building2 className="w-4 h-4" />
               {t("أعمالنا", "Our Work")}
             </span>
-            <h2 className="text-3xl sm:text-4xl font-bold text-slate-900">
+            <h2 className="text-3xl sm:text-4xl font-bold text-stone-900">
               {t("مشاريع مميزة", "Featured Projects")}
             </h2>
-            <p className="mt-3 text-slate-500 max-w-2xl mx-auto">
+            <p className="mt-3 text-stone-500 max-w-2xl mx-auto">
               {t(
                 "نعرض لكم مجموعة من أبرز المشاريع التي قمنا بتنفيذها بكفاءة واحترافية عالية",
-                "We present to you a selection of the most prominent projects we have executed with high efficiency and professionalism"
+                "We present to you a selection of the most prominent projects we have executed"
               )}
             </p>
           </motion.div>
@@ -850,7 +707,7 @@ export default function LandingPage() {
             <Link href="/dashboard">
               <Button
                 variant="outline"
-                className="px-8 h-12 border-2 border-teal-500 text-teal-600 hover:bg-teal-50 rounded-xl"
+                className="px-8 h-12 border-2 border-stone-300 text-stone-700 hover:bg-stone-100 rounded-full"
               >
                 {t("عرض جميع المشاريع", "View All Projects")}
                 <ArrowUpRight className="w-4 h-4 ms-2" />
@@ -861,27 +718,25 @@ export default function LandingPage() {
       </section>
 
       {/* ===== SERVICES SECTION ===== */}
-      <section id="services" className="py-16 sm:py-24 bg-white">
+      <section id="services" className="py-16 sm:py-24 bg-stone-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div
-            initial="hidden"
-            whileInView="visible"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            variants={fadeInUp}
-            custom={0}
             className="text-center mb-12"
           >
-            <span className="inline-flex items-center gap-2 bg-teal-100 text-teal-700 rounded-full px-4 py-1.5 text-sm font-medium mb-4">
+            <span className="inline-flex items-center gap-2 bg-stone-100 text-stone-700 rounded-full px-4 py-1.5 text-sm font-medium mb-4">
               <Compass className="w-4 h-4" />
               {t("خدماتنا", "Services")}
             </span>
-            <h2 className="text-3xl sm:text-4xl font-bold text-slate-900">
+            <h2 className="text-3xl sm:text-4xl font-bold text-stone-900">
               {t("حلول هندسية شاملة", "Comprehensive Engineering Solutions")}
             </h2>
-            <p className="mt-3 text-slate-500 max-w-2xl mx-auto">
+            <p className="mt-3 text-stone-500 max-w-2xl mx-auto">
               {t(
-                "نقدم مجموعة متكاملة من الخدمات الهندسية التي تغطي جميع مراحل المشروع من الفكرة حتى التسليم النهائي",
-                "We offer an integrated suite of engineering services covering all project phases from concept to final delivery"
+                "نقدم مجموعة متكاملة من الخدمات الهندسية التي تغطي جميع مراحل المشروع",
+                "We offer an integrated suite of engineering services covering all project phases"
               )}
             </p>
           </motion.div>
@@ -890,7 +745,6 @@ export default function LandingPage() {
             initial="hidden"
             whileInView="visible"
             viewport={{ once: true }}
-            variants={staggerContainer}
             className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6"
           >
             {SERVICES.map((service, i) => {
@@ -898,15 +752,17 @@ export default function LandingPage() {
               return (
                 <motion.div
                   key={service.titleEn}
-                  variants={fadeInUp}
-                  custom={i}
-                  className="group p-6 bg-white rounded-2xl border border-slate-200/80 hover:border-teal-300 hover:shadow-xl hover:shadow-teal-500/5 transition-all duration-300 cursor-pointer hover:-translate-y-1"
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: i * 0.1 }}
+                  className="group p-6 bg-white rounded-2xl border border-stone-200/80 hover:border-stone-300 hover:shadow-lg transition-all duration-300 cursor-pointer hover:-translate-y-1"
                 >
-                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-teal-500 to-cyan-500 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300 shadow-md shadow-teal-500/20">
+                  <div className="w-12 h-12 rounded-xl bg-stone-900 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
                     <Icon className="w-6 h-6 text-white" />
                   </div>
-                  <h3 className="text-lg font-semibold text-slate-900 mb-2">{t(service.title, service.titleEn)}</h3>
-                  <p className="text-sm text-slate-500 leading-relaxed">{t(service.desc, service.descEn)}</p>
+                  <h3 className="text-lg font-semibold text-stone-900 mb-2">{t(service.title, service.titleEn)}</h3>
+                  <p className="text-sm text-stone-500 leading-relaxed">{t(service.desc, service.descEn)}</p>
                 </motion.div>
               );
             })}
@@ -914,28 +770,26 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ===== WHY CHOOSE US ===== */}
-      <section id="about" className="py-16 sm:py-24 bg-slate-50">
+      {/* ===== ABOUT SECTION ===== */}
+      <section id="about" className="py-16 sm:py-24 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div
-            initial="hidden"
-            whileInView="visible"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            variants={fadeInUp}
-            custom={0}
             className="text-center mb-12"
           >
-            <span className="inline-flex items-center gap-2 bg-teal-100 text-teal-700 rounded-full px-4 py-1.5 text-sm font-medium mb-4">
+            <span className="inline-flex items-center gap-2 bg-stone-100 text-stone-700 rounded-full px-4 py-1.5 text-sm font-medium mb-4">
               <Award className="w-4 h-4" />
-              {t("لماذا نحن", "Why Us")}
+              {t("من نحن", "About Us")}
             </span>
-            <h2 className="text-3xl sm:text-4xl font-bold text-slate-900">
+            <h2 className="text-3xl sm:text-4xl font-bold text-stone-900">
               {t("لماذا تختار BluePrint؟", "Why Choose BluePrint?")}
             </h2>
-            <p className="mt-3 text-slate-500 max-w-2xl mx-auto">
+            <p className="mt-3 text-stone-500 max-w-2xl mx-auto">
               {t(
-                "نحن شريكك الهندسي الموثوق في رأس الخيمة - نجمع المشاريع بكل احترافية",
-                "Your trusted engineering partner in Ras Al Khaimah - delivering projects with the utmost professionalism"
+                "نحن شريكك الهندسي الموثوق في رأس الخيمة - نجمع بين الإبداع والدقة والموثوقية",
+                "Your trusted engineering partner in Ras Al Khaimah - combining creativity, precision, and reliability"
               )}
             </p>
           </motion.div>
@@ -944,23 +798,67 @@ export default function LandingPage() {
             initial="hidden"
             whileInView="visible"
             viewport={{ once: true }}
-            variants={staggerContainer}
             className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6"
           >
-            {WHY_US.map((item, i) => {
+            {[
+              {
+                icon: Users,
+                title: "فريق مهني متخصص",
+                titleEn: "Specialized Professional Team",
+                desc: "مهندسون معتمدون ذوو خبرات واسعة في مشاريع رأس الخيمة",
+                descEn: "Certified engineers with extensive experience in RAK projects",
+              },
+              {
+                icon: FileCheck,
+                title: "خبرة في الموافقات الحكومية",
+                titleEn: "Government Approvals Expertise",
+                desc: "علاقات مميزة مع البلدية والدفاع المدني وجهات الترخيص",
+                descEn: "Strong relationships with Municipality and licensing authorities",
+              },
+              {
+                icon: Target,
+                title: "التزام بالمواعيد",
+                titleEn: "Commitment to Deadlines",
+                desc: "التزام صارم بجدول المواعيد وتسليم المشاريع في الوقت المحدد",
+                descEn: "Strict commitment to project timelines and on-schedule delivery",
+              },
+              {
+                icon: Star,
+                title: "أسعار تنافسية",
+                titleEn: "Competitive Pricing",
+                desc: "أسعار شفافة وعادلة مع الحفاظ على أعلى مستويات الجودة",
+                descEn: "Transparent and fair pricing with highest quality standards",
+              },
+              {
+                icon: Zap,
+                title: "نهج رقمي متطور",
+                titleEn: "Advanced Digital Approach",
+                desc: "نستخدم أحدث التقنيات لإدارة المشاريع والتواصل مع العملاء",
+                descEn: "We use the latest technologies for project management",
+              },
+              {
+                icon: Headphones,
+                title: "دعم متواصل",
+                titleEn: "Continuous Support",
+                desc: "فريق خدمة عملاء متاح للإجابة على استفساراتكم",
+                descEn: "Customer service team available to answer your inquiries",
+              },
+            ].map((item, i) => {
               const Icon = item.icon;
               return (
                 <motion.div
                   key={item.title}
-                  variants={fadeInUp}
-                  custom={i}
-                  className="text-center p-8 rounded-2xl bg-gradient-to-b from-slate-50 to-white border border-slate-200/60 hover:shadow-lg hover:-translate-y-1 transition-all duration-300"
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: i * 0.1 }}
+                  className="text-center p-8 rounded-2xl bg-gradient-to-b from-stone-50 to-white border border-stone-200/60 hover:shadow-lg hover:-translate-y-1 transition-all duration-300"
                 >
-                  <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-teal-50 text-teal-600 mb-4">
+                  <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-stone-100 text-stone-700 mb-4">
                     <Icon className="w-7 h-7" />
                   </div>
-                  <h3 className="text-lg font-semibold text-slate-900 mb-2">{t(item.title, item.titleEn)}</h3>
-                  <p className="text-sm text-slate-500 leading-relaxed">{t(item.desc, item.descEn)}</p>
+                  <h3 className="text-lg font-semibold text-stone-900 mb-2">{t(item.title, item.titleEn)}</h3>
+                  <p className="text-sm text-stone-500 leading-relaxed">{t(item.desc, item.descEn)}</p>
                 </motion.div>
               );
             })}
@@ -968,161 +866,68 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ===== TESTIMONIALS ===== */}
-      <section className="py-16 sm:py-24 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            variants={fadeInUp}
-            custom={0}
-            className="text-center mb-12"
-          >
-            <span className="inline-flex items-center gap-2 bg-teal-100 text-teal-700 rounded-full px-4 py-1.5 text-sm font-medium mb-4">
-              <Star className="w-4 h-4" />
-              {t("آراء العملاء", "Client Reviews")}
-            </span>
-            <h2 className="text-3xl sm:text-4xl font-bold text-slate-900">
-              {t("ماذا يقول عملاؤنا عنّا", "What Our Clients Say About Us")}
-            </h2>
-            <p className="mt-3 text-slate-500 max-w-2xl mx-auto">
-              {t(
-                "ثقة عملائنا هي أكبر شهادة على جودة خدماتنا الهندسية",
-                "Our clients' trust is the greatest testament to the quality of our engineering services"
-              )}
-            </p>
-          </motion.div>
-
-          <motion.div
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            variants={staggerContainer}
-            className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6"
-          >
-            {TESTIMONIALS.map((testimonial, i) => (
-              <motion.div
-                key={testimonial.name}
-                variants={fadeInUp}
-                custom={i}
-                className="bg-white rounded-2xl border border-slate-200/80 p-6 hover:shadow-xl hover:shadow-teal-500/5 transition-all duration-300 hover:-translate-y-1"
-              >
-                {/* Stars */}
-                <div className="flex items-center gap-1 mb-4">
-                  {Array.from({ length: testimonial.rating }).map((_, j) => (
-                    <Star key={j} className="w-4 h-4 fill-amber-400 text-amber-400" />
-                  ))}
-                </div>
-                {/* Quote */}
-                <p className="text-sm text-slate-600 leading-relaxed mb-6">
-                  &ldquo;{t(testimonial.text, testimonial.textEn)}&rdquo;
-                </p>
-                {/* Author */}
-                <div className="flex items-center gap-3 pt-4 border-t border-slate-100">
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-teal-500 to-cyan-500 flex items-center justify-center text-white text-sm font-bold">
-                    {t(testimonial.name, testimonial.nameEn).charAt(0)}
-                  </div>
-                  <div>
-                    <div className="text-sm font-semibold text-slate-900">{t(testimonial.name, testimonial.nameEn)}</div>
-                    <div className="text-xs text-slate-500">{t(testimonial.role, testimonial.roleEn)}</div>
-                  </div>
-                </div>
-              </motion.div>
-            ))}
-          </motion.div>
-        </div>
-      </section>
-
-      {/* ===== CTA / CONTACT SECTION ===== */}
-      <section id="contact" className="py-16 sm:py-24 bg-gradient-to-br from-slate-900 via-slate-800 to-teal-900 relative overflow-hidden">
+      {/* ===== CONTACT SECTION ===== */}
+      <section className="py-16 sm:py-24 bg-stone-900 relative overflow-hidden">
         <div className="absolute inset-0 opacity-[0.03]">
           <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
             <defs>
-              <pattern id="cta-grid" width="30" height="30" patternUnits="userSpaceOnUse">
+              <pattern id="contact-grid" width="30" height="30" patternUnits="userSpaceOnUse">
                 <path d="M 30 0 L 0 0 0 30" fill="none" stroke="white" strokeWidth="0.5" />
               </pattern>
             </defs>
-            <rect width="100%" height="100%" fill="url(#cta-grid)" />
+            <rect width="100%" height="100%" fill="url(#contact-grid)" />
           </svg>
         </div>
-        <div className="absolute top-0 -start-32 w-64 h-64 rounded-full bg-teal-500/10 blur-3xl" />
-        <div className="absolute bottom-0 -end-32 w-64 h-64 rounded-full bg-cyan-500/10 blur-3xl" />
 
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-12 items-start">
             {/* Left: Info */}
             <motion.div
-              initial="hidden"
-              whileInView="visible"
+              initial={{ opacity: 0, x: -30 }}
+              whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
-              variants={staggerContainer}
             >
-              <motion.div variants={fadeInUp} custom={0}>
-                <span className="inline-flex items-center gap-2 bg-teal-500/10 border border-teal-500/20 rounded-full px-4 py-1.5 text-teal-400 text-sm font-medium mb-6">
-                  <MessageCircle className="w-4 h-4" />
-                  {t("تواصل معنا", "Contact Us")}
-                </span>
-                <h2 className="text-3xl sm:text-4xl font-bold text-white">{t("ابدأ مشروعك الآن", "Start Your Project Now")}</h2>
-                <p className="mt-4 text-slate-400 leading-relaxed max-w-lg">
-                  {t(
-                    "أخبرنا عن مشروعك وسنقدم لك استشارة مجانية وعرض سعر تفصيلي خلال 24 ساعة. فريقنا المتخصص جاهز لمساعدتك.",
-                    "Tell us about your project and we'll provide a free consultation and detailed quote within 24 hours. Our specialized team is ready to help you."
-                  )}
-                </p>
-              </motion.div>
+              <span className="inline-flex items-center gap-2 bg-white/10 border border-white/20 rounded-full px-4 py-1.5 text-stone-300 text-sm font-medium mb-6">
+                <MessageCircle className="w-4 h-4" />
+                {t("تواصل معنا", "Contact Us")}
+              </span>
+              <h2 className="text-3xl sm:text-4xl font-bold text-white">{t("ابدأ مشروعك الآن", "Start Your Project Now")}</h2>
+              <p className="mt-4 text-stone-400 leading-relaxed max-w-lg">
+                {t(
+                  "أخبرنا عن مشروعك وسنقدم لك استشارة مجانية وعرض سعر تفصيلي خلال 24 ساعة",
+                  "Tell us about your project and we'll provide a free consultation and detailed quote within 24 hours"
+                )}
+              </p>
 
-              <motion.div variants={fadeInUp} custom={1} className="mt-10 space-y-6">
+              <div className="mt-10 space-y-6">
                 <div className="flex items-start gap-4">
-                  <div className="w-10 h-10 rounded-xl bg-teal-500/10 flex items-center justify-center shrink-0 mt-0.5">
-                    <Phone className="w-5 h-5 text-teal-400" />
+                  <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center shrink-0">
+                    <Phone className="w-5 h-5 text-stone-300" />
                   </div>
                   <div>
                     <div className="text-white font-medium">{t("اتصل بنا", "Call Us")}</div>
-                    <div className="text-slate-400 text-sm mt-1" dir="ltr">
-                      +971 50 161 1234
-                    </div>
+                    <div className="text-stone-400 text-sm mt-1" dir="ltr">+971 50 161 1234</div>
                   </div>
                 </div>
                 <div className="flex items-start gap-4">
-                  <div className="w-10 h-10 rounded-xl bg-teal-500/10 flex items-center justify-center shrink-0 mt-0.5">
-                    <Mail className="w-5 h-5 text-teal-400" />
+                  <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center shrink-0">
+                    <Mail className="w-5 h-5 text-stone-300" />
                   </div>
                   <div>
                     <div className="text-white font-medium">{t("البريد الإلكتروني", "Email")}</div>
-                    <div className="text-slate-400 text-sm mt-1">info.blueprintrak@gmail.com</div>
+                    <div className="text-stone-400 text-sm mt-1">info.blueprintrak@gmail.com</div>
                   </div>
                 </div>
                 <div className="flex items-start gap-4">
-                  <div className="w-10 h-10 rounded-xl bg-teal-500/10 flex items-center justify-center shrink-0 mt-0.5">
-                    <MapPin className="w-5 h-5 text-teal-400" />
+                  <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center shrink-0">
+                    <MapPin className="w-5 h-5 text-stone-300" />
                   </div>
                   <div>
                     <div className="text-white font-medium">{t("العنوان", "Address")}</div>
-                    <div className="text-slate-400 text-sm mt-1">{t("رأس الخيمة - الإمارات العربية المتحدة", "Ras Al Khaimah - UAE")}</div>
+                    <div className="text-stone-400 text-sm mt-1">{t("رأس الخيمة - الإمارات", "Ras Al Khaimah - UAE")}</div>
                   </div>
                 </div>
-                <div className="flex items-start gap-4">
-                  <div className="w-10 h-10 rounded-xl bg-teal-500/10 flex items-center justify-center shrink-0 mt-0.5">
-                    <Clock className="w-5 h-5 text-teal-400" />
-                  </div>
-                  <div>
-                    <div className="text-white font-medium">{t("ساعات العمل", "Working Hours")}</div>
-                    <div className="text-slate-400 text-sm mt-1">
-                      {t("الأحد - الخميس: 8:30 ص - 2:00 م / 5:00 م - 8:30 م", "Sun - Thu: 8:30 AM - 2:00 PM / 5:00 PM - 8:30 PM")}
-                    </div>
-                  </div>
-                </div>
-                <div className="flex items-start gap-4">
-                  <div className="w-10 h-10 rounded-xl bg-teal-500/10 flex items-center justify-center shrink-0 mt-0.5">
-                    <Clock className="w-5 h-5 text-teal-400" />
-                  </div>
-                  <div>
-                    <div className="text-white font-medium">{t("الجمعة", "Friday")}</div>
-                    <div className="text-slate-400 text-sm mt-1">{t("8:00 ص - 12:00 م", "8:00 AM - 12:00 PM")}</div>
-                  </div>
-                </div>
-              </motion.div>
+              </div>
             </motion.div>
 
             {/* Right: Contact Form */}
@@ -1130,19 +935,18 @@ export default function LandingPage() {
               initial={{ opacity: 0, x: 30 }}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
-              transition={{ duration: 0.6 }}
               className="bg-white rounded-2xl p-6 sm:p-8 shadow-2xl"
             >
               {formSuccess ? (
                 <div className="text-center py-10">
-                  <CheckCircle2 className="w-16 h-16 text-teal-500 mx-auto mb-4" />
-                  <h3 className="text-xl font-bold text-slate-900 mb-2">{t("تم إرسال طلبك بنجاح!", "Request Sent Successfully!")}</h3>
-                  <p className="text-slate-500">{t("سنتواصل معك خلال 24 ساعة", "We'll get back to you within 24 hours")}</p>
+                  <CheckCircle2 className="w-16 h-16 text-stone-700 mx-auto mb-4" />
+                  <h3 className="text-xl font-bold text-stone-900 mb-2">{t("تم إرسال طلبك بنجاح!", "Request Sent Successfully!")}</h3>
+                  <p className="text-stone-500">{t("سنتواصل معك خلال 24 ساعة", "We'll get back to you within 24 hours")}</p>
                 </div>
               ) : (
                 <form onSubmit={handleContactSubmit} className="space-y-5">
-                  <h3 className="text-xl font-bold text-slate-900 mb-2">{t("طلب استشارة مجانية", "Free Consultation Request")}</h3>
-                  <p className="text-sm text-slate-500 mb-4">{t("املأ النموذج أدناه وسنعود إليك قريباً", "Fill the form below and we'll get back to you soon")}</p>
+                  <h3 className="text-xl font-bold text-stone-900 mb-2">{t("طلب استشارة مجانية", "Free Consultation Request")}</h3>
+                  <p className="text-sm text-stone-500 mb-4">{t("املأ النموذج وسنعود إليك قريباً", "Fill the form and we'll get back to you soon")}</p>
 
                   {formError && (
                     <div className="p-3 rounded-lg bg-red-50 border border-red-200 text-red-600 text-sm">{formError}</div>
@@ -1150,80 +954,75 @@ export default function LandingPage() {
 
                   <div className="grid sm:grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label className="text-slate-700 text-sm">{t("الاسم الكامل", "Full Name")}</Label>
+                      <Label className="text-stone-700 text-sm">{t("الاسم الكامل", "Full Name")}</Label>
                       <Input
                         placeholder={t("أدخل اسمك", "Enter your name")}
                         value={formName}
                         onChange={(e) => setFormName(e.target.value)}
                         required
-                        className="h-11 border-slate-200 focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20"
+                        className="h-11 border-stone-200 focus:border-stone-500 focus:ring-2 focus:ring-stone-500/20"
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label className="text-slate-700 text-sm">{t("رقم الهاتف", "Phone Number")}</Label>
+                      <Label className="text-stone-700 text-sm">{t("رقم الهاتف", "Phone Number")}</Label>
                       <Input
                         placeholder="+971 XX XXX XXXX"
                         value={formPhone}
                         onChange={(e) => setFormPhone(e.target.value)}
                         required
                         dir="ltr"
-                        className="h-11 border-slate-200 focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 text-left"
+                        className="h-11 border-stone-200 focus:border-stone-500 focus:ring-2 focus:ring-stone-500/20 text-left"
                       />
                     </div>
                   </div>
 
                   <div className="space-y-2">
-                    <Label className="text-slate-700 text-sm">{t("البريد الإلكتروني", "Email")}</Label>
+                    <Label className="text-stone-700 text-sm">{t("البريد الإلكتروني", "Email")}</Label>
                     <Input
                       type="email"
                       placeholder="example@email.com"
                       value={formEmail}
                       onChange={(e) => setFormEmail(e.target.value)}
-                      required
-                      dir="ltr"
-                      className="h-11 border-slate-200 focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 text-left"
+                      className="h-11 border-stone-200 focus:border-stone-500 focus:ring-2 focus:ring-stone-500/20"
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <Label className="text-slate-700 text-sm">{t("نوع الخدمة", "Service Type")}</Label>
+                    <Label className="text-stone-700 text-sm">{t("نوع الخدمة", "Service Type")}</Label>
                     <Select value={formType} onValueChange={setFormType} required>
-                      <SelectTrigger className="w-full h-11 border-slate-200">
+                      <SelectTrigger className="h-11 border-stone-200">
                         <SelectValue placeholder={t("اختر نوع الخدمة", "Select service type")} />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="design">{t("خدمة تصميم", "Design Service")}</SelectItem>
-                        <SelectItem value="supervision">{t("إشراف تنفيذ", "Construction Supervision")}</SelectItem>
+                        <SelectItem value="architectural">{t("تصميم معماري", "Architectural Design")}</SelectItem>
+                        <SelectItem value="structural">{t("تصميم إنشائي", "Structural Design")}</SelectItem>
+                        <SelectItem value="mep">{t("تصميم كهروميكانيكي", "MEP Design")}</SelectItem>
+                        <SelectItem value="permits">{t("رخص البلدية", "Municipality Permits")}</SelectItem>
+                        <SelectItem value="supervision">{t("إشراف التنفيذ", "Construction Supervision")}</SelectItem>
                         <SelectItem value="consultation">{t("استشارة هندسية", "Engineering Consultation")}</SelectItem>
-                        <SelectItem value="permits">{t("رخص بلدية", "Municipality Permits")}</SelectItem>
-                        <SelectItem value="other">{t("أخرى", "Other")}</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
 
                   <div className="space-y-2">
-                    <Label className="text-slate-700 text-sm">{t("تفاصيل المشروع", "Project Details")}</Label>
+                    <Label className="text-stone-700 text-sm">{t("تفاصيل المشروع", "Project Details")}</Label>
                     <Textarea
-                      placeholder={t("أخبرنا المزيد عن مشروعك...", "Tell us more about your project...")}
+                      placeholder={t("أخبرنا عن مشروعك...", "Tell us about your project...")}
                       value={formMessage}
                       onChange={(e) => setFormMessage(e.target.value)}
-                      rows={4}
-                      className="border-slate-200 focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 resize-none"
+                      rows={3}
+                      className="border-stone-200 focus:border-stone-500 focus:ring-2 focus:ring-stone-500/20 resize-none"
                     />
                   </div>
 
                   <Button
                     type="submit"
                     disabled={formSubmitting}
-                    className="w-full h-12 bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-600 hover:to-cyan-600 text-white shadow-lg shadow-teal-500/20 rounded-xl"
+                    className="w-full h-12 bg-stone-900 hover:bg-stone-800 text-white rounded-full text-base font-medium transition-all duration-300"
                   >
                     {formSubmitting ? (
                       <span className="flex items-center gap-2">
-                        <motion.div
-                          animate={{ rotate: 360 }}
-                          transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                          className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full"
-                        />
+                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                         {t("جاري الإرسال...", "Sending...")}
                       </span>
                     ) : (
@@ -1238,107 +1037,34 @@ export default function LandingPage() {
       </section>
 
       {/* ===== FOOTER ===== */}
-      <footer className="bg-slate-900 text-white py-12">
+      <footer className="bg-stone-950 py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid md:grid-cols-4 gap-8">
-            {/* Logo & Info */}
-            <div className="md:col-span-2">
-              <div className="flex items-center gap-3 mb-4">
-                <LogoImage size={40} />
-                <div>
-                  <h3 className="text-xl font-bold">BluePrint</h3>
-                  <p className="text-xs text-teal-400">{t("مكتب الاستشارات الهندسية", "Engineering Consultancy Office")}</p>
-                </div>
+          <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+            <div className="flex items-center gap-3">
+              <LogoImage size={32} />
+              <div>
+                <h3 className="text-lg font-bold text-white">BluePrint</h3>
+                <p className="text-xs text-stone-500">{t("مكتب الاستشارات الهندسية", "Engineering Consultancy")}</p>
               </div>
-              <p className="text-slate-400 text-sm leading-relaxed max-w-md">
-                {t(
-                  "نقدم خدمات هندسية متكاملة في رأس الخيمة، من التصميم المعماري والإنشائي حتى الإشراف على التنفيذ واستخراج رخص البلدية.",
-                  "We provide comprehensive engineering services in Ras Al Khaimah, from architectural and structural design to construction supervision and municipality permits."
-                )}
-              </p>
             </div>
-
-            {/* Quick Links */}
-            <div>
-              <h4 className="font-semibold mb-4">{t("روابط سريعة", "Quick Links")}</h4>
-              <ul className="space-y-2 text-sm text-slate-400">
-                <li>
-                  <Link href="#services" className="hover:text-teal-400 transition-colors">
-                    {t("خدماتنا", "Services")}
-                  </Link>
-                </li>
-                <li>
-                  <Link href="#projects" className="hover:text-teal-400 transition-colors">
-                    {t("مشاريعنا", "Projects")}
-                  </Link>
-                </li>
-                <li>
-                  <Link href="#about" className="hover:text-teal-400 transition-colors">
-                    {t("من نحن", "About Us")}
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/quote" className="hover:text-teal-400 transition-colors">
-                    {t("طلب عرض سعر", "Get Quote")}
-                  </Link>
-                </li>
-              </ul>
-            </div>
-
-            {/* Contact */}
-            <div>
-              <h4 className="font-semibold mb-4">{t("تواصل معنا", "Contact Us")}</h4>
-              <ul className="space-y-2 text-sm text-slate-400">
-                <li className="flex items-center gap-2">
-                  <Phone className="w-4 h-4 text-teal-400" />
-                  <span dir="ltr">+971 50 161 1234</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <Mail className="w-4 h-4 text-teal-400" />
-                  <span>info.blueprintrak@gmail.com</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <MapPin className="w-4 h-4 text-teal-400" />
-                  <span>{t("رأس الخيمة - الإمارات", "Ras Al Khaimah - UAE")}</span>
-                </li>
-              </ul>
-            </div>
-          </div>
-
-          {/* Bottom */}
-          <div className="border-t border-slate-800 mt-8 pt-8 flex flex-col sm:flex-row items-center justify-between gap-4">
-            <p className="text-sm text-slate-500">
+            <p className="text-stone-500 text-sm">
               © {new Date().getFullYear()} BluePrint. {t("جميع الحقوق محفوظة.", "All rights reserved.")}
             </p>
-            <div className="flex items-center gap-4">
-              <button
-                onClick={toggleLanguage}
-                className="text-sm text-slate-400 hover:text-teal-400 transition-colors flex items-center gap-1"
-              >
-                <Globe className="w-4 h-4" />
-                {language === "ar" ? "English" : "العربية"}
-              </button>
-            </div>
           </div>
         </div>
       </footer>
 
-      {/* ===== BACK TO TOP BUTTON ===== */}
+      {/* Back to Top Button */}
       <AnimatePresence>
         {showScrollTop && (
           <motion.button
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, scale: 0.5 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.5 }}
             onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-            className="fixed bottom-6 end-6 w-12 h-12 bg-gradient-to-r from-teal-500 to-cyan-500 rounded-full shadow-lg shadow-teal-500/30 flex items-center justify-center text-white z-50 hover:shadow-xl transition-shadow"
+            className="fixed bottom-8 end-8 z-50 w-12 h-12 rounded-full bg-stone-900 text-white shadow-lg hover:bg-stone-800 transition-colors flex items-center justify-center"
           >
-            <motion.div
-              animate={{ y: [0, -3, 0] }}
-              transition={{ duration: 1.5, repeat: Infinity }}
-            >
-              <ArrowUpRight className="w-5 h-5 rotate-[-45deg]" />
-            </motion.div>
+            <ArrowUpRight className="w-5 h-5 rotate-[-45deg]" />
           </motion.button>
         )}
       </AnimatePresence>

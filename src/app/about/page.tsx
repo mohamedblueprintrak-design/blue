@@ -19,8 +19,8 @@ import PublicFooter from "@/components/layout/public-footer";
 
 const TEAM_MEMBERS = [
   { name: "م. جراح الطير", title: "المدير العام ومؤسس المكتب", specialty: "هندسة مدنية - إدارة مشاريع" },
-  { name: "م. دينا الغالي", title: "مديرة قسم التصميم المعماري", specialty: "تصميم معماري" },
-  { name: "م. شريف", title: "مدير قسم التصميم الإنشائي", specialty: "هندسة إنشائية" },
+  { name: "م. دسنا الجاعلي", title: "مديرة قسم التصميم المعماري", specialty: "تصميم معماري" },
+  { name: "م. شريف صبري", title: "مدير قسم التصميم الإنشائي", specialty: "هندسة إنشائية" },
 ];
 
 const LICENSES = [
