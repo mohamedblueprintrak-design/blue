@@ -9,9 +9,17 @@
 // In production, JWT_SECRET is also mandatory (enforced in validate())
 const requiredEnvVars = ['DATABASE_URL'] as const;
 
+// Generate a deterministic dev-only JWT secret so the app works out-of-the-box locally.
+// In production, JWT_SECRET MUST be set via environment (enforced below).
+function generateDevSecret(): string {
+  // Deterministic 48-char base64 string for local development only.
+  // This is NOT secure — it only prevents the app from crashing in dev mode.
+  return 'dev-only-do-not-use-in-prod-blueprint-secret-key-2024!';
+}
+
 // Optional environment variables with defaults
 const envDefaults = {
-  JWT_SECRET: '', // No default - must be set via environment for security
+  JWT_SECRET: process.env.NODE_ENV === 'development' ? generateDevSecret() : '',
   NEXT_PUBLIC_APP_URL: 'http://localhost:3000',
   NODE_ENV: 'development',
 } as const;
@@ -84,9 +92,25 @@ export const env = {
         secret.includes('change-me') ||
         secret.includes('change_this') ||
         secret.includes('your_') ||
+        secret.includes('dev-only') ||
+        secret.includes('placeholder') ||
         secret === 'blueprint-dev-secret-do-not-use-in-production-min32chars!'
       ) {
-        missing.push('JWT_SECRET (must not be a placeholder)');
+        missing.push('JWT_SECRET (must not be a placeholder or dev secret)');
+      }
+
+      // SECURITY: NEXTAUTH_SECRET is mandatory in production (dual-auth system)
+      const nextauthSecret = process.env.NEXTAUTH_SECRET;
+      if (!nextauthSecret || nextauthSecret.length < 32) {
+        missing.push('NEXTAUTH_SECRET (min 32 chars)');
+      } else if (
+        nextauthSecret.includes('change-me') ||
+        nextauthSecret.includes('change_this') ||
+        nextauthSecret.includes('your_') ||
+        nextauthSecret.includes('dev-only') ||
+        nextauthSecret.includes('placeholder')
+      ) {
+        missing.push('NEXTAUTH_SECRET (must not be a placeholder)');
       }
     }
     

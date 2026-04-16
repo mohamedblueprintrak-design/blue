@@ -13,8 +13,14 @@
  * RATE LIMITING NOTE:
  * Rate limiting uses in-memory storage (Map), which is suitable for
  * single-instance deployments. For multi-instance production deployments,
- * consider using Redis-backed rate limiting or an external service
- * (Cloudflare Rate Limiting, Nginx limit_req, etc.).
+ * use Redis-backed rate limiting via src/lib/rate-limiter.ts in API routes,
+ * or an external service (Cloudflare Rate Limiting, Nginx limit_req, etc.).
+ *
+ * PRODUCTION WARNING: In-memory rate limiting does NOT work correctly across
+ * multiple server replicas. Each replica has its own Map store, so an attacker
+ * can send N * replica_count requests before being rate-limited.
+ * Solution: Use the rate-limiter.ts (Redis-backed) in API routes, and configure
+ * Nginx or Cloudflare rate limiting at the reverse proxy layer.
  */
 
 import { NextRequest, NextResponse } from 'next/server';
