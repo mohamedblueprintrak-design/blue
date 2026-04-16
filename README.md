@@ -1,7 +1,7 @@
 # <div align="center">
   <img src="public/logo.png" alt="BluePrint" width="80" height="80" style="border-radius: 16px; margin-bottom: 8px;" />
   <br/>
-  <strong>BluePrint</strong>
+  <strong>BluePrint Engineering Consultancy</strong>
   <br/>
   <span>نظام إدارة مكاتب الاستشارات الهندسية</span>
   <br/>
@@ -16,9 +16,30 @@
 ![Prisma](https://img.shields.io/badge/Prisma-6-2d3748?logo=prisma)
 ![License](https://img.shields.io/badge/License-MIT-green)
 
-نظام متكامل لإدارة مكاتب الاستشارات الهندسية في الإمارات العربية المتحدة. يدعم اللغة العربية (RTL) والإنجليزية مع 9 أدوار مستخدمين و 39 صفحة تغطي كل المجالات.
+نظام متكامل لإدارة مكاتب الاستشارات الهندسية في الإمارات العربية المتحدة. يدعم اللغة العربية (RTL) والإنجليزية مع 9 أدوار مستخدمين و 62 صفحة تغطي كل المجالات.
 
-A comprehensive management system for engineering consultancy offices in the UAE. Supports Arabic (RTL) and English with 9 user roles and 39 pages covering all business domains.
+A comprehensive management system for engineering consultancy offices in the UAE. Supports Arabic (RTL) and English with 9 user roles and 62 pages covering all business domains.
+
+---
+
+## 🏢 About BluePrint
+
+**BluePrint Engineering Consultancy** is a professional engineering consultancy office based in Ras Al Khaimah, UAE. Founded in 2025, we specialize in:
+
+- **Architectural Design** - Creative and innovative architectural designs
+- **Structural Design** - Precise and reliable structural engineering
+- **MEP Design** - Electrical, mechanical, plumbing, and fire fighting systems
+- **Municipality Permits** - Building permits from RAK Municipality
+- **Construction Supervision** - Engineering supervision across all phases
+- **Engineering Consultation** - Specialized consultation services
+
+### 👥 Our Team
+
+| Name | Position | Specialty |
+|---|---|---|
+| م. جراح الطير | المدير العام ومؤسس المكتب | هندسة مدنية - إدارة مشاريع |
+| دينا الجاعلي | مديرة قسم التصميم المعماري | تصميم معماري |
+| م. شريف صبري | مدير قسم التصميم الإنشائي | هندسة إنشائية |
 
 ---
 
@@ -91,6 +112,7 @@ A comprehensive management system for engineering consultancy offices in the UAE
 - Markdown formatting
 - Voice input support
 - Export chat as .txt
+- Conversation history saved to database
 
 ### 🔔 Notifications
 - 5 notification types with priority borders
@@ -102,6 +124,7 @@ A comprehensive management system for engineering consultancy offices in the UAE
 - System health monitor
 - Theme customization (light/dark)
 - Keyboard shortcuts overlay (? key)
+- 2FA Authentication (TOTP)
 
 ---
 
@@ -134,8 +157,8 @@ A comprehensive management system for engineering consultancy offices in the UAE
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/YOUR_USERNAME/blueprint-erp.git
-cd blueprint-erp
+git clone https://github.com/mohamedblueprintrak-design/blue.git
+cd blue
 
 # 2. Install dependencies
 npm install
@@ -186,27 +209,33 @@ npm run dev
 ## 📁 Project Structure
 
 ```
-blueprint-erp/
+blue/
 ├── prisma/
-│   ├── schema.prisma       # 47 database tables
+│   ├── schema.prisma       # 86 database models
 │   └── seed.ts             # Demo data
 ├── src/
 │   ├── app/
-│   │   ├── page.tsx        # SPA entry point
-│   │   ├── login/page.tsx  # Login page
-│   │   └── api/            # 34 API routes
+│   │   ├── page.tsx        # Landing page
+│   │   ├── dashboard/      # Dashboard pages
+│   │   ├── login/          # Login page
+│   │   ├── about/          # About page
+│   │   ├── services/       # Services page
+│   │   ├── quote/          # Quote request page
+│   │   ├── calculator/     # Cost calculator
+│   │   └── api/            # 160+ API routes
 │   ├── components/
-│   │   ├── pages/          # 39 page components
+│   │   ├── pages/          # 62 page components
 │   │   ├── layout/         # App layout, sidebar, breadcrumbs
 │   │   └── ui/             # 48 shadcn/ui components
 │   ├── hooks/              # Custom React hooks
 │   ├── lib/
-│   │   ├── i18n.ts         # 404 bilingual keys
+│   │   ├── i18n.ts         # Bilingual keys
 │   │   ├── permissions.ts  # 9-role permission matrix
 │   │   ├── db.ts           # Prisma client
 │   │   └── export-utils.ts # CSV export utility
 │   └── styles/globals.css  # Tailwind + custom CSS
 ├── db/                     # SQLite database
+├── public/                 # Static assets
 └── .env.example            # Environment template
 ```
 
@@ -230,12 +259,12 @@ blueprint-erp/
 
 | Metric | Count |
 |---|---|
-| Pages | 39 |
-| API Routes | 34 |
+| Total Lines of Code | 159,481 |
+| Page Components | 62 |
+| API Routes | 160+ |
 | UI Components | 48 |
-| Database Tables | 47 |
-| Translation Keys | 404 |
-| Lines of Code | ~36,000+ |
+| Database Models | 86 |
+| Translation Keys | 404+ |
 | Keyboard Shortcuts | 12 |
 | Data Charts | 6 |
 
@@ -259,6 +288,14 @@ npx prisma db seed
 
 ---
 
+## 📞 Contact
+
+- **Phone**: +971 50 161 1234
+- **Email**: info.blueprintrak@gmail.com
+- **Location**: Ras Al Khaimah, UAE
+
+---
+
 ## 📝 License
 
 MIT License - Free for personal and commercial use.
@@ -269,7 +306,9 @@ MIT License - Free for personal and commercial use.
 
 Designed specifically for the UAE market with:
 - Arabic RTL-first design
-- UAE municipality tracking (Dubai, Abu Dhabi, Sharjah, etc.)
+- UAE municipality tracking (Ras Al Khaimah)
 - AED currency support
 - Governmental project SLA tracking
 - Multi-role access control
+- Video background landing page
+- Professional dark theme UI

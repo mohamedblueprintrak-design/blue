@@ -86,7 +86,7 @@ export function validateEnvironment(): EnvValidationResult {
     const demoMode = process.env.DEMO_MODE;
     if (demoMode === 'true' || demoMode !== 'false') {
       errors.push('DEMO_MODE must be set to "false" in production');
-    } }
+    }
 
     // DATABASE_URL validation
     const databaseUrl = process.env.DATABASE_URL;

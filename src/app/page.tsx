@@ -230,9 +230,10 @@ function AnimatedText({ text, language }: { text: string; language: "ar" | "en" 
   );
 }
 
-// ==================== HERO PARALLAX IMAGE ====================
-function ParallaxHeroImage() {
+// ==================== HERO VIDEO BACKGROUND ====================
+function HeroVideoBackground() {
   const ref = useRef(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
   const { scrollYProgress } = useScroll({
     target: ref,
     offset: ["start start", "end start"],
@@ -240,17 +241,31 @@ function ParallaxHeroImage() {
   const y = useTransform(scrollYProgress, [0, 1], ["0%", "30%"]);
   const opacity = useTransform(scrollYProgress, [0, 0.5], [1, 0]);
 
+  useEffect(() => {
+    if (videoRef.current) {
+      videoRef.current.playbackRate = 0.75;
+    }
+  }, []);
+
   return (
     <motion.div ref={ref} className="absolute inset-0 overflow-hidden">
       <motion.div style={{ y, opacity }} className="absolute inset-0">
-        <Image
-          src="/hero-bg.png"
-          alt="Engineering Architecture"
-          fill
-          className="object-cover"
-          priority
-        />
-        <div className="absolute inset-0 bg-gradient-to-b from-stone-900/90 via-stone-900/80 to-stone-900/95" />
+        {/* Video Background */}
+        <video
+          ref={videoRef}
+          autoPlay
+          loop
+          muted
+          playsInline
+          className="absolute inset-0 w-full h-full object-cover"
+          style={{ filter: "brightness(0.4)" }}
+        >
+          <source src="https://typefive.b-cdn.net/design-system-hero-new.mp4" type="video/mp4" />
+        </video>
+        {/* Navy Blue Overlay */}
+        <div className="absolute inset-0 bg-gradient-to-b from-[#0a1628]/90 via-[#0a1628]/80 to-[#0a1628]/95" />
+        {/* Subtle Blue Tint */}
+        <div className="absolute inset-0 bg-gradient-to-br from-[#1e3a5f]/20 via-transparent to-[#0f2744]/30" />
       </motion.div>
     </motion.div>
   );
@@ -273,7 +288,7 @@ function ProjectCard({
       initial={{ opacity: 0, y: 40 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, amount: 0.2 }}
-      transition={{ delay: index * 0.1, duration: 0.6, ease: "easeOut" }}
+      transition={{ delay: index * 0.1, duration: 0.6, ease: "easeOut" as const }}
       className="group relative overflow-hidden rounded-2xl cursor-pointer"
     >
       <div className="relative aspect-[4/3] overflow-hidden">
@@ -492,7 +507,7 @@ export default function LandingPage() {
 
       {/* ===== HERO SECTION - TYPEFIVE STYLE ===== */}
       <section className="relative pt-20 min-h-screen overflow-hidden">
-        <ParallaxHeroImage />
+        <HeroVideoBackground />
 
         {/* Subtle Grid Pattern */}
         <div className="absolute inset-0 opacity-[0.03]">
@@ -534,7 +549,7 @@ export default function LandingPage() {
             <motion.div
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, ease: "easeOut" }}
+              transition={{ duration: 0.8, ease: "easeOut" as const }}
             >
               <h1 className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-light text-white leading-tight tracking-tight">
                 <span className="block">{t("منزل لأحلامك.", "A home for your dreams.")}</span>
@@ -544,7 +559,7 @@ export default function LandingPage() {
             <motion.div
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.2, ease: "easeOut" }}
+              transition={{ duration: 0.8, delay: 0.2, ease: "easeOut" as const }}
             >
               <h2 className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-light text-stone-400 mt-4 leading-tight">
                 <AnimatedText 
@@ -561,7 +576,7 @@ export default function LandingPage() {
             <motion.div
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.4, ease: "easeOut" }}
+              transition={{ duration: 0.8, delay: 0.4, ease: "easeOut" as const }}
               className="mt-12 flex flex-col sm:flex-row items-center justify-center gap-4"
             >
               <Link href="/quote">
@@ -595,7 +610,7 @@ export default function LandingPage() {
             <motion.div
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.6, ease: "easeOut" }}
+              transition={{ duration: 0.8, delay: 0.6, ease: "easeOut" as const }}
               className="mt-16 flex flex-wrap items-center justify-center gap-8 text-sm"
             >
               {[
