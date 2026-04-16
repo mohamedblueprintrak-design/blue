@@ -13,9 +13,9 @@ const config: Config = {
   theme: {
         extend: {
                 fontFamily: {
-                        sans: ['var(--font-sans)', 'system-ui', 'sans-serif'],
+                        sans: ['var(--font-jakarta)', 'var(--font-inter)', 'var(--font-sans)', 'system-ui', 'sans-serif'],
                         mono: ['var(--font-mono)', 'monospace'],
-                        arabic: ['var(--font-arabic)', 'Noto Sans Arabic', 'Arial', 'sans-serif'],
+                        arabic: ['var(--font-ibm-plex-arabic)', 'var(--font-arabic)', 'Noto Sans Arabic', 'Arial', 'sans-serif'],
                 },
                 colors: {
                         // BluePrint Brand: Override teal with #133371 navy blue

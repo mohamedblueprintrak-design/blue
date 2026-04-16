@@ -258,16 +258,15 @@ function HeroVideoBackground() {
           muted
           playsInline
           className="absolute inset-0 w-full h-full object-cover"
-          style={{ filter: "brightness(0.4)" }}
-          poster="/hero-poster.jpg"
+          style={{ filter: "brightness(0.9) saturate(1.2)" }}
         >
           <source src="https://typefive.b-cdn.net/design-system-hero-new.mp4" type="video/mp4" />
           {/* Fallback: if CDN video fails, CSS gradient will show through the overlay */}
         </video>
-        {/* Navy Blue Overlay */}
-        <div className="absolute inset-0 bg-gradient-to-b from-[#0a1628]/90 via-[#0a1628]/80 to-[#0a1628]/95" />
+        {/* Navy Blue Overlay - reduced for video visibility */}
+        <div className="absolute inset-0 bg-gradient-to-b from-[#0A1628]/30 via-[#0A1628]/20 to-[#0A1628]/60" />
         {/* Subtle Blue Tint */}
-        <div className="absolute inset-0 bg-gradient-to-br from-[#1e3a5f]/20 via-transparent to-[#0f2744]/30" />
+        <div className="absolute inset-0 bg-gradient-to-br from-[#2563EB]/5 via-transparent to-[#0F2557]/8" />
       </motion.div>
     </motion.div>
   );
@@ -300,10 +299,10 @@ function ProjectCard({
           fill
           className="object-cover transition-transform duration-700 group-hover:scale-110"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-stone-900/90 via-stone-900/40 to-transparent opacity-60 group-hover:opacity-80 transition-opacity duration-300" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#0B1D3A]/90 via-[#0B1D3A]/40 to-transparent opacity-60 group-hover:opacity-80 transition-opacity duration-300" />
         
         <div className="absolute top-4 start-4">
-          <span className="px-3 py-1.5 bg-white/90 backdrop-blur-sm rounded-full text-xs font-medium text-stone-700">
+          <span className="px-3 py-1.5 bg-white/90 backdrop-blur-sm rounded-full text-xs font-medium text-[#0B1D3A]">
             {t(project.category, project.categoryEn)}
           </span>
         </div>
@@ -313,7 +312,7 @@ function ProjectCard({
           whileHover={{ opacity: 1, scale: 1 }}
           className="absolute top-4 end-4 w-10 h-10 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300"
         >
-          <ArrowUpRight className="w-5 h-5 text-stone-700" />
+          <ArrowUpRight className="w-5 h-5 text-[#0B1D3A]" />
         </motion.div>
       </div>
 
@@ -421,7 +420,7 @@ export default function LandingPage() {
   };
 
   return (
-    <div className="min-h-screen bg-stone-50" dir={language === "ar" ? "rtl" : "ltr"}>
+    <div className="min-h-screen bg-[#F8FAFF]" dir={language === "ar" ? "rtl" : "ltr"} style={{ fontFamily: "var(--font-ibm-plex-arabic), var(--font-jakarta), system-ui, sans-serif" }}>
       {/* ===== HEADER - TYPEFIVE STYLE ===== */}
       <header className="fixed top-0 left-0 right-0 z-50 transition-all duration-300">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -431,19 +430,19 @@ export default function LandingPage() {
               <LogoImage size={40} />
               <div>
                 <h1 className="text-lg font-bold text-white">BluePrint</h1>
-                <p className="text-[10px] text-stone-400 font-medium">
+                <p className="text-[10px] text-blue-200/80 font-medium">
                   {t("مكتب الاستشارات الهندسية", "Engineering Consultancy")}
                 </p>
               </div>
             </Link>
 
             {/* Desktop Nav */}
-            <nav className="hidden md:flex items-center gap-1 bg-white/10 backdrop-blur-lg rounded-full px-2">
+            <nav className="hidden md:flex items-center gap-1 bg-white/[0.08] backdrop-blur-xl rounded-full px-2 border border-white/[0.12]">
               {NAV_LINKS.map((link) => (
                 <Link
                   key={link.href + link.labelEn}
                   href={link.href}
-                  className="px-4 py-3 text-sm text-stone-300 hover:text-white transition-colors font-medium relative group"
+                  className="px-4 py-3 text-sm text-blue-100/80 hover:text-white transition-colors font-medium relative group"
                 >
                   {t(link.label, link.labelEn)}
                   <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-0 h-0.5 bg-white rounded-full transition-all duration-300 group-hover:w-4" />
@@ -451,7 +450,7 @@ export default function LandingPage() {
               ))}
               <button
                 onClick={toggleLanguage}
-                className="px-3 py-2 text-xs font-medium text-stone-400 hover:text-white transition-colors"
+                className="px-3 py-2 text-xs font-medium text-blue-200/80 hover:text-white transition-colors"
               >
                 {language === "ar" ? "EN" : "عربي"}
               </button>
@@ -460,7 +459,7 @@ export default function LandingPage() {
             {/* CTA Button */}
             <div className="hidden md:flex items-center gap-4">
               <Link href="/quote">
-                <Button className="bg-stone-900 hover:bg-stone-800 text-white rounded-full px-8 py-3 text-sm font-medium transition-all duration-300 hover:scale-105">
+                <Button className="bg-gradient-to-r from-[#0F2557] to-[#1A4A8B] hover:from-[#1A4A8B] hover:to-[#2563EB] text-white rounded-full px-8 py-3 text-sm font-semibold tracking-wide shadow-[0_4px_20px_rgba(15,37,87,0.4)] transition-all duration-300 hover:scale-105 hover:shadow-[0_6px_30px_rgba(15,37,87,0.5)]">
                   {t("ابدأ مشروعك", "Start Your Project")}
                 </Button>
               </Link>
@@ -483,7 +482,7 @@ export default function LandingPage() {
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: "auto" }}
               exit={{ opacity: 0, height: 0 }}
-              className="md:hidden bg-stone-900/95 backdrop-blur-lg border-t border-stone-800 overflow-hidden"
+              className="md:hidden bg-[#0A1628]/95 backdrop-blur-xl border-t border-[#1A4A8B]/20 overflow-hidden"
             >
               <div className="px-4 py-3 space-y-1">
                 {NAV_LINKS.map((link) => (
@@ -491,13 +490,13 @@ export default function LandingPage() {
                     key={link.href + link.labelEn}
                     href={link.href}
                     onClick={() => setMobileMenuOpen(false)}
-                    className="block px-3 py-2.5 text-sm text-stone-300 hover:text-white transition-colors font-medium"
+                    className="block px-3 py-2.5 text-sm text-blue-100 hover:text-white transition-colors font-medium"
                   >
                     {t(link.label, link.labelEn)}
                   </Link>
                 ))}
                 <Link href="/quote" onClick={() => setMobileMenuOpen(false)}>
-                  <Button className="w-full mt-2 bg-white text-stone-900 rounded-full">
+                  <Button className="w-full mt-2 bg-white text-[#0B1D3A] rounded-full">
                     {t("ابدأ مشروعك", "Start Your Project")}
                   </Button>
                 </Link>
@@ -530,7 +529,7 @@ export default function LandingPage() {
             opacity: [0.05, 0.1, 0.05],
           }}
           transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute top-20 -start-20 w-96 h-96 rounded-full bg-amber-500/20 blur-3xl"
+          className="absolute top-20 -start-20 w-96 h-96 rounded-full bg-blue-500/15 blur-3xl"
         />
         <motion.div
           animate={{
@@ -538,7 +537,7 @@ export default function LandingPage() {
             opacity: [0.05, 0.1, 0.05],
           }}
           transition={{ duration: 5, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
-          className="absolute bottom-10 -end-20 w-96 h-96 rounded-full bg-stone-500/20 blur-3xl"
+          className="absolute bottom-10 -end-20 w-96 h-96 rounded-full bg-[#1A4A8B]/20 blur-3xl"
         />
 
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 sm:py-32 lg:py-40">
@@ -553,7 +552,7 @@ export default function LandingPage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, ease: "easeOut" as const }}
             >
-              <h1 className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-light text-white leading-tight tracking-tight">
+              <h1 className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-light text-white leading-[1.1] tracking-tight">
                 <span className="block">{t("منزل لأحلامك.", "A home for your dreams.")}</span>
               </h1>
             </motion.div>
@@ -563,7 +562,7 @@ export default function LandingPage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.2, ease: "easeOut" as const }}
             >
-              <h2 className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-light text-stone-400 mt-4 leading-tight">
+              <h2 className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-light text-blue-100/90 mt-4 leading-[1.15]" style={{ textShadow: "0 2px 20px rgba(0,0,0,0.15)" }}>
                 <AnimatedText 
                   text={t(
                     "نصمم ونبني بأعلى معايير الجودة والاحترافية",
@@ -586,7 +585,7 @@ export default function LandingPage() {
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                 >
-                  <Button className="w-full sm:w-auto px-10 h-14 text-base bg-white text-stone-900 hover:bg-stone-100 rounded-full shadow-xl transition-all duration-300">
+                  <Button className="w-full sm:w-auto px-10 h-14 text-base bg-white text-[#0A1628] hover:bg-blue-50 rounded-full shadow-[0_0_40px_rgba(255,255,255,0.15),0_4px_20px_rgba(15,37,87,0.25)] transition-all duration-300 font-semibold tracking-wide">
                     {t("ابدأ مشروعك الآن", "Start Your Project Now")}
                     <ArrowUpRight className="w-5 h-5 ms-2" />
                   </Button>
@@ -599,7 +598,7 @@ export default function LandingPage() {
                 >
                   <Button
                     variant="outline"
-                    className="w-full sm:w-auto px-10 h-14 text-base border-stone-600 text-stone-300 hover:bg-stone-800 hover:text-white rounded-full backdrop-blur-sm"
+                    className="w-full sm:w-auto px-10 h-14 text-base border-2 border-white/25 text-white hover:bg-white/15 hover:border-white/40 rounded-full backdrop-blur-md shadow-[0_4px_20px_rgba(0,0,0,0.1)] transition-all duration-300 font-semibold tracking-wide"
                   >
                     <Phone className="w-5 h-5 me-2" />
                     {t("اتصل بنا", "Call Us")}
@@ -620,7 +619,7 @@ export default function LandingPage() {
                 { labelAr: "+180 عميل", labelEn: "+180 Clients", icon: Users },
                 { labelAr: "فريق متخصص", labelEn: "Specialized Team", icon: Award },
               ].map((item) => (
-                <div key={item.labelEn} className="flex items-center gap-2 text-stone-400">
+                <div key={item.labelEn} className="flex items-center gap-2 text-blue-200/70">
                   <item.icon className="w-4 h-4" />
                   <span>{t(item.labelAr, item.labelEn)}</span>
                 </div>
@@ -634,14 +633,14 @@ export default function LandingPage() {
           <svg viewBox="0 0 1440 100" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full">
             <path
               d="M0 50L48 45C96 40 192 30 288 28C384 26 480 32 576 40C672 48 768 58 864 55C960 52 1056 36 1152 30C1248 24 1344 28 1392 30L1440 32V100H1392C1344 100 1248 100 1152 100C1056 100 960 100 864 100C768 100 672 100 576 100C480 100 384 100 288 100C192 100 96 100 48 100H0V50Z"
-              fill="#fafaf9"
+              fill="#F8FAFF"
             />
           </svg>
         </div>
       </section>
 
       {/* ===== STATS SECTION ===== */}
-      <section className="py-16 sm:py-20 bg-stone-50">
+      <section className="py-16 sm:py-20 bg-[#F8FAFF]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div
             initial="hidden"
@@ -660,16 +659,16 @@ export default function LandingPage() {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ delay: i * 0.1 }}
-                  className="text-center p-8 rounded-2xl bg-white border border-stone-200/60 hover:shadow-lg hover:-translate-y-1 transition-all duration-300"
+                  className="text-center p-8 rounded-2xl bg-white border border-blue-100/50 shadow-[0_1px_3px_rgba(15,37,87,0.04)] hover:shadow-[0_12px_40px_rgba(15,37,87,0.1)] hover:-translate-y-1.5 transition-all duration-400"
                 >
-                  <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-stone-900 mb-4">
+                  <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-[#0F2557] to-[#1A4A8B] mb-4 shadow-[0_4px_12px_rgba(15,37,87,0.2)]">
                     <Icon className="w-7 h-7 text-white" />
                   </div>
-                  <div className="text-4xl font-bold text-stone-900 tabular-nums">
+                  <div className="text-4xl font-bold text-[#0A1628] tabular-nums font-[family-name:var(--font-jakarta)]">
                     {counter.count}
                     {stat.suffix}
                   </div>
-                  <div className="text-sm text-stone-500 mt-1">{t(stat.label, stat.labelEn)}</div>
+                  <div className="text-sm text-[#4A6FA5] mt-1">{t(stat.label, stat.labelEn)}</div>
                 </motion.div>
               );
             })}
@@ -686,14 +685,14 @@ export default function LandingPage() {
             viewport={{ once: true }}
             className="text-center mb-12"
           >
-            <span className="inline-flex items-center gap-2 bg-stone-100 text-stone-700 rounded-full px-4 py-1.5 text-sm font-medium mb-4">
+            <span className="inline-flex items-center gap-2 bg-[#EFF6FF] text-[#1A4A8B] rounded-full px-4 py-1.5 text-sm font-semibold mb-4">
               <Building2 className="w-4 h-4" />
               {t("أعمالنا", "Our Work")}
             </span>
-            <h2 className="text-3xl sm:text-4xl font-bold text-stone-900">
+            <h2 className="text-3xl sm:text-4xl font-bold text-[#0A1628] tracking-tight">
               {t("مشاريع مميزة", "Featured Projects")}
             </h2>
-            <p className="mt-3 text-stone-500 max-w-2xl mx-auto">
+            <p className="mt-3 text-[#4A6FA5] max-w-2xl mx-auto">
               {t(
                 "نعرض لكم مجموعة من أبرز المشاريع التي قمنا بتنفيذها بكفاءة واحترافية عالية",
                 "We present to you a selection of the most prominent projects we have executed"
@@ -724,7 +723,7 @@ export default function LandingPage() {
             <Link href="/dashboard">
               <Button
                 variant="outline"
-                className="px-8 h-12 border-2 border-stone-300 text-stone-700 hover:bg-stone-100 rounded-full"
+                className="px-8 h-12 border-2 border-[#0F2557]/20 text-[#0F2557] hover:bg-[#0F2557] hover:text-white hover:border-[#0F2557] rounded-full font-semibold tracking-wide transition-all duration-300"
               >
                 {t("عرض جميع المشاريع", "View All Projects")}
                 <ArrowUpRight className="w-4 h-4 ms-2" />
@@ -735,7 +734,7 @@ export default function LandingPage() {
       </section>
 
       {/* ===== SERVICES SECTION ===== */}
-      <section id="services" className="py-16 sm:py-24 bg-stone-50">
+      <section id="services" className="py-16 sm:py-24 bg-[#F8FAFF]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -743,14 +742,14 @@ export default function LandingPage() {
             viewport={{ once: true }}
             className="text-center mb-12"
           >
-            <span className="inline-flex items-center gap-2 bg-stone-100 text-stone-700 rounded-full px-4 py-1.5 text-sm font-medium mb-4">
+            <span className="inline-flex items-center gap-2 bg-[#EFF6FF] text-[#1A4A8B] rounded-full px-4 py-1.5 text-sm font-semibold mb-4">
               <Compass className="w-4 h-4" />
               {t("خدماتنا", "Services")}
             </span>
-            <h2 className="text-3xl sm:text-4xl font-bold text-stone-900">
+            <h2 className="text-3xl sm:text-4xl font-bold text-[#0A1628] tracking-tight">
               {t("حلول هندسية شاملة", "Comprehensive Engineering Solutions")}
             </h2>
-            <p className="mt-3 text-stone-500 max-w-2xl mx-auto">
+            <p className="mt-3 text-[#4A6FA5] max-w-2xl mx-auto">
               {t(
                 "نقدم مجموعة متكاملة من الخدمات الهندسية التي تغطي جميع مراحل المشروع",
                 "We offer an integrated suite of engineering services covering all project phases"
@@ -773,13 +772,13 @@ export default function LandingPage() {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ delay: i * 0.1 }}
-                  className="group p-6 bg-white rounded-2xl border border-stone-200/80 hover:border-stone-300 hover:shadow-lg transition-all duration-300 cursor-pointer hover:-translate-y-1"
+                  className="group p-6 bg-white rounded-2xl border border-blue-100/50 hover:border-[#0F2557]/20 hover:shadow-[0_12px_40px_rgba(15,37,87,0.1)] transition-all duration-400 cursor-pointer hover:-translate-y-1.5"
                 >
-                  <div className="w-12 h-12 rounded-xl bg-stone-900 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
+                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#0F2557] to-[#1A4A8B] flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300 shadow-[0_4px_12px_rgba(15,37,87,0.2)]">
                     <Icon className="w-6 h-6 text-white" />
                   </div>
-                  <h3 className="text-lg font-semibold text-stone-900 mb-2">{t(service.title, service.titleEn)}</h3>
-                  <p className="text-sm text-stone-500 leading-relaxed">{t(service.desc, service.descEn)}</p>
+                  <h3 className="text-lg font-semibold text-[#0A1628] mb-2">{t(service.title, service.titleEn)}</h3>
+                  <p className="text-sm text-[#4A6FA5] leading-relaxed">{t(service.desc, service.descEn)}</p>
                 </motion.div>
               );
             })}
@@ -796,14 +795,14 @@ export default function LandingPage() {
             viewport={{ once: true }}
             className="text-center mb-12"
           >
-            <span className="inline-flex items-center gap-2 bg-stone-100 text-stone-700 rounded-full px-4 py-1.5 text-sm font-medium mb-4">
+            <span className="inline-flex items-center gap-2 bg-[#EFF6FF] text-[#1A4A8B] rounded-full px-4 py-1.5 text-sm font-semibold mb-4">
               <Award className="w-4 h-4" />
               {t("من نحن", "About Us")}
             </span>
-            <h2 className="text-3xl sm:text-4xl font-bold text-stone-900">
+            <h2 className="text-3xl sm:text-4xl font-bold text-[#0A1628] tracking-tight">
               {t("لماذا تختار BluePrint؟", "Why Choose BluePrint?")}
             </h2>
-            <p className="mt-3 text-stone-500 max-w-2xl mx-auto">
+            <p className="mt-3 text-[#4A6FA5] max-w-2xl mx-auto">
               {t(
                 "نحن شريكك الهندسي الموثوق في رأس الخيمة - نجمع بين الإبداع والدقة والموثوقية",
                 "Your trusted engineering partner in Ras Al Khaimah - combining creativity, precision, and reliability"
@@ -869,13 +868,13 @@ export default function LandingPage() {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ delay: i * 0.1 }}
-                  className="text-center p-8 rounded-2xl bg-gradient-to-b from-stone-50 to-white border border-stone-200/60 hover:shadow-lg hover:-translate-y-1 transition-all duration-300"
+                  className="text-center p-8 rounded-2xl bg-gradient-to-b from-[#EFF6FF]/80 to-white border border-blue-100/40 hover:shadow-[0_12px_40px_rgba(15,37,87,0.1)] hover:-translate-y-1.5 transition-all duration-400"
                 >
-                  <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-stone-100 text-stone-700 mb-4">
+                  <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-[#EFF6FF] to-[#DBEAFE] text-[#0F2557] mb-4 shadow-[0_2px_8px_rgba(15,37,87,0.08)]">
                     <Icon className="w-7 h-7" />
                   </div>
-                  <h3 className="text-lg font-semibold text-stone-900 mb-2">{t(item.title, item.titleEn)}</h3>
-                  <p className="text-sm text-stone-500 leading-relaxed">{t(item.desc, item.descEn)}</p>
+                  <h3 className="text-lg font-semibold text-[#0A1628] mb-2">{t(item.title, item.titleEn)}</h3>
+                  <p className="text-sm text-[#4A6FA5] leading-relaxed">{t(item.desc, item.descEn)}</p>
                 </motion.div>
               );
             })}
@@ -884,7 +883,7 @@ export default function LandingPage() {
       </section>
 
       {/* ===== CONTACT SECTION ===== */}
-      <section className="py-16 sm:py-24 bg-stone-900 relative overflow-hidden">
+      <section className="py-16 sm:py-24 bg-gradient-to-br from-[#0A1628] via-[#0F2557] to-[#0A1628] relative overflow-hidden">
         <div className="absolute inset-0 opacity-[0.03]">
           <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
             <defs>
@@ -904,12 +903,12 @@ export default function LandingPage() {
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
             >
-              <span className="inline-flex items-center gap-2 bg-white/10 border border-white/20 rounded-full px-4 py-1.5 text-stone-300 text-sm font-medium mb-6">
+              <span className="inline-flex items-center gap-2 bg-white/10 border border-white/20 rounded-full px-4 py-1.5 text-blue-200 text-sm font-medium mb-6">
                 <MessageCircle className="w-4 h-4" />
                 {t("تواصل معنا", "Contact Us")}
               </span>
               <h2 className="text-3xl sm:text-4xl font-bold text-white">{t("ابدأ مشروعك الآن", "Start Your Project Now")}</h2>
-              <p className="mt-4 text-stone-400 leading-relaxed max-w-lg">
+              <p className="mt-4 text-blue-200/80 leading-relaxed max-w-lg">
                 {t(
                   "أخبرنا عن مشروعك وسنقدم لك استشارة مجانية وعرض سعر تفصيلي خلال 24 ساعة",
                   "Tell us about your project and we'll provide a free consultation and detailed quote within 24 hours"
@@ -919,29 +918,29 @@ export default function LandingPage() {
               <div className="mt-10 space-y-6">
                 <div className="flex items-start gap-4">
                   <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center shrink-0">
-                    <Phone className="w-5 h-5 text-stone-300" />
+                    <Phone className="w-5 h-5 text-blue-200" />
                   </div>
                   <div>
                     <div className="text-white font-medium">{t("اتصل بنا", "Call Us")}</div>
-                    <div className="text-stone-400 text-sm mt-1" dir="ltr">+971 50 161 1234</div>
+                    <div className="text-blue-200 text-sm mt-1" dir="ltr">+971 50 161 1234</div>
                   </div>
                 </div>
                 <div className="flex items-start gap-4">
                   <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center shrink-0">
-                    <Mail className="w-5 h-5 text-stone-300" />
+                    <Mail className="w-5 h-5 text-blue-200" />
                   </div>
                   <div>
                     <div className="text-white font-medium">{t("البريد الإلكتروني", "Email")}</div>
-                    <div className="text-stone-400 text-sm mt-1">info.blueprintrak@gmail.com</div>
+                    <div className="text-blue-200 text-sm mt-1">info.blueprintrak@gmail.com</div>
                   </div>
                 </div>
                 <div className="flex items-start gap-4">
                   <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center shrink-0">
-                    <MapPin className="w-5 h-5 text-stone-300" />
+                    <MapPin className="w-5 h-5 text-blue-200" />
                   </div>
                   <div>
                     <div className="text-white font-medium">{t("العنوان", "Address")}</div>
-                    <div className="text-stone-400 text-sm mt-1">{t("رأس الخيمة - الإمارات", "Ras Al Khaimah - UAE")}</div>
+                    <div className="text-blue-200 text-sm mt-1">{t("رأس الخيمة - الإمارات", "Ras Al Khaimah - UAE")}</div>
                   </div>
                 </div>
               </div>
@@ -956,14 +955,14 @@ export default function LandingPage() {
             >
               {formSuccess ? (
                 <div className="text-center py-10">
-                  <CheckCircle2 className="w-16 h-16 text-stone-700 mx-auto mb-4" />
-                  <h3 className="text-xl font-bold text-stone-900 mb-2">{t("تم إرسال طلبك بنجاح!", "Request Sent Successfully!")}</h3>
-                  <p className="text-stone-500">{t("سنتواصل معك خلال 24 ساعة", "We'll get back to you within 24 hours")}</p>
+                  <CheckCircle2 className="w-16 h-16 text-[#0F2557] mx-auto mb-4" />
+                  <h3 className="text-xl font-bold text-[#0A1628] mb-2">{t("تم إرسال طلبك بنجاح!", "Request Sent Successfully!")}</h3>
+                  <p className="text-[#4A6FA5]">{t("سنتواصل معك خلال 24 ساعة", "We'll get back to you within 24 hours")}</p>
                 </div>
               ) : (
                 <form onSubmit={handleContactSubmit} className="space-y-5">
-                  <h3 className="text-xl font-bold text-stone-900 mb-2">{t("طلب استشارة مجانية", "Free Consultation Request")}</h3>
-                  <p className="text-sm text-stone-500 mb-4">{t("املأ النموذج وسنعود إليك قريباً", "Fill the form and we'll get back to you soon")}</p>
+                  <h3 className="text-xl font-bold text-[#0A1628] mb-2">{t("طلب استشارة مجانية", "Free Consultation Request")}</h3>
+                  <p className="text-sm text-[#4A6FA5] mb-4">{t("املأ النموذج وسنعود إليك قريباً", "Fill the form and we'll get back to you soon")}</p>
 
                   {formError && (
                     <div className="p-3 rounded-lg bg-red-50 border border-red-200 text-red-600 text-sm">{formError}</div>
@@ -971,43 +970,43 @@ export default function LandingPage() {
 
                   <div className="grid sm:grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label className="text-stone-700 text-sm">{t("الاسم الكامل", "Full Name")}</Label>
+                      <Label className="text-[#0A1628] text-sm">{t("الاسم الكامل", "Full Name")}</Label>
                       <Input
                         placeholder={t("أدخل اسمك", "Enter your name")}
                         value={formName}
                         onChange={(e) => setFormName(e.target.value)}
                         required
-                        className="h-11 border-stone-200 focus:border-stone-500 focus:ring-2 focus:ring-stone-500/20"
+                        className="h-11 border-blue-100 focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/20"
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label className="text-stone-700 text-sm">{t("رقم الهاتف", "Phone Number")}</Label>
+                      <Label className="text-[#0A1628] text-sm">{t("رقم الهاتف", "Phone Number")}</Label>
                       <Input
                         placeholder="+971 XX XXX XXXX"
                         value={formPhone}
                         onChange={(e) => setFormPhone(e.target.value)}
                         required
                         dir="ltr"
-                        className="h-11 border-stone-200 focus:border-stone-500 focus:ring-2 focus:ring-stone-500/20 text-left"
+                        className="h-11 border-blue-100 focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/20 text-left"
                       />
                     </div>
                   </div>
 
                   <div className="space-y-2">
-                    <Label className="text-stone-700 text-sm">{t("البريد الإلكتروني", "Email")}</Label>
+                    <Label className="text-[#0A1628] text-sm">{t("البريد الإلكتروني", "Email")}</Label>
                     <Input
                       type="email"
                       placeholder="example@email.com"
                       value={formEmail}
                       onChange={(e) => setFormEmail(e.target.value)}
-                      className="h-11 border-stone-200 focus:border-stone-500 focus:ring-2 focus:ring-stone-500/20"
+                      className="h-11 border-blue-100 focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/20"
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <Label className="text-stone-700 text-sm">{t("نوع الخدمة", "Service Type")}</Label>
+                    <Label className="text-[#0A1628] text-sm">{t("نوع الخدمة", "Service Type")}</Label>
                     <Select value={formType} onValueChange={setFormType} required>
-                      <SelectTrigger className="h-11 border-stone-200">
+                      <SelectTrigger className="h-11 border-blue-100">
                         <SelectValue placeholder={t("اختر نوع الخدمة", "Select service type")} />
                       </SelectTrigger>
                       <SelectContent>
@@ -1022,20 +1021,20 @@ export default function LandingPage() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label className="text-stone-700 text-sm">{t("تفاصيل المشروع", "Project Details")}</Label>
+                    <Label className="text-[#0A1628] text-sm">{t("تفاصيل المشروع", "Project Details")}</Label>
                     <Textarea
                       placeholder={t("أخبرنا عن مشروعك...", "Tell us about your project...")}
                       value={formMessage}
                       onChange={(e) => setFormMessage(e.target.value)}
                       rows={3}
-                      className="border-stone-200 focus:border-stone-500 focus:ring-2 focus:ring-stone-500/20 resize-none"
+                      className="border-blue-100 focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/20 resize-none"
                     />
                   </div>
 
                   <Button
                     type="submit"
                     disabled={formSubmitting}
-                    className="w-full h-12 bg-stone-900 hover:bg-stone-800 text-white rounded-full text-base font-medium transition-all duration-300"
+                    className="w-full h-12 bg-gradient-to-r from-[#0F2557] to-[#1A4A8B] hover:from-[#1A4A8B] hover:to-[#2563EB] text-white rounded-full text-base font-semibold tracking-wide shadow-[0_4px_20px_rgba(15,37,87,0.3)] transition-all duration-300"
                   >
                     {formSubmitting ? (
                       <span className="flex items-center gap-2">
@@ -1054,17 +1053,17 @@ export default function LandingPage() {
       </section>
 
       {/* ===== FOOTER ===== */}
-      <footer className="bg-stone-950 py-12">
+      <footer className="bg-[#060E1F] py-12 border-t border-white/[0.06]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col md:flex-row items-center justify-between gap-6">
             <div className="flex items-center gap-3">
               <LogoImage size={32} />
               <div>
                 <h3 className="text-lg font-bold text-white">BluePrint</h3>
-                <p className="text-xs text-stone-500">{t("مكتب الاستشارات الهندسية", "Engineering Consultancy")}</p>
+                <p className="text-xs text-blue-300/60">{t("مكتب الاستشارات الهندسية", "Engineering Consultancy")}</p>
               </div>
             </div>
-            <p className="text-stone-500 text-sm">
+            <p className="text-blue-200/40 text-sm">
               © {new Date().getFullYear()} BluePrint. {t("جميع الحقوق محفوظة.", "All rights reserved.")}
             </p>
           </div>
@@ -1079,7 +1078,7 @@ export default function LandingPage() {
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.5 }}
             onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-            className="fixed bottom-8 end-8 z-50 w-12 h-12 rounded-full bg-stone-900 text-white shadow-lg hover:bg-stone-800 transition-colors flex items-center justify-center"
+            className="fixed bottom-8 end-8 z-50 w-12 h-12 rounded-full bg-gradient-to-br from-[#0F2557] to-[#1A4A8B] text-white shadow-[0_4px_20px_rgba(15,37,87,0.4)] hover:shadow-[0_6px_30px_rgba(15,37,87,0.5)] hover:scale-110 transition-all duration-300 flex items-center justify-center"
           >
             <ArrowUpRight className="w-5 h-5 rotate-[-45deg]" />
           </motion.button>
