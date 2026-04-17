@@ -7,7 +7,6 @@ import { Menu, X, Calculator, Globe } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import LogoImage from "@/components/ui/logo-image";
 import { useLanguage } from "@/hooks/use-lang";
-import { useLanguage } from "@/hooks/use-lang";
 
 const NAV_LINKS = [
   { href: "/", labelAr: "الرئيسية", labelEn: "Home" },
