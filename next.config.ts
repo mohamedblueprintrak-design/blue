@@ -12,6 +12,44 @@ const nextConfig: NextConfig = {
   // Turbopack is the default bundler in Next.js 16
   turbopack: {},
 
+  // Optimize barrel-file imports to reduce chunk sizes and avoid ChunkLoadError
+  experimental: {
+    optimizePackageImports: [
+      'recharts',
+      'framer-motion',
+      'lucide-react',
+      '@radix-ui/react-accordion',
+      '@radix-ui/react-alert-dialog',
+      '@radix-ui/react-aspect-ratio',
+      '@radix-ui/react-avatar',
+      '@radix-ui/react-checkbox',
+      '@radix-ui/react-collapsible',
+      '@radix-ui/react-context-menu',
+      '@radix-ui/react-dialog',
+      '@radix-ui/react-dropdown-menu',
+      '@radix-ui/react-hover-card',
+      '@radix-ui/react-label',
+      '@radix-ui/react-menubar',
+      '@radix-ui/react-navigation-menu',
+      '@radix-ui/react-popover',
+      '@radix-ui/react-progress',
+      '@radix-ui/react-radio-group',
+      '@radix-ui/react-scroll-area',
+      '@radix-ui/react-select',
+      '@radix-ui/react-separator',
+      '@radix-ui/react-slider',
+      '@radix-ui/react-switch',
+      '@radix-ui/react-tabs',
+      '@radix-ui/react-toast',
+      '@radix-ui/react-toggle',
+      '@radix-ui/react-toggle-group',
+      '@radix-ui/react-tooltip',
+      'date-fns',
+      'react-day-picker',
+      'embla-carousel-react',
+    ],
+  },
+
   // Packages that must not be bundled for the client
   serverExternalPackages: [
     'bcryptjs',
@@ -61,7 +99,17 @@ const nextConfig: NextConfig = {
 
   // Security headers
   async headers() {
+    const isDev = process.env.NODE_ENV === 'development';
     return [
+      {
+        // _next/static chunks — prevent caching in dev to avoid stale chunk errors
+        source: '/_next/static/:path*',
+        headers: [
+          ...(isDev ? [
+            { key: 'Cache-Control', value: 'no-store, no-cache, must-revalidate' },
+          ] : []),
+        ],
+      },
       {
         // API routes — stricter CSP, CORS headers
         source: '/api/:path*',
