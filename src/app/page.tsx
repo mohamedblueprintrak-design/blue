@@ -949,6 +949,24 @@ export default function LandingPage() {
                     <div className="text-blue-200 text-sm mt-1">{t("رأس الخيمة - الإمارات", "Ras Al Khaimah - UAE")}</div>
                   </div>
                 </div>
+                <div className="flex items-start gap-4">
+                  <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center shrink-0">
+                    <Clock className="w-5 h-5 text-blue-200" />
+                  </div>
+                  <div>
+                    <div className="text-white font-medium">{t("ساعات العمل", "Working Hours")}</div>
+                    <div className="text-blue-200 text-sm mt-1">{t("الأحد - الخميس: 8:30 ص - 2:00 م / 5:00 م - 8:30 م", "Sun - Thu: 8:30 AM - 2:00 PM / 5:00 PM - 8:30 PM")}</div>
+                  </div>
+                </div>
+                <div className="flex items-start gap-4">
+                  <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center shrink-0">
+                    <Clock className="w-5 h-5 text-blue-200" />
+                  </div>
+                  <div>
+                    <div className="text-white font-medium">{t("الجمعة", "Friday")}</div>
+                    <div className="text-blue-200 text-sm mt-1">{t("8:00 ص - 12:00 م", "8:00 AM - 12:00 PM")}</div>
+                  </div>
+                </div>
               </div>
             </motion.div>
 
