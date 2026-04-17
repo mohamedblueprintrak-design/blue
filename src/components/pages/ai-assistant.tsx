@@ -557,6 +557,7 @@ export default function AIAssistant({ language: lang, projectId }: Props) {
   const [isLoading, setIsLoading] = useState(false);
   const [conversationId, setConversationId] = useState(() => `conv-${Date.now()}`);
   const [selectedModelId, setSelectedModelId] = useState<string>(() => {
+    if (typeof window === 'undefined') return 'zai-default';
     return localStorage.getItem('bp_selected_model') || 'zai-default';
   });
   const [availableModels, setAvailableModels] = useState<Array<{

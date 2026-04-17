@@ -204,17 +204,20 @@ export async function apiGet<T>(
   params?: Record<string, string | number | boolean | undefined>,
   token?: string | null,
 ): Promise<ApiResponse<T>> {
-  const url = new URL(endpoint, window.location.origin);
-
-  if (params) {
+  let url: string;
+  if (params && Object.keys(params).length > 0) {
+    const qs = new URLSearchParams();
     Object.entries(params).forEach(([key, value]) => {
       if (value !== undefined) {
-        url.searchParams.append(key, String(value));
+        qs.append(key, String(value));
       }
     });
+    url = `${endpoint}?${qs.toString()}`;
+  } else {
+    url = endpoint;
   }
 
-  const response = await fetch(url.toString(), {
+  const response = await fetch(url, {
     method: 'GET',
     headers: getDefaultHeaders(token, 'GET'),
     credentials: 'include',
@@ -258,15 +261,18 @@ export async function apiDelete<T>(
   params?: Record<string, string>,
   token?: string | null,
 ): Promise<ApiResponse<T>> {
-  const url = new URL(endpoint, window.location.origin);
-
-  if (params) {
+  let url: string;
+  if (params && Object.keys(params).length > 0) {
+    const qs = new URLSearchParams();
     Object.entries(params).forEach(([key, value]) => {
-      url.searchParams.append(key, value);
+      qs.append(key, value);
     });
+    url = `${endpoint}?${qs.toString()}`;
+  } else {
+    url = endpoint;
   }
 
-  const response = await fetch(url.toString(), {
+  const response = await fetch(url, {
     method: 'DELETE',
     headers: getDefaultHeaders(token, 'DELETE'),
     credentials: 'include',
