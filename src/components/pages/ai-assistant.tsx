@@ -556,7 +556,42 @@ export default function AIAssistant({ language: lang, projectId }: Props) {
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [conversationId, setConversationId] = useState(() => `conv-${Date.now()}`);
-  const selectedModel = "gpt-4"; // Fixed - server auto-configures model via z-ai-web-dev-sdk
+  const [selectedModelId, setSelectedModelId] = useState<string>(() => {
+    return localStorage.getItem('bp_selected_model') || 'zai-default';
+  });
+  const [availableModels, setAvailableModels] = useState<Array<{
+    id: string;
+    name: string;
+    provider: string;
+    providerName: string;
+    supportsVision: boolean;
+  }>>([{ id: 'zai-default', name: 'BluePrint AI (Built-in)', provider: 'zai', providerName: 'BluePrint AI', supportsVision: true }]);
+
+  // Fetch available models on mount
+  useEffect(() => {
+    const fetchModels = async () => {
+      try {
+        const res = await fetch('/api/ai/providers');
+        if (res.ok) {
+          const data = await res.json();
+          if (data.success && data.data?.models) {
+            setAvailableModels(data.data.models);
+            const serverDefault = data.data.defaultModel;
+            const current = localStorage.getItem('bp_selected_model');
+            const exists = current && data.data.models.some((m: { id: string }) => m.id === current);
+            if (!exists) {
+              const smartDefault = serverDefault || 'zai-default';
+              setSelectedModelId(smartDefault);
+              localStorage.setItem('bp_selected_model', smartDefault);
+            }
+          }
+        }
+      } catch { /* keep defaults */ }
+    };
+    fetchModels();
+  }, []);
+
+  const selectedModel = selectedModelId;
   const [clearDialogOpen, setClearDialogOpen] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [conversations, setConversations] = useState<ConversationMeta[]>([]);
@@ -759,6 +794,7 @@ export default function AIAssistant({ language: lang, projectId }: Props) {
           language: lang,
           projectId,
           model: selectedModel,
+          modelId: selectedModelId,
         }),
       });
 
@@ -902,6 +938,7 @@ export default function AIAssistant({ language: lang, projectId }: Props) {
           language: lang,
           projectId,
           model: selectedModel,
+          modelId: selectedModelId,
         }),
       });
 
@@ -1066,11 +1103,14 @@ export default function AIAssistant({ language: lang, projectId }: Props) {
                   ) : (
                     <div className="p-2 space-y-1">
                       {conversations.map((conv) => (
-                        <button
+                        <div
                           key={conv.id}
+                          role="button"
+                          tabIndex={0}
                           onClick={() => loadConversation(conv)}
+                          onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); loadConversation(conv); } }}
                           className={cn(
-                            "w-full group flex items-start gap-2.5 p-2.5 rounded-lg text-start transition-all hover:bg-slate-50 dark:hover:bg-slate-800/50",
+                            "w-full group flex items-start gap-2.5 p-2.5 rounded-lg text-start transition-all hover:bg-slate-50 dark:hover:bg-slate-800/50 cursor-pointer",
                             conv.id === conversationId &&
                               "bg-teal-50 dark:bg-teal-950/20 border border-teal-200 dark:border-teal-800/50"
                           )}
@@ -1100,7 +1140,7 @@ export default function AIAssistant({ language: lang, projectId }: Props) {
                           >
                             <Trash2 className="h-3 w-3 text-slate-400 hover:text-red-500" />
                           </button>
-                        </button>
+                        </div>
                       ))}
                     </div>
                   )}

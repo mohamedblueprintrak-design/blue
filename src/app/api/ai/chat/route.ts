@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import ZAI from 'z-ai-web-dev-sdk';
 import { db } from '@/lib/db';
 import { validateBody, aiChatSchema } from '@/lib/api-validation';
+import { providerRegistry } from '@/lib/ai/providers/registry';
+import type { ChatMessage } from '@/lib/ai/providers/types';
 
 // Note: We now use database persistence instead of in-memory storage
 // The conversation history is now saved in AIChatConversation and AIChatMessage tables
@@ -829,32 +831,97 @@ Guidelines:
 - Provide actionable insights and recommendations when relevant
 - Keep responses focused on the engineering consultancy domain${contextSection}`;
 
-    let zai;
-    try {
-      zai = await ZAI.create();
-    } catch {
-      return NextResponse.json({
-        error: 'AI_SERVICE_UNAVAILABLE',
-        message: language === 'ar'
-          ? 'عذراً، خدمة المساعد الذكي غير متاحة حالياً. يرجى المحاولة لاحقاً.'
-          : 'Sorry, the AI assistant service is currently unavailable. Please try again later.',
-      }, { status: 503 });
-    }
+    // ============================================
+    // Multi-Provider AI Call with ZAI fallback
+    // ============================================
+    const modelId = (body as Record<string, unknown>).modelId as string | undefined || 'zai-default';
+    const { provider, model } = providerRegistry.parseModelId(modelId);
 
-    const completion = await zai.chat.completions.create({
-      messages: [
-        {
-          role: 'system',
-          content: systemPrompt,
-        },
-        ...history.slice(0, -1), // All history except the current user message (already in history)
+    let aiMessage = '';
+    let usedProvider = provider;
+    let usedModel = model;
+
+    if (provider === 'zai') {
+      // Try built-in ZAI SDK first, then fall back to external providers
+      let zaiAvailable = false;
+      try {
+        const zai = await ZAI.create();
+        const completion = await zai.chat.completions.create({
+          messages: [
+            { role: 'system', content: systemPrompt },
+            ...history.slice(0, -1),
+            { role: 'user', content: message },
+          ],
+          temperature: 0.7,
+          max_tokens: 1500,
+        });
+        aiMessage = completion.choices[0]?.message?.content || '';
+        usedModel = 'zai-default';
+        zaiAvailable = true;
+      } catch (zaiError) {
+        console.warn('[AI] Built-in ZAI SDK unavailable, falling back to external provider:', zaiError instanceof Error ? zaiError.message : zaiError);
+      }
+
+      // Fallback: use first available external provider
+      if (!zaiAvailable) {
+        const fallbackProvider = providerRegistry.getFirstAvailableExternalProvider();
+        if (fallbackProvider) {
+          const extProvider = providerRegistry.getProvider(fallbackProvider.providerId);
+          if (extProvider) {
+            const chatMessages: ChatMessage[] = [
+              { role: 'system', content: systemPrompt },
+              ...history.slice(0, -1).map((m: { role: string; content: string }) => ({
+                role: m.role as 'user' | 'assistant' | 'system',
+                content: m.content,
+              })),
+              { role: 'user', content: message },
+            ];
+            aiMessage = await extProvider.chat(chatMessages, {
+              model: fallbackProvider.model,
+              temperature: 0.7,
+              maxTokens: 1500,
+            });
+            usedProvider = fallbackProvider.providerId;
+            usedModel = fallbackProvider.model;
+          }
+        }
+      }
+
+      if (!aiMessage) {
+        return NextResponse.json({
+          error: 'AI_SERVICE_UNAVAILABLE',
+          message: language === 'ar'
+            ? 'عذراً، خدمة المساعد الذكي غير متاحة. يرجى إضافة API Key لأحد المزودين في ملف .env'
+            : 'AI assistant unavailable. Please add an API key for one of the providers in your .env file',
+        }, { status: 503 });
+      }
+    } else {
+      // Use external provider (OpenAI, Gemini, DeepSeek, etc.)
+      const externalProvider = providerRegistry.getProvider(provider);
+      if (!externalProvider) {
+        return NextResponse.json({
+          error: 'PROVIDER_NOT_CONFIGURED',
+          message: language === 'ar'
+            ? `المزود "${provider}" غير متوفر. يرجى إضافة API Key في ملف .env`
+            : `Provider "${provider}" is not available. Please check API key in .env`,
+        }, { status: 400 });
+      }
+
+      const chatMessages: ChatMessage[] = [
+        { role: 'system', content: systemPrompt },
+        ...history.slice(0, -1).map((m: { role: string; content: string }) => ({
+          role: m.role as 'user' | 'assistant' | 'system',
+          content: m.content,
+        })),
         { role: 'user', content: message },
-      ],
-      temperature: 0.7,
-      max_tokens: 1500,
-    });
+      ];
 
-    const aiMessage = completion.choices[0]?.message?.content || '';
+      aiMessage = await externalProvider.chat(chatMessages, {
+        model,
+        temperature: 0.7,
+        maxTokens: 1500,
+      });
+    }
 
     // Save AI response to database
     await db.aIChatMessage.create({
@@ -862,8 +929,8 @@ Guidelines:
         conversationId,
         role: 'assistant',
         content: aiMessage,
-        tokens: completion.usage?.total_tokens || 0,
-        model: 'z-ai-default',
+        tokens: 0,
+        model: usedModel,
       },
     });
 
@@ -880,6 +947,8 @@ Guidelines:
     return NextResponse.json({
       message: aiMessage,
       conversationId,
+      provider: usedProvider,
+      model: usedModel,
     });
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
