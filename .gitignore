@@ -58,3 +58,17 @@ server.log
 playwright-report/
 coverage/
 test-results/
+
+# npm cache (should not be committed)
+.npm/
+
+# logs directory
+logs/
+
+# database files
+db/*.db
+db/*.db-journal
+db/*.db-wal
+
+# upload directory (user uploads)
+upload/

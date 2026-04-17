@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { motion, AnimatePresence, useScroll, useTransform } from "framer-motion";
@@ -29,7 +29,9 @@ const SERVICES_DETAIL = [
   {
     icon: Building2,
     title: "التصميم المعماري",
+    titleEn: "Architectural Design",
     desc: "نقدم تصاميم معمارية إبداعية ومبتكرة تراعي احتياجات العملاء ومتطلبات بلدية رأس الخيمة. تشمل خدماتنا التصميم المفاهيمي والتصميم التفصيلي وثلاثي الأبعاد.",
+    descEn: "We deliver creative and innovative architectural designs that meet client needs and RAK Municipality requirements. Our services include conceptual design, detailed design, and 3D modeling.",
     features: [
       "المخططات المعمارية التفصيلية",
       "تصميم واجهات المباني",
@@ -38,11 +40,21 @@ const SERVICES_DETAIL = [
       "تصاميم المناظر الطبيعية",
       "مخططات الإسقاط والقطاعات",
     ],
+    featuresEn: [
+      "Detailed architectural plans",
+      "Building facade design",
+      "3D models",
+      "Furniture and equipment layouts",
+      "Landscape designs",
+      "Projection and section plans",
+    ],
   },
   {
     icon: HardHat,
     title: "التصميم الإنشائي",
+    titleEn: "Structural Design",
     desc: "تصاميم إنشائية دقيقة وموثوقة تضمن سلامة وأمان المباني. نستخدم أحدث البرامج والتقنيات لإعداد الحسابات الإنشائية ومخططات التسليح.",
+    descEn: "Precise and reliable structural designs ensuring building safety and security. We use the latest software and technologies for structural calculations and reinforcement detailing.",
     features: [
       "الحسابات الإنشائية",
       "مخططات التسليح التفصيلية",
@@ -51,11 +63,21 @@ const SERVICES_DETAIL = [
       "تقارير الجيوتقنية",
       "دراسات الحمل الزلزالي",
     ],
+    featuresEn: [
+      "Structural calculations",
+      "Detailed reinforcement drawings",
+      "Foundation design",
+      "Concrete and steel structure design",
+      "Geotechnical reports",
+      "Seismic load studies",
+    ],
   },
   {
     icon: Zap,
     title: "التصميم الكهربائي والميكانيكي",
+    titleEn: "Electrical & Mechanical Design",
     desc: "تصاميم MEP متكاملة تشمل أنظمة الكهرباء والتكييف والسباكة والغاز وأنظمة مكافحة الحريق، وفقاً لمعايير الدفاع المدني وبلدية رأس الخيمة.",
+    descEn: "Comprehensive MEP designs including electrical, HVAC, plumbing, gas, and fire suppression systems, in accordance with Civil Defense and RAK Municipality standards.",
     features: [
       "تصميم الأنظمة الكهربائية",
       "تصميم أنظمة التكييف (HVAC)",
@@ -64,11 +86,21 @@ const SERVICES_DETAIL = [
       "تصميم أنظمة المراقبة والأمن",
       "تصميم أنظمة الاتصالات",
     ],
+    featuresEn: [
+      "Electrical systems design",
+      "HVAC systems design",
+      "Plumbing and drainage design",
+      "Fire suppression systems design",
+      "Surveillance and security design",
+      "Communications systems design",
+    ],
   },
   {
     icon: FileCheck,
     title: "رخص البلدية",
+    titleEn: "Municipality Licenses",
     desc: "خدمة شاملة لاستخراج رخص البناء من بلدية رأس الخيمة. نتولى جميع إجراءات التقديم والمتابعة حتى الحصول على الموافقة.",
+    descEn: "Comprehensive service for obtaining building permits from RAK Municipality. We handle all submission and follow-up procedures until approval is granted.",
     features: [
       "مراجعة المخططات والتأكد من توافقها",
       "إعداد مستندات التقديم",
@@ -77,11 +109,21 @@ const SERVICES_DETAIL = [
       "الحصول على رخصة البناء",
       "تجديد الرخص المعمارية",
     ],
+    featuresEn: [
+      "Plan review and compliance check",
+      "Submission document preparation",
+      "Approval procedure follow-up",
+      "Municipality comments resolution",
+      "Building permit acquisition",
+      "Architectural license renewal",
+    ],
   },
   {
     icon: Shield,
     title: "رخص الدفاع المدني",
+    titleEn: "Civil Defense Licenses",
     desc: "نحصل على موافقات الدفاع المدني وشهادات السلامة لجميع أنواع المشاريع، مع ضمان التوافق الكامل مع متطلبات السلامة.",
+    descEn: "We obtain Civil Defense approvals and safety certificates for all project types, ensuring full compliance with safety requirements.",
     features: [
       "تصميم أنظمة السلامة",
       "إعداد ملفات الدفاع المدني",
@@ -90,11 +132,21 @@ const SERVICES_DETAIL = [
       "الحصول على شهادة الإنجاز",
       "تحديث شهادات السلامة",
     ],
+    featuresEn: [
+      "Safety systems design",
+      "Civil Defense file preparation",
+      "Approval procedure follow-up",
+      "System inspection and testing",
+      "Completion certificate acquisition",
+      "Safety certificate updates",
+    ],
   },
   {
     icon: Eye,
     title: "إشراف التنفيذ",
+    titleEn: "Construction Supervision",
     desc: "إشراف هندسي دقيق على جميع مراحل التنفيذ لضمان تنفيذ المخططات بالشكل المطلوب وتحقيق أعلى معايير الجودة والسلامة.",
+    descEn: "Precise engineering supervision throughout all construction phases to ensure plans are executed as required, achieving the highest quality and safety standards.",
     features: [
       "إعداد خطة الإشراف",
       "مراجعة أعمال المقاولين",
@@ -103,11 +155,21 @@ const SERVICES_DETAIL = [
       "مراجعة المستخلصات",
       "تسليم المشروع",
     ],
+    featuresEn: [
+      "Supervision plan preparation",
+      "Contractor work review",
+      "Material quality control",
+      "Periodic report preparation",
+      "Payment certificates review",
+      "Project handover",
+    ],
   },
   {
     icon: ClipboardCheck,
     title: "الفحص الهندسي",
+    titleEn: "Engineering Inspection",
     desc: "فحوصات هندسية شاملة للمباني القائمة والمشاريع تحت التنفيذ، مع تقديم تقارير مفصلة وتوصيات فنية دقيقة.",
+    descEn: "Comprehensive engineering inspections for existing buildings and projects under construction, with detailed reports and precise technical recommendations.",
     features: [
       "الفحص البصري والميداني",
       "اختبارات الخرسانة",
@@ -116,11 +178,21 @@ const SERVICES_DETAIL = [
       "تقييم سلامة المبنى",
       "تقارير فنية مفصلة",
     ],
+    featuresEn: [
+      "Visual and field inspection",
+      "Concrete testing",
+      "Rebar inspection",
+      "Electrical and mechanical systems inspection",
+      "Building safety assessment",
+      "Detailed technical reports",
+    ],
   },
   {
     icon: KeyRound,
     title: "مشاريع المفاتيح",
+    titleEn: "Turnkey Projects",
     desc: "مشاريع متكاملة من التصميم حتى التسليم بالمفتاح. نتولى إدارة المشروع بالكامل من التخطيط والتصميم حتى البناء والتشطيب والتسليم.",
+    descEn: "Integrated projects from design to turnkey delivery. We manage the entire project from planning and design through construction, finishing, and handover.",
     features: [
       "دراسة الجدوى",
       "التصميم الكامل",
@@ -129,38 +201,56 @@ const SERVICES_DETAIL = [
       "التشطيب والتجهيز",
       "التسليم بالمفتاح",
     ],
+    featuresEn: [
+      "Feasibility study",
+      "Complete design",
+      "Contract management",
+      "Construction supervision",
+      "Finishing and outfitting",
+      "Turnkey delivery",
+    ],
   },
 ];
 
 const PROCESS_STEPS = [
-  { step: 1, title: "الاستشارة الأولية", desc: "نستمع لاحتياجاتك ونفهم متطلبات مشروعك في اجتماع مجاني", icon: Building2 },
-  { step: 2, title: "دراسة الموقع", desc: "نقوم بزيارة ميدانية للموقع وتقييم المتطلبات والتحديات", icon: Eye },
-  { step: 3, title: "التصميم والتخطيط", desc: "نعمل على إعداد التصاميم والمخططات بالتنسيق معك", icon: HardHat },
-  { step: 4, title: "الموافقات الحكومية", desc: "نتولى جميع إجراءات الترخيص والموافقات من الجهات المعنية", icon: FileCheck },
-  { step: 5, title: "التنفيذ والمتابعة", desc: "نشرف على التنفيذ مع تقارير دورية وتحديثات مستمرة", icon: ClipboardCheck },
-  { step: 6, title: "التسليم", desc: "نسلم المشروع وفقاً لأعلى معايير الجودة والسلامة", icon: CheckCircle2 },
+  { step: 1, title: "الاستشارة الأولية", titleEn: "Initial Consultation", desc: "نستمع لاحتياجاتك ونفهم متطلبات مشروعك في اجتماع مجاني", descEn: "We listen to your needs and understand your project requirements in a free meeting", icon: Building2 },
+  { step: 2, title: "دراسة الموقع", titleEn: "Site Study", desc: "نقوم بزيارة ميدانية للموقع وتقييم المتطلبات والتحديات", descEn: "We conduct a field visit to the site and assess requirements and challenges", icon: Eye },
+  { step: 3, title: "التصميم والتخطيط", titleEn: "Design & Planning", desc: "نعمل على إعداد التصاميم والمخططات بالتنسيق معك", descEn: "We prepare designs and plans in coordination with you", icon: HardHat },
+  { step: 4, title: "الموافقات الحكومية", titleEn: "Government Approvals", desc: "نتولى جميع إجراءات الترخيص والموافقات من الجهات المعنية", descEn: "We handle all licensing and approval procedures from relevant authorities", icon: FileCheck },
+  { step: 5, title: "التنفيذ والمتابعة", titleEn: "Execution & Follow-up", desc: "نشرف على التنفيذ مع تقارير دورية وتحديثات مستمرة", descEn: "We supervise execution with periodic reports and continuous updates", icon: ClipboardCheck },
+  { step: 6, title: "التسليم", titleEn: "Handover", desc: "نسلم المشروع وفقاً لأعلى معايير الجودة والسلامة", descEn: "We deliver the project according to the highest quality and safety standards", icon: CheckCircle2 },
 ];
 
 const FAQS = [
   {
     q: "كم تستغرق عملية التصميم المعماري؟",
+    qEn: "How long does the architectural design process take?",
     a: "تختلف المدة حسب حجم المشروع ونوعه. عادةً ما تستغرق فيلا سكنية من 3 إلى 6 أسابيع، بينما قد تحتاج المشاريع التجارية الكبيرة إلى 2-3 أشهر.",
+    aEn: "The duration varies depending on the project size and type. A residential villa typically takes 3 to 6 weeks, while large commercial projects may need 2-3 months.",
   },
   {
     q: "ما هي الرسوم المطلوبة لاستخراج رخصة البناء؟",
+    qEn: "What are the fees for obtaining a building permit?",
     a: "تختلف الرسوم حسب نوع المشروع ومساحته. نقدم استشارة مجانية لتحديد التكاليف المتوقعة. يمكنك استخدام حاسبة التكاليف على موقعنا للحصول على تقدير.",
+    aEn: "Fees vary depending on the project type and area. We offer a free consultation to determine expected costs. You can use the cost calculator on our website for an estimate.",
   },
   {
     q: "هل تقدمون خدمات لمناطق خارج رأس الخيمة؟",
+    qEn: "Do you offer services outside Ras Al Khaimah?",
     a: "نعم، نقدم خدماتنا في جميع إمارات الدولة، لكن تركيزنا الأساسي في رأس الخيمة حيث نمتلك خبرة واسعة بالمتطلبات المحلية.",
+    aEn: "Yes, we offer our services across all emirates, but our primary focus is in Ras Al Khaimah where we have extensive knowledge of local requirements.",
   },
   {
     q: "كيف يمكنني طلب عرض سعر؟",
+    qEn: "How can I request a price quote?",
     a: "يمكنك ملء نموذج طلب عرض السعر على موقعنا أو التواصل معنا عبر الهاتف أو الواتساب. سنقدم لك عرض سعر مفصل خلال 24 ساعة.",
+    aEn: "You can fill out the quote request form on our website or contact us via phone or WhatsApp. We will provide you with a detailed quote within 24 hours.",
   },
   {
     q: "ما أنواع المشاريع التي تتعاملون معها؟",
+    qEn: "What types of projects do you handle?",
     a: "نتعامل مع جميع أنواع المشاريع: الفلل السكنية، العمارات، المباني التجارية، المنشآت الصناعية، المباني الحكومية، والمشاريع الخاصة.",
+    aEn: "We handle all types of projects: residential villas, apartment buildings, commercial buildings, industrial facilities, government buildings, and special projects.",
   },
 ];
 
@@ -221,7 +311,7 @@ function ParallaxBackground() {
           opacity: [0.1, 0.2, 0.1],
         }}
         transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-        className="absolute top-32 end-32 w-64 h-64 rounded-full bg-teal-500/20 blur-3xl"
+        className="absolute top-32 end-32 w-64 h-64 rounded-full bg-[#0F2557]/15 blur-3xl"
       />
       <motion.div
         animate={{
@@ -229,15 +319,15 @@ function ParallaxBackground() {
           opacity: [0.1, 0.15, 0.1],
         }}
         transition={{ duration: 5, repeat: Infinity, ease: "easeInOut", delay: 1.5 }}
-        className="absolute bottom-40 start-32 w-80 h-80 rounded-full bg-cyan-500/15 blur-3xl"
+        className="absolute bottom-40 start-32 w-80 h-80 rounded-full bg-[#1A4A8B]/12 blur-3xl"
       />
     </div>
   );
 }
 
 // Marquee Component
-function ServicesMarquee() {
-  const services = [
+function ServicesMarquee({ language }: { language: "ar" | "en" }) {
+  const servicesAr = [
     "تصميم معماري",
     "تصميم إنشائي",
     "تصميم كهروميكانيكي",
@@ -247,10 +337,21 @@ function ServicesMarquee() {
     "فحص هندسي",
     "مشاريع المفاتيح",
   ];
+  const servicesEn = [
+    "Architectural Design",
+    "Structural Design",
+    "MEP Design",
+    "Municipality Licenses",
+    "Civil Defense Licenses",
+    "Construction Supervision",
+    "Engineering Inspection",
+    "Turnkey Projects",
+  ];
+  const services = language === "ar" ? servicesAr : servicesEn;
 
   return (
-    <div className="relative py-6 bg-gradient-to-r from-teal-600 via-teal-500 to-cyan-500 overflow-hidden">
-      <div className="absolute inset-0 bg-gradient-to-r from-teal-600/50 via-transparent to-cyan-500/50 animate-pulse" />
+    <div className="relative py-6 bg-gradient-to-r from-[#0F2557] via-[#1A4A8B] to-[#0F2557] overflow-hidden">
+      <div className="absolute inset-0 bg-gradient-to-r from-[#0F2557]/50 via-transparent to-[#1A4A8B]/50 animate-pulse" />
       
       <motion.div
         className="flex whitespace-nowrap"
@@ -273,6 +374,28 @@ function ServicesMarquee() {
 
 export default function ServicesPage() {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
+  const [language, setLanguage] = useState<"ar" | "en">("ar");
+
+  useEffect(() => {
+    const saved = localStorage.getItem("blueprint-lang");
+    if (saved === "ar" || saved === "en") setLanguage(saved);
+  }, []);
+
+  // React to language changes from header toggle
+  useEffect(() => {
+    const handleLangChange = () => {
+      const current = localStorage.getItem("blueprint-lang") as "ar" | "en" | null;
+      if (current) setLanguage(current);
+    };
+    window.addEventListener("blueprint-lang-change", handleLangChange);
+    window.addEventListener("storage", handleLangChange);
+    return () => {
+      window.removeEventListener("blueprint-lang-change", handleLangChange);
+      window.removeEventListener("storage", handleLangChange);
+    };
+  }, []);
+
+  const t = (ar: string, en: string) => (language === "ar" ? ar : en);
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -289,9 +412,9 @@ export default function ServicesPage() {
               variants={staggerContainer}
             >
               <motion.div variants={fadeInUp} custom={0}>
-                <span className="inline-flex items-center gap-2 bg-teal-500/20 backdrop-blur-sm border border-teal-500/30 rounded-full px-4 py-1.5 text-teal-400 text-sm font-medium mb-4">
+                <span className="inline-flex items-center gap-2 bg-[#0F2557]/15 backdrop-blur-sm border border-[#0F2557]/25 rounded-full px-4 py-1.5 text-blue-200/90 text-sm font-medium mb-4">
                   <Building2 className="w-4 h-4" />
-                  خدماتنا
+                  {t("خدماتنا", "Our Services")}
                 </span>
               </motion.div>
               <motion.h1
@@ -299,21 +422,21 @@ export default function ServicesPage() {
                 custom={1}
                 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white"
               >
-                خدمات هندسية شاملة
+                {t("خدمات هندسية شاملة", "Comprehensive Engineering Services")}
               </motion.h1>
               <motion.p
                 variants={fadeInUp}
                 custom={2}
                 className="mt-4 text-lg text-slate-400 max-w-2xl mx-auto leading-relaxed"
               >
-                نغطي جميع مراحل المشروع من التصميم حتى التسليم بخبرة احترافية
+                {t("نغطي جميع مراحل المشروع من التصميم حتى التسليم بخبرة احترافية", "We cover all project phases from design to delivery with professional expertise")}
               </motion.p>
             </motion.div>
           </div>
         </section>
 
         {/* Marquee */}
-        <ServicesMarquee />
+        <ServicesMarquee language={language} />
 
         {/* Services Detail */}
         <section className="py-16 sm:py-20">
@@ -330,21 +453,21 @@ export default function ServicesPage() {
                     variants={fadeInUp}
                     custom={0}
                     whileHover={{ scale: 1.01 }}
-                    className="bg-white/95 backdrop-blur-md rounded-3xl border border-white/20 shadow-2xl overflow-hidden group cursor-pointer transition-all duration-300 hover:shadow-teal-500/10"
+                    className="bg-white/95 backdrop-blur-md rounded-3xl border border-white/20 shadow-2xl overflow-hidden group cursor-pointer transition-all duration-300 hover:shadow-[#0F2557]/8"
                   >
                     <div className="p-6 sm:p-8">
                       <div className="flex items-start gap-5">
                         <motion.div
                           whileHover={{ scale: 1.1, rotate: 5 }}
-                          className="w-14 h-14 rounded-2xl bg-gradient-to-br from-teal-500 to-cyan-500 flex items-center justify-center shrink-0 shadow-lg shadow-teal-500/20 transition-transform duration-300"
+                          className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#0F2557] to-[#1A4A8B] flex items-center justify-center shrink-0 shadow-lg shadow-[#0F2557]/20 transition-transform duration-300"
                         >
                           <Icon className="w-7 h-7 text-white" />
                         </motion.div>
                         <div className="flex-1">
-                          <h3 className="text-xl font-bold text-slate-900 mb-2 group-hover:text-teal-700 transition-colors">
-                            {service.title}
+                          <h3 className="text-xl font-bold text-slate-900 mb-2 group-hover:text-[#0A1628] transition-colors">
+                            {t(service.title, service.titleEn)}
                           </h3>
-                          <p className="text-sm text-slate-500 leading-relaxed mb-4">{service.desc}</p>
+                          <p className="text-sm text-slate-500 leading-relaxed mb-4">{t(service.desc, service.descEn)}</p>
                           <div className="grid sm:grid-cols-2 gap-2">
                             {service.features.map((feature, fi) => (
                               <motion.div
@@ -355,8 +478,8 @@ export default function ServicesPage() {
                                 viewport={{ once: true }}
                                 className="flex items-center gap-2 text-sm text-slate-600"
                               >
-                                <CheckCircle2 className="w-4 h-4 text-teal-500 shrink-0" />
-                                {feature}
+                                <CheckCircle2 className="w-4 h-4 text-[#0F2557] shrink-0" />
+                                {t(feature, service.featuresEn[fi])}
                               </motion.div>
                             ))}
                           </div>
@@ -379,21 +502,21 @@ export default function ServicesPage() {
               viewport={{ once: true }}
             >
               <motion.div variants={fadeInUp} custom={0} className="text-center mb-12">
-                <span className="inline-flex items-center gap-2 bg-teal-500/20 backdrop-blur-sm border border-teal-500/30 text-teal-400 rounded-full px-4 py-1.5 text-sm font-medium mb-4">
+                <span className="inline-flex items-center gap-2 bg-[#0F2557]/15 backdrop-blur-sm border border-[#0F2557]/25 text-blue-200/90 rounded-full px-4 py-1.5 text-sm font-medium mb-4">
                   <ListOrdered className="w-4 h-4" />
-                  كيف نعمل
+                  {t("كيف نعمل", "How We Work")}
                 </span>
                 <h2 className="text-2xl sm:text-3xl font-bold text-white">
-                  منهجية عملنا
+                  {t("منهجية عملنا", "Our Methodology")}
                 </h2>
                 <p className="mt-2 text-slate-400">
-                  نتبع منهجية واضحة ومجربة لضمان نجاح مشاريع عملائنا
+                  {t("نتبع منهجية واضحة ومجربة لضمان نجاح مشاريع عملائنا", "We follow a clear and proven methodology to ensure our clients' project success")}
                 </p>
               </motion.div>
 
               <motion.div variants={fadeInUp} custom={1} className="relative">
                 {/* Vertical line */}
-                <div className="absolute start-8 top-0 bottom-0 w-0.5 bg-gradient-to-b from-teal-500 via-cyan-500 to-teal-500 hidden sm:block" />
+                <div className="absolute start-8 top-0 bottom-0 w-0.5 bg-gradient-to-b from-[#0F2557] via-[#1A4A8B] to-[#0F2557] hidden sm:block" />
 
                 <div className="space-y-6">
                   {PROCESS_STEPS.map((step, i) => {
@@ -409,18 +532,18 @@ export default function ServicesPage() {
                       >
                         <motion.div
                           whileHover={{ scale: 1.1 }}
-                          className="w-16 h-16 rounded-2xl bg-gradient-to-br from-teal-500 to-cyan-500 flex items-center justify-center shrink-0 text-white font-bold text-lg z-10 shadow-lg shadow-teal-500/20"
+                          className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#0F2557] to-[#1A4A8B] flex items-center justify-center shrink-0 text-white font-bold text-lg z-10 shadow-lg shadow-[#0F2557]/20"
                         >
                           <Icon className="w-7 h-7" />
                         </motion.div>
-                        <div className="bg-white/95 backdrop-blur-md rounded-2xl p-5 sm:p-6 border border-white/20 shadow-lg flex-1 group-hover:shadow-xl group-hover:shadow-teal-500/5 transition-all duration-300">
+                        <div className="bg-white/95 backdrop-blur-md rounded-2xl p-5 sm:p-6 border border-white/20 shadow-lg flex-1 group-hover:shadow-xl group-hover:shadow-[#0F2557]/5 transition-all duration-300">
                           <div className="flex items-center gap-3 mb-2">
-                            <span className="w-7 h-7 rounded-full bg-teal-100 text-teal-700 text-xs font-bold flex items-center justify-center">
+                            <span className="w-7 h-7 rounded-full bg-[#EFF6FF] text-[#0F2557] text-xs font-bold flex items-center justify-center">
                               {step.step}
                             </span>
-                            <h4 className="text-base font-bold text-slate-900">{step.title}</h4>
+                            <h4 className="text-base font-bold text-slate-900">{t(step.title, step.titleEn)}</h4>
                           </div>
-                          <p className="text-sm text-slate-500">{step.desc}</p>
+                          <p className="text-sm text-slate-500">{t(step.desc, step.descEn)}</p>
                         </div>
                       </motion.div>
                     );
@@ -440,11 +563,11 @@ export default function ServicesPage() {
               viewport={{ once: true }}
             >
               <motion.div variants={fadeInUp} custom={0} className="text-center mb-10">
-                <span className="inline-flex items-center gap-2 bg-teal-500/20 backdrop-blur-sm border border-teal-500/30 text-teal-400 rounded-full px-4 py-1.5 text-sm font-medium mb-4">
-                  الأسئلة الشائعة
+                <span className="inline-flex items-center gap-2 bg-[#0F2557]/15 backdrop-blur-sm border border-[#0F2557]/25 text-blue-200/90 rounded-full px-4 py-1.5 text-sm font-medium mb-4">
+                  {t("الأسئلة الشائعة", "FAQ")}
                 </span>
                 <h2 className="text-2xl sm:text-3xl font-bold text-white">
-                  أسئلة متكررة
+                  {t("أسئلة متكررة", "Frequently Asked Questions")}
                 </h2>
               </motion.div>
 
@@ -462,18 +585,18 @@ export default function ServicesPage() {
                     >
                       <button
                         onClick={() => setOpenFaq(isOpen ? null : i)}
-                        className="w-full flex items-center justify-between p-5 text-right cursor-pointer hover:bg-teal-50/50 transition-colors"
+                        className="w-full flex items-center justify-between p-5 text-right cursor-pointer hover:bg-[#EFF6FF]/40 transition-colors"
                       >
-                        <span className="text-sm font-semibold text-slate-900">{faq.q}</span>
+                        <span className="text-sm font-semibold text-slate-900">{t(faq.q, faq.qEn)}</span>
                         <motion.div
                           animate={{ rotate: isOpen ? 180 : 0 }}
                           transition={{ duration: 0.2 }}
-                          className="w-8 h-8 rounded-full bg-teal-100 flex items-center justify-center shrink-0 me-3"
+                          className="w-8 h-8 rounded-full bg-[#EFF6FF] flex items-center justify-center shrink-0 me-3"
                         >
                           {isOpen ? (
-                            <ChevronUp className="w-4 h-4 text-teal-600" />
+                            <ChevronUp className="w-4 h-4 text-[#0F2557]" />
                           ) : (
-                            <ChevronDown className="w-4 h-4 text-teal-600" />
+                            <ChevronDown className="w-4 h-4 text-[#0F2557]" />
                           )}
                         </motion.div>
                       </button>
@@ -486,7 +609,7 @@ export default function ServicesPage() {
                             transition={{ duration: 0.2 }}
                           >
                             <div className="px-5 pb-5 text-sm text-slate-600 leading-relaxed">
-                              {faq.a}
+                              {t(faq.a, faq.aEn)}
                             </div>
                           </motion.div>
                         )}
@@ -501,7 +624,7 @@ export default function ServicesPage() {
 
         {/* CTA */}
         <section className="py-16 relative overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-br from-teal-500 via-teal-600 to-cyan-600" />
+          <div className="absolute inset-0 bg-gradient-to-br from-[#0F2557] to-[#1A4A8B]" />
           <div className="absolute inset-0 opacity-10">
             <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
               <defs>
@@ -524,14 +647,14 @@ export default function ServicesPage() {
                 custom={0}
                 className="text-2xl sm:text-3xl font-bold text-white mb-4"
               >
-                جاهز لبدء مشروعك؟
+                {t("جاهز لبدء مشروعك؟", "Ready to Start Your Project?")}
               </motion.h2>
               <motion.p
                 variants={fadeInUp}
                 custom={1}
-                className="text-teal-100 mb-8 max-w-xl mx-auto"
+                className="text-blue-100 mb-8 max-w-xl mx-auto"
               >
-                تواصل معنا الآن واحصل على استشارة مجانية وعرض سعر خلال 24 ساعة
+                {t("تواصل معنا الآن واحصل على استشارة مجانية وعرض سعر خلال 24 ساعة", "Contact us now and get a free consultation and price quote within 24 hours")}
               </motion.p>
               <motion.div
                 variants={fadeInUp}
@@ -540,9 +663,9 @@ export default function ServicesPage() {
               >
                 <Link href="/quote">
                   <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                    <Button className="w-full sm:w-auto px-8 h-12 bg-white text-teal-600 hover:bg-teal-50 shadow-lg rounded-xl text-base font-semibold">
+                    <Button className="w-full sm:w-auto px-8 h-12 bg-white text-[#0F2557] hover:bg-[#EFF6FF]/60 shadow-lg rounded-xl text-base font-semibold">
                       <Sparkles className="w-4 h-4 me-2" />
-                      طلب عرض سعر
+                      {t("طلب عرض سعر", "Request a Quote")}
                     </Button>
                   </motion.div>
                 </Link>
@@ -552,7 +675,7 @@ export default function ServicesPage() {
                     className="w-full sm:w-auto px-8 h-12 border-white/30 text-white hover:bg-white/10 rounded-xl text-base"
                   >
                     <Phone className="w-4 h-4 me-2" />
-                    اتصل بنا
+                    {t("اتصل بنا", "Call Us")}
                   </Button>
                 </a>
               </motion.div>

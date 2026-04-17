@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useRef } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { motion, AnimatePresence, useScroll, useTransform } from "framer-motion";
@@ -41,32 +41,32 @@ interface PricingData {
 }
 
 const BUILDING_TYPES = [
-  { value: "villa", label: "فيلا", icon: Building2, desc: "سكني خاص" },
-  { value: "apartment", label: "عمارة سكنية", icon: Building2, desc: "متعدد الشقق" },
-  { value: "commercial", label: "تجاري", icon: Store, desc: "مكاتب/محلات" },
-  { value: "industrial", label: "صناعي", icon: Factory, desc: "مصنع/ورشة" },
+  { value: "villa", label: "فيلا", labelEn: "Villa", icon: Building2, desc: "سكني خاص" },
+  { value: "apartment", label: "عمارة سكنية", labelEn: "Apartment Building", icon: Building2, desc: "متعدد الشقق" },
+  { value: "commercial", label: "تجاري", labelEn: "Commercial", icon: Store, desc: "مكاتب/محلات" },
+  { value: "industrial", label: "صناعي", labelEn: "Industrial", icon: Factory, desc: "مصنع/ورشة" },
 ];
 
-const AREA_RANGES: Record<string, { label: string; avgSqm: number }> = {
-  "less-300": { label: "أقل من 300 م²", avgSqm: 250 },
-  "300-500": { label: "300 - 500 م²", avgSqm: 400 },
-  "500-1000": { label: "500 - 1,000 م²", avgSqm: 750 },
-  "1000+": { label: "أكثر من 1,000 م²", avgSqm: 1500 },
+const AREA_RANGES: Record<string, { label: string; labelEn: string; avgSqm: number }> = {
+  "less-300": { label: "أقل من 300 م²", labelEn: "Less than 300 m²", avgSqm: 250 },
+  "300-500": { label: "300 - 500 م²", labelEn: "300 - 500 m²", avgSqm: 400 },
+  "500-1000": { label: "500 - 1,000 م²", labelEn: "500 - 1,000 m²", avgSqm: 750 },
+  "1000+": { label: "أكثر من 1,000 م²", labelEn: "More than 1,000 m²", avgSqm: 1500 },
 };
 
 const FLOOR_OPTIONS = [
-  { value: "1", label: "دور واحد" },
-  { value: "2", label: "دوران" },
-  { value: "3", label: "3 أدوار" },
-  { value: "4", label: "4 أدوار" },
-  { value: "5+", label: "5+ أدوار" },
+  { value: "1", label: "دور واحد", labelEn: "Single Floor" },
+  { value: "2", label: "دوران", labelEn: "Two Floors" },
+  { value: "3", label: "3 أدوار", labelEn: "3 Floors" },
+  { value: "4", label: "4 أدوار", labelEn: "4 Floors" },
+  { value: "5+", label: "5+ أدوار", labelEn: "5+ Floors" },
 ];
 
 const FINISH_LEVELS = [
-  { value: "standard", label: "عادي", multiplier: 1.0, desc: "تشطيب قياسي" },
-  { value: "semi-luxury", label: "فاخر جزئي", multiplier: 1.3, desc: "مواد ممتازة" },
-  { value: "luxury", label: "فاخر", multiplier: 1.6, desc: "تشطيب راقي" },
-  { value: "super-luxury", label: "سوبر لوكس", multiplier: 2.0, desc: "أعلى جودة" },
+  { value: "standard", label: "عادي", labelEn: "Standard", multiplier: 1.0, desc: "تشطيب قياسي", descEn: "Standard finish" },
+  { value: "semi-luxury", label: "فاخر جزئي", labelEn: "Semi-Luxury", multiplier: 1.3, desc: "مواد ممتازة", descEn: "Premium materials" },
+  { value: "luxury", label: "فاخر", labelEn: "Luxury", multiplier: 1.6, desc: "تشطيب راقي", descEn: "Elegant finish" },
+  { value: "super-luxury", label: "سوبر لوكس", labelEn: "Super Luxury", multiplier: 2.0, desc: "أعلى جودة", descEn: "Highest quality" },
 ];
 
 // Base pricing per sqm per building type (AED)
@@ -188,7 +188,7 @@ function ParallaxBackground() {
           opacity: [0.1, 0.2, 0.1],
         }}
         transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
-        className="absolute top-40 end-20 w-72 h-72 rounded-full bg-cyan-500/20 blur-3xl"
+        className="absolute top-40 end-20 w-72 h-72 rounded-full bg-[#1A4A8B]/15 blur-3xl"
       />
       <motion.div
         animate={{
@@ -196,13 +196,34 @@ function ParallaxBackground() {
           opacity: [0.1, 0.15, 0.1],
         }}
         transition={{ duration: 6, repeat: Infinity, ease: "easeInOut", delay: 2 }}
-        className="absolute bottom-60 start-20 w-96 h-96 rounded-full bg-teal-500/15 blur-3xl"
+        className="absolute bottom-60 start-20 w-96 h-96 rounded-full bg-[#0F2557]/8 blur-3xl"
       />
     </div>
   );
 }
 
 export default function CalculatorPage() {
+  const [language, setLanguage] = useState<"ar" | "en">("ar");
+  useEffect(() => {
+    const saved = localStorage.getItem("blueprint-lang") as "ar" | "en" | null;
+    if (saved) setLanguage(saved);
+  }, []);
+
+  // React to language changes from header toggle
+  useEffect(() => {
+    const handleLangChange = () => {
+      const current = localStorage.getItem("blueprint-lang") as "ar" | "en" | null;
+      if (current) setLanguage(current);
+    };
+    window.addEventListener("blueprint-lang-change", handleLangChange);
+    window.addEventListener("storage", handleLangChange);
+    return () => {
+      window.removeEventListener("blueprint-lang-change", handleLangChange);
+      window.removeEventListener("storage", handleLangChange);
+    };
+  }, []);
+  const t = (ar: string, en: string) => (language === "ar" ? ar : en);
+
   const [buildingType, setBuildingType] = useState("villa");
   const [areaRange, setAreaRange] = useState("300-500");
   const [floors, setFloors] = useState("1");
@@ -250,25 +271,29 @@ export default function CalculatorPage() {
 
   const breakdown = [
     {
-      label: "تكلفة التصميم الهندسي",
+      label: t("تكلفة التصميم الهندسي", "Engineering Design Cost"),
+      labelEn: "Engineering Design Cost",
       icon: FileCheck,
-      color: "from-teal-500 to-teal-600",
+      color: "from-[#0F2557] to-[#1A4A8B]",
       data: calculation?.design,
     },
     {
-      label: "رسوم البلدية",
+      label: t("رسوم البلدية", "Municipality Fees"),
+      labelEn: "Municipality Fees",
       icon: Shield,
       color: "from-blue-500 to-blue-600",
       data: calculation?.municipality,
     },
     {
-      label: "رسوم الدفاع المدني",
+      label: t("رسوم الدفاع المدني", "Civil Defense Fees"),
+      labelEn: "Civil Defense Fees",
       icon: HardHat,
       color: "from-amber-500 to-amber-600",
       data: calculation?.civilDefense,
     },
     {
-      label: "تكلفة الإشراف على التنفيذ",
+      label: t("تكلفة الإشراف على التنفيذ", "Construction Supervision Cost"),
+      labelEn: "Construction Supervision Cost",
       icon: Eye,
       color: "from-purple-500 to-purple-600",
       data: calculation?.supervision,
@@ -289,15 +314,18 @@ export default function CalculatorPage() {
             variants={staggerContainer}
             className="text-center mb-10"
           >
-            <motion.div variants={fadeInUp} custom={0} className="inline-flex items-center gap-2 bg-teal-500/20 backdrop-blur-sm border border-teal-500/30 text-teal-400 rounded-full px-4 py-1.5 text-sm font-medium mb-4">
+            <motion.div variants={fadeInUp} custom={0} className="inline-flex items-center gap-2 bg-[#0F2557]/15 backdrop-blur-sm border border-[#0F2557]/25 text-blue-200/90 rounded-full px-4 py-1.5 text-sm font-medium mb-4">
               <Calculator className="w-4 h-4" />
-              حاسبة التكاليف
+              {t("حاسبة التكاليف", "Cost Calculator")}
             </motion.div>
             <motion.h1 variants={fadeInUp} custom={1} className="text-2xl sm:text-3xl font-bold text-white">
-              تقدير تكلفة مشروعك
+              {t("تقدير تكلفة مشروعك", "Estimate Your Project Cost")}
             </motion.h1>
             <motion.p variants={fadeInUp} custom={2} className="text-slate-400 mt-2 max-w-xl mx-auto">
-              أدخل تفاصيل مشروعك واحصل على تقدير تقريبي لتكاليف التصميم والترخيص في رأس الخيمة
+              {t(
+                "أدخل تفاصيل مشروعك واحصل على تقدير تقريبي لتكاليف التصميم والترخيص في رأس الخيمة",
+                "Enter your project details and get an approximate estimate for design and licensing costs in Ras Al Khaimah"
+              )}
             </motion.p>
           </motion.div>
 
@@ -312,15 +340,15 @@ export default function CalculatorPage() {
             >
               <div className="bg-white/95 backdrop-blur-md rounded-3xl p-6 shadow-2xl border border-white/20 space-y-5">
                 <h2 className="text-lg font-semibold text-slate-900 flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-teal-500 to-cyan-500 flex items-center justify-center">
+                  <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#0F2557] to-[#1A4A8B] flex items-center justify-center">
                     <Layers className="w-4 h-4 text-white" />
                   </div>
-                  تفاصيل المشروع
+                  {t("تفاصيل المشروع", "Project Details")}
                 </h2>
 
                 {/* Building Type */}
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-slate-700">نوع المبنى</label>
+                  <label className="text-sm font-medium text-slate-700">{t("نوع المبنى", "Building Type")}</label>
                   <div className="grid grid-cols-2 gap-2">
                     {BUILDING_TYPES.map((b, i) => {
                       const Icon = b.icon;
@@ -334,15 +362,15 @@ export default function CalculatorPage() {
                           onClick={() => { setBuildingType(b.value); setShowResult(false); }}
                           className={`p-3 rounded-2xl border-2 text-center transition-all duration-300 cursor-pointer group ${
                             isSelected
-                              ? "border-teal-500 bg-gradient-to-br from-teal-50 to-cyan-50 shadow-lg shadow-teal-500/10"
-                              : "border-slate-200 hover:border-teal-300 hover:bg-teal-50/50 hover:shadow-md"
+                              ? "border-[#0F2557] bg-gradient-to-br from-[#EFF6FF] to-[#DBEAFE] shadow-lg shadow-[#0F2557]/8"
+                              : "border-slate-200 hover:border-[#1A4A8B] hover:bg-[#EFF6FF]/40 hover:shadow-md"
                           }`}
                         >
                           <Icon className={`w-8 h-8 mx-auto mb-2 transition-all duration-300 ${
-                            isSelected ? "text-teal-500 scale-110" : "text-slate-400 group-hover:text-teal-500"
+                            isSelected ? "text-[#0F2557] scale-110" : "text-slate-400 group-hover:text-[#0F2557]"
                           }`} />
-                          <div className={`text-xs font-medium transition-colors ${isSelected ? "text-teal-700" : "text-slate-700"}`}>
-                            {b.label}
+                          <div className={`text-xs font-medium transition-colors ${isSelected ? "text-[#0A1628]" : "text-slate-700"}`}>
+                            {language === "ar" ? b.label : b.labelEn}
                           </div>
                         </motion.button>
                       );
@@ -352,14 +380,14 @@ export default function CalculatorPage() {
 
                 {/* Area Range */}
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-slate-700">نطاق المساحة</label>
+                  <label className="text-sm font-medium text-slate-700">{t("نطاق المساحة", "Area Range")}</label>
                   <Select value={areaRange} onValueChange={(v) => { setAreaRange(v); setShowResult(false); }}>
-                    <SelectTrigger className="w-full h-12 border-slate-200 rounded-xl hover:border-teal-300 transition-colors">
+                    <SelectTrigger className="w-full h-12 border-slate-200 rounded-xl hover:border-[#1A4A8B] transition-colors">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
                       {Object.entries(AREA_RANGES).map(([key, val]) => (
-                        <SelectItem key={key} value={key}>{val.label}</SelectItem>
+                        <SelectItem key={key} value={key}>{language === "ar" ? val.label : val.labelEn}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
@@ -367,14 +395,14 @@ export default function CalculatorPage() {
 
                 {/* Floors */}
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-slate-700">عدد الأدوار</label>
+                  <label className="text-sm font-medium text-slate-700">{t("عدد الأدوار", "Number of Floors")}</label>
                   <Select value={floors} onValueChange={(v) => { setFloors(v); setShowResult(false); }}>
-                    <SelectTrigger className="w-full h-12 border-slate-200 rounded-xl hover:border-teal-300 transition-colors">
+                    <SelectTrigger className="w-full h-12 border-slate-200 rounded-xl hover:border-[#1A4A8B] transition-colors">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
                       {FLOOR_OPTIONS.map((f) => (
-                        <SelectItem key={f.value} value={f.value}>{f.label}</SelectItem>
+                        <SelectItem key={f.value} value={f.value}>{language === "ar" ? f.label : f.labelEn}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
@@ -382,16 +410,16 @@ export default function CalculatorPage() {
 
                 {/* Finish Level */}
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-slate-700">مستوى التشطيب</label>
+                  <label className="text-sm font-medium text-slate-700">{t("مستوى التشطيب", "Finish Level")}</label>
                   <Select value={finishLevel} onValueChange={(v) => { setFinishLevel(v); setShowResult(false); }}>
-                    <SelectTrigger className="w-full h-12 border-slate-200 rounded-xl hover:border-teal-300 transition-colors">
+                    <SelectTrigger className="w-full h-12 border-slate-200 rounded-xl hover:border-[#1A4A8B] transition-colors">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
                       {FINISH_LEVELS.map((f) => (
                         <SelectItem key={f.value} value={f.value}>
-                          <span>{f.label}</span>
-                          <span className="text-slate-400 text-xs me-2">({f.desc})</span>
+                          <span>{language === "ar" ? f.label : f.labelEn}</span>
+                          <span className="text-slate-400 text-xs me-2">({language === "ar" ? f.desc : f.descEn})</span>
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -401,10 +429,10 @@ export default function CalculatorPage() {
                 <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                   <Button
                     onClick={() => setShowResult(true)}
-                    className="w-full h-12 bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-600 hover:to-cyan-600 text-white shadow-lg shadow-teal-500/20 rounded-xl text-base"
+                    className="w-full h-12 bg-gradient-to-r from-[#0F2557] to-[#1A4A8B] hover:from-[#0A1628] hover:to-[#0F2557] text-white shadow-lg shadow-[#0F2557]/20 rounded-xl text-base"
                   >
                     <TrendingUp className="w-5 h-5 me-2" />
-                    احسب التكلفة
+                    {t("احسب التكلفة", "Calculate Cost")}
                   </Button>
                 </motion.div>
               </div>
@@ -424,7 +452,7 @@ export default function CalculatorPage() {
                     <motion.div
                       variants={fadeInUp}
                       custom={0}
-                      className="bg-gradient-to-br from-teal-500 to-cyan-600 rounded-3xl p-8 text-white shadow-2xl shadow-teal-500/30 relative overflow-hidden"
+                      className="bg-gradient-to-br from-[#0F2557] to-[#1A4A8B] rounded-3xl p-8 text-white shadow-2xl shadow-[#0F2557]/30 relative overflow-hidden"
                     >
                       {/* Animated background pattern */}
                       <div className="absolute inset-0 opacity-10">
@@ -436,7 +464,7 @@ export default function CalculatorPage() {
                       
                       <div className="relative">
                         <div className="flex items-center justify-between mb-3">
-                          <span className="text-teal-100 text-sm">التكلفة التقديرية الإجمالية</span>
+                          <span className="text-blue-200/90 text-sm">{t("التكلفة التقديرية الإجمالية", "Total Estimated Cost")}</span>
                           <motion.div
                             animate={{ rotate: 360 }}
                             transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
@@ -453,8 +481,8 @@ export default function CalculatorPage() {
                         >
                           {formatAED(calculation.total.min)} - {formatAED(calculation.total.max)}
                         </motion.div>
-                        <p className="text-teal-200 text-sm">
-                          للمساحة التقريبية {areaData.label} ({areaData.avgSqm} م²)
+                        <p className="text-blue-200 text-sm">
+                          {t("للمساحة التقريبية", "For approximate area")} {language === "ar" ? areaData.label : areaData.labelEn} ({areaData.avgSqm} م²)
                         </p>
                       </div>
                     </motion.div>
@@ -464,7 +492,7 @@ export default function CalculatorPage() {
                       const Icon = item.icon;
                       return (
                         <motion.div
-                          key={item.label}
+                          key={language === "ar" ? item.label : item.labelEn}
                           variants={fadeInUp}
                           custom={i + 1}
                           whileHover={{ scale: 1.02, x: 5 }}
@@ -496,12 +524,13 @@ export default function CalculatorPage() {
                         <AlertTriangle className="w-5 h-5 text-amber-600" />
                       </div>
                       <div>
-                        <div className="text-sm font-medium text-amber-800">تنبيه مهم</div>
+                        <div className="text-sm font-medium text-amber-800">{t("تنبيه مهم", "Important Notice")}</div>
                         <p className="text-xs text-amber-700 mt-1 leading-relaxed">
-                          هذه الأرقام تقديرية فقط بناءً على متوسط أسعار السوق في رأس الخيمة.
-                          التكلفة الفعلية تعتمد على تفاصيل المشروع ومتطلبات البلدية والدفاع المدني.
-                          للحصول على عرض سعر دقيق، يرجى{" "}
-                          <Link href="/quote" className="underline font-medium hover:text-amber-900">طلب عرض سعر</Link>.
+                          {t(
+                            "هذه الأرقام تقديرية فقط بناءً على متوسط أسعار السوق في رأس الخيمة. التكلفة الفعلية تعتمد على تفاصيل المشروع ومتطلبات البلدية والدفاع المدني. للحصول على عرض سعر دقيق، يرجى",
+                            "These figures are estimates only based on average market prices in Ras Al Khaimah. Actual costs depend on project details and municipality/civil defense requirements. For an accurate quote, please"
+                          )}{" "}
+                          <Link href="/quote" className="underline font-medium hover:text-amber-900">{t("طلب عرض سعر", "Request a Quote")}</Link>.
                         </p>
                       </div>
                     </motion.div>
@@ -514,15 +543,15 @@ export default function CalculatorPage() {
                     >
                       <Link href="/quote" className="flex-1">
                         <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                          <Button className="w-full bg-gradient-to-r from-teal-500 to-cyan-500 text-white shadow-lg shadow-teal-500/20 h-12 rounded-xl">
+                          <Button className="w-full bg-gradient-to-r from-[#0F2557] to-[#1A4A8B] text-white shadow-lg shadow-[#0F2557]/20 h-12 rounded-xl">
                             <Sparkles className="w-4 h-4 me-2" />
-                            طلب عرض سعر مفصل
+                            {t("طلب عرض سعر مفصل", "Request a Detailed Quote")}
                           </Button>
                         </motion.div>
                       </Link>
                       <Link href="/" className="flex-1">
                         <Button variant="outline" className="w-full border-slate-300 text-slate-300 hover:bg-slate-800 hover:text-white h-12 rounded-xl">
-                          العودة للرئيسية
+                          {t("العودة للرئيسية", "Back to Home")}
                         </Button>
                       </Link>
                     </motion.div>
@@ -537,15 +566,18 @@ export default function CalculatorPage() {
                     <motion.div
                       animate={{ y: [0, -10, 0] }}
                       transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-                      className="w-20 h-20 rounded-2xl bg-gradient-to-br from-teal-500 to-cyan-500 flex items-center justify-center mx-auto mb-6 shadow-lg shadow-teal-500/20"
+                      className="w-20 h-20 rounded-2xl bg-gradient-to-br from-[#0F2557] to-[#1A4A8B] flex items-center justify-center mx-auto mb-6 shadow-lg shadow-[#0F2557]/20"
                     >
                       <BarChart3 className="w-10 h-10 text-white" />
                     </motion.div>
                     <h3 className="text-xl font-semibold text-slate-900 mb-3">
-                      جاهز لحساب التكلفة؟
+                      {t("جاهز لحساب التكلفة؟", "Ready to Calculate Cost?")}
                     </h3>
                     <p className="text-sm text-slate-500 max-w-sm mx-auto">
-                      أدخل تفاصيل مشروعك ثم اضغط &quot;احسب التكلفة&quot; للحصول على تقدير فوري
+                      {t(
+                        'أدخل تفاصيل مشروعك ثم اضغط "احسب التكلفة" للحصول على تقدير فوري',
+                        'Enter your project details and click "Calculate Cost" to get an instant estimate'
+                      )}
                     </p>
                   </motion.div>
                 )}

@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
+import { useLanguage } from "@/hooks/use-lang";
 import Image from "next/image";
 import { motion, AnimatePresence, useInView, useScroll, useTransform } from "framer-motion";
 import {
@@ -348,38 +349,27 @@ export default function LandingPage() {
   const [formSuccess, setFormSuccess] = useState(false);
   const [formError, setFormError] = useState("");
   const [showScrollTop, setShowScrollTop] = useState(false);
-  const [language, setLanguage] = useState<"ar" | "en">("ar");
+  const { lang: language, t: tHook } = useLanguage();
+  const [languageState, setLanguageState] = useState<"ar" | "en">(language);
+
+  // Sync the hook's synchronous value with local state for toggle
+  const currentLang = languageState || language;
+  const t = (ar: string, en: string) => (currentLang === "ar" ? ar : en);
 
   useEffect(() => {
-    const saved = localStorage.getItem("blueprint-lang") as "ar" | "en" | null;
-    if (saved) {
-      setLanguage(saved);
-      document.documentElement.dir = saved === "ar" ? "rtl" : "ltr";
-      document.documentElement.lang = saved;
-    }
-  }, []);
-
-  // React to language changes from other components (e.g. PublicHeader on sub-pages)
-  useEffect(() => {
-    const handleLangChange = () => {
-      const current = localStorage.getItem("blueprint-lang") as "ar" | "en" | null;
-      if (current) setLanguage(current);
-    };
-    window.addEventListener("blueprint-lang-change", handleLangChange);
-    return () => window.removeEventListener("blueprint-lang-change", handleLangChange);
-  }, []);
+    setLanguageState(language);
+    document.documentElement.dir = language === "ar" ? "rtl" : "ltr";
+    document.documentElement.lang = language;
+  }, [language]);
 
   const toggleLanguage = () => {
-    const newLang = language === "ar" ? "en" : "ar";
-    setLanguage(newLang);
+    const newLang = currentLang === "ar" ? "en" : "ar";
+    setLanguageState(newLang);
     localStorage.setItem("blueprint-lang", newLang);
     document.documentElement.dir = newLang === "ar" ? "rtl" : "ltr";
     document.documentElement.lang = newLang;
-    // Notify other components about the language change
     window.dispatchEvent(new Event("blueprint-lang-change"));
   };
-
-  const t = (ar: string, en: string) => (language === "ar" ? ar : en);
 
   useEffect(() => {
     let ticking = false;
