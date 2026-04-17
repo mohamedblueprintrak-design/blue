@@ -352,7 +352,21 @@ export default function LandingPage() {
 
   useEffect(() => {
     const saved = localStorage.getItem("blueprint-lang") as "ar" | "en" | null;
-    if (saved) setLanguage(saved);
+    if (saved) {
+      setLanguage(saved);
+      document.documentElement.dir = saved === "ar" ? "rtl" : "ltr";
+      document.documentElement.lang = saved;
+    }
+  }, []);
+
+  // React to language changes from other components (e.g. PublicHeader on sub-pages)
+  useEffect(() => {
+    const handleLangChange = () => {
+      const current = localStorage.getItem("blueprint-lang") as "ar" | "en" | null;
+      if (current) setLanguage(current);
+    };
+    window.addEventListener("blueprint-lang-change", handleLangChange);
+    return () => window.removeEventListener("blueprint-lang-change", handleLangChange);
   }, []);
 
   const toggleLanguage = () => {
@@ -361,6 +375,8 @@ export default function LandingPage() {
     localStorage.setItem("blueprint-lang", newLang);
     document.documentElement.dir = newLang === "ar" ? "rtl" : "ltr";
     document.documentElement.lang = newLang;
+    // Notify other components about the language change
+    window.dispatchEvent(new Event("blueprint-lang-change"));
   };
 
   const t = (ar: string, en: string) => (language === "ar" ? ar : en);

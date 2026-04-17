@@ -40,6 +40,15 @@ export const PROVIDER_CONFIGS: Record<string, ProviderConfig> = {
     supportsVision: false,
     supportsStreaming: true,
   },
+  groq: {
+    name: "Groq",
+    provider: "groq",
+    baseUrl: "https://api.groq.com/openai/v1",
+    apiKeyEnvVar: "GROQ_API_KEY",
+    models: ["llama-3.3-70b-versatile", "llama-3.1-8b-instant", "gemma2-9b-it", "mixtral-8x7b-32768"],
+    supportsVision: false,
+    supportsStreaming: true,
+  },
   deepseek: {
     name: "DeepSeek",
     provider: "deepseek",
@@ -142,7 +151,7 @@ class ProviderRegistry {
     models: string[];
     isBuiltIn: boolean;
   }> {
-    const available = [];
+    const available: Array<{ id: string; name: string; models: string[]; isBuiltIn: boolean }> = [];
     available.push({
       id: "zai",
       name: ZAI_PROVIDER.name,
@@ -172,7 +181,13 @@ class ProviderRegistry {
     providerName: string;
     supportsVision: boolean;
   }> {
-    const models = [];
+    const models: Array<{
+      id: string;
+      name: string;
+      provider: string;
+      providerName: string;
+      supportsVision: boolean;
+    }> = [];
     models.push({
       id: "zai-default",
       name: "BluePrint AI (Built-in)",
@@ -264,7 +279,13 @@ class ProviderRegistry {
     modelCount: number;
     supportsVision: boolean;
   }> {
-    const status = [];
+    const status: Array<{
+      id: string;
+      name: string;
+      configured: boolean;
+      modelCount: number;
+      supportsVision: boolean;
+    }> = [];
     status.push({
       id: "zai",
       name: ZAI_PROVIDER.name,

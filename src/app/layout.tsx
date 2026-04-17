@@ -63,6 +63,12 @@ export default function RootLayout({
           integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
           crossOrigin=""
         />
+        {/* Early script: set language direction BEFORE React hydrates to prevent flash */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var l=localStorage.getItem("blueprint-lang")||"ar";document.documentElement.lang=l;document.documentElement.dir=l==="ar"?"rtl":"ltr"}catch(e){}})()`,
+          }}
+        />
       </head>
       <body
         className={`${ibmPlexArabic.variable} ${plusJakarta.variable} antialiased bg-background text-foreground font-[family-name:var(--font-ibm-plex-arabic)]`}

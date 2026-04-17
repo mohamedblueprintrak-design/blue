@@ -98,6 +98,8 @@ const PUBLIC_API_ROUTES = [
   '/api/health',
   '/api/stripe/webhook',
   '/api/public',
+  '/api/ai/providers',
+  '/api/ai/debug',
 ];
 
 /**
