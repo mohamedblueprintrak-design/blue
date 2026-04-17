@@ -756,7 +756,9 @@ class AuthenticationService {
    * Check if user has a specific permission
    */
   hasPermission(userRole: string, permission: Permission): boolean {
-    const rolePermissions = ROLE_PERMISSIONS[userRole] || [];
+    // Normalize role to uppercase for matching with ROLE_PERMISSIONS keys
+    const normalizedRole = userRole.toUpperCase();
+    const rolePermissions = ROLE_PERMISSIONS[normalizedRole] || ROLE_PERMISSIONS[userRole] || [];
     return rolePermissions.includes(permission);
   }
   
@@ -788,6 +790,16 @@ class AuthenticationService {
       [UserRoleValues.HR]: 50,
       [UserRoleValues.SECRETARY]: 40,
       [UserRoleValues.VIEWER]: 25,
+      // Also support lowercase variants from seed data
+      'admin': 100,
+      'manager': 80,
+      'project_manager': 70,
+      'engineer': 50,
+      'draftsman': 45,
+      'accountant': 50,
+      'hr': 50,
+      'secretary': 40,
+      'viewer': 25,
     };
     
     return (roleHierarchy[userRole] || 0) >= (roleHierarchy[requiredRole] || 0);
@@ -797,7 +809,9 @@ class AuthenticationService {
    * Get all permissions for a role
    */
   getRolePermissions(role: string): Permission[] {
-    return ROLE_PERMISSIONS[role] || [];
+    // Normalize role to uppercase for matching with ROLE_PERMISSIONS keys
+    const normalizedRole = role.toUpperCase();
+    return ROLE_PERMISSIONS[normalizedRole] || ROLE_PERMISSIONS[role] || [];
   }
   
   // ============================================
@@ -1105,11 +1119,11 @@ class AuthenticationService {
     try {
       // Use otplib's verifySync for proper TOTP verification
       // It handles time window drift automatically
-      const result = verifySync({
+      // NOTE: verifySync returns a boolean directly, NOT an object
+      return verifySync({
         secret: secret,
         token: code,
       });
-      return result.valid;
     } catch (error) {
       log.error('TOTP verification error', error);
       return false;

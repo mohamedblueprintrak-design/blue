@@ -208,7 +208,7 @@ export async function getUserFromRequest(request: NextRequest): Promise<Authenti
   
   // Fall back to httpOnly cookie (set during login)
   if (!token) {
-    const tokenCookie = request.cookies.get('token');
+    const tokenCookie = request.cookies.get('blue_token');
     if (tokenCookie?.value) {
       token = tokenCookie.value;
     }

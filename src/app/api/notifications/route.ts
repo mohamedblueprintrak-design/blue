@@ -3,11 +3,16 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(request: NextRequest) {
   try {
+    const userId = request.headers.get('x-user-id');
+    if (!userId) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const { searchParams } = new URL(request.url);
     const filter = searchParams.get('filter') || 'all';
     const projectId = searchParams.get('projectId');
 
-    const where: Record<string, unknown> = {};
+    const where: Record<string, unknown> = { userId };
 
     if (filter === 'unread') {
       where.isRead = false;
@@ -23,7 +28,7 @@ export async function GET(request: NextRequest) {
     });
 
     const unreadCount = await db.notification.count({
-      where: { isRead: false },
+      where: { userId, isRead: false },
     });
 
     return NextResponse.json({
@@ -38,12 +43,17 @@ export async function GET(request: NextRequest) {
 
 export async function PUT(request: NextRequest) {
   try {
+    const userId = request.headers.get('x-user-id');
+    if (!userId) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const body = await request.json();
     const { id, markAllRead } = body;
 
     if (markAllRead) {
       await db.notification.updateMany({
-        where: { isRead: false },
+        where: { userId, isRead: false },
         data: { isRead: true },
       });
       return NextResponse.json({ success: true, message: 'All notifications marked as read' });

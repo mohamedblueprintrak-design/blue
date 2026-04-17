@@ -43,6 +43,7 @@ async function main() {
     },
   });
   logger.info('✅ Admin user created:', adminUser.email);
+  logger.info('🔑 Admin password:', adminPassword);
 
   // ========== 2. Additional Users (matching ROLES in login page) ==========
   const additionalUsers = [
@@ -60,16 +61,17 @@ async function main() {
     { email: 'viewer@blueprint.ae', name: 'عبدالرحمن الزيودي', phone: '+971-50-999-0011', role: 'viewer', department: 'الإدارة', position: 'مشاهد' },
   ];
 
-  const userHash = await bcrypt.hash(generateSecurePassword(), 10);
-  const createdUsers: Record<string, { id: string; name: string }> = {};
+  const userHashes: Record<string, string> = {};
 
   for (const u of additionalUsers) {
+    // Generate a unique password hash for each user
+    userHashes[u.email] = await bcrypt.hash(generateSecurePassword(), 10);
     const user = await db.user.upsert({
       where: { email: u.email },
-      update: { password: userHash },
+      update: { password: userHashes[u.email] },
       create: {
         email: u.email,
-        password: userHash,
+        password: userHashes[u.email],
         name: u.name,
         phone: u.phone,
         role: u.role,
@@ -84,10 +86,10 @@ async function main() {
   // Also create the original seed users (different emails used in internal system)
   const engineerUser = await db.user.upsert({
     where: { email: 'ahmed@blueprint.ae' },
-    update: { password: userHash },
+    update: { password: await bcrypt.hash(generateSecurePassword(), 10) },
     create: {
       email: 'ahmed@blueprint.ae',
-      password: userHash,
+      password: await bcrypt.hash(generateSecurePassword(), 10),
       name: 'أحمد محمد',
       phone: '+971-50-234-5678',
       role: 'engineer',
@@ -99,10 +101,10 @@ async function main() {
 
   const structuralUser = await db.user.upsert({
     where: { email: 'sara@blueprint.ae' },
-    update: { password: userHash },
+    update: { password: await bcrypt.hash(generateSecurePassword(), 10) },
     create: {
       email: 'sara@blueprint.ae',
-      password: userHash,
+      password: await bcrypt.hash(generateSecurePassword(), 10),
       name: 'سارة علي',
       phone: '+971-50-345-6789',
       role: 'engineer',
@@ -114,10 +116,10 @@ async function main() {
 
   const mepUser = await db.user.upsert({
     where: { email: 'khalid@blueprint.ae' },
-    update: { password: userHash },
+    update: { password: await bcrypt.hash(generateSecurePassword(), 10) },
     create: {
       email: 'khalid@blueprint.ae',
-      password: userHash,
+      password: await bcrypt.hash(generateSecurePassword(), 10),
       name: 'خالد سعيد',
       phone: '+971-50-456-7890',
       role: 'engineer',
@@ -225,57 +227,62 @@ async function main() {
   logger.info('✅ Employee records created (5 employees)');
 
   // ========== 5. Clients ==========
-  const client1 = await db.client.create({
-    data: {
-      name: 'محمد بن راشد',
-      company: 'شركة الإعمار العقارية',
-      email: 'mbinrashid@almouj.ae',
-      phone: '+971-50-111-2233',
-      address: 'دبي، الإمارات العربية المتحدة',
-      taxNumber: '200000000000000',
-      creditLimit: 500000,
-      paymentTerms: '30 days after invoice',
-    },
-  });
+  // Use findFirst + create to handle re-runs (Client has no unique email constraint)
+  const client1 = await db.client.findFirst({ where: { email: 'mbinrashid@almouj.ae' } }) 
+    || await db.client.create({
+      data: {
+        name: 'محمد بن راشد',
+        company: 'شركة الإعمار العقارية',
+        email: 'mbinrashid@almouj.ae',
+        phone: '+971-50-111-2233',
+        address: 'دبي، الإمارات العربية المتحدة',
+        taxNumber: '200000000000000',
+        creditLimit: 500000,
+        paymentTerms: '30 days after invoice',
+      },
+    });
 
-  const client2 = await db.client.create({
-    data: {
-      name: 'أحمد الشامسي',
-      company: 'مجموعة الشامسي القابضة',
-      email: 'info@shamsigroup.ae',
-      phone: '+971-50-444-5566',
-      address: 'أبو ظبي، الإمارات العربية المتحدة',
-      taxNumber: '300000000000000',
-      creditLimit: 1000000,
-      paymentTerms: '45 days after invoice',
-    },
-  });
+  const client2 = await db.client.findFirst({ where: { email: 'info@shamsigroup.ae' } })
+    || await db.client.create({
+      data: {
+        name: 'أحمد الشامسي',
+        company: 'مجموعة الشامسي القابضة',
+        email: 'info@shamsigroup.ae',
+        phone: '+971-50-444-5566',
+        address: 'أبو ظبي، الإمارات العربية المتحدة',
+        taxNumber: '300000000000000',
+        creditLimit: 1000000,
+        paymentTerms: '45 days after invoice',
+      },
+    });
 
-  const client3 = await db.client.create({
-    data: {
-      name: 'سعاد الكتبي',
-      company: 'تطوير المشاريع المتقدمة',
-      email: 'projects@advanced-dev.ae',
-      phone: '+971-50-777-8899',
-      address: 'رأس الخيمة، الإمارات العربية المتحدة',
-      taxNumber: '400000000000000',
-      creditLimit: 300000,
-      paymentTerms: 'Net 30',
-    },
-  });
+  const client3 = await db.client.findFirst({ where: { email: 'projects@advanced-dev.ae' } })
+    || await db.client.create({
+      data: {
+        name: 'سعاد الكتبي',
+        company: 'تطوير المشاريع المتقدمة',
+        email: 'projects@advanced-dev.ae',
+        phone: '+971-50-777-8899',
+        address: 'رأس الخيمة، الإمارات العربية المتحدة',
+        taxNumber: '400000000000000',
+        creditLimit: 300000,
+        paymentTerms: 'Net 30',
+      },
+    });
 
-  const client4 = await db.client.create({
-    data: {
-      name: 'ناصر العتيبي',
-      company: 'شركة النخبة للاستثمار',
-      email: 'nasser@nukhba.ae',
-      phone: '+971-50-222-3344',
-      address: 'الشارقة، الإمارات العربية المتحدة',
-      taxNumber: '500000000000000',
-      creditLimit: 750000,
-      paymentTerms: '60 days after invoice',
-    },
-  });
+  const client4 = await db.client.findFirst({ where: { email: 'nasser@nukhba.ae' } })
+    || await db.client.create({
+      data: {
+        name: 'ناصر العتيبي',
+        company: 'شركة النخبة للاستثمار',
+        email: 'nasser@nukhba.ae',
+        phone: '+971-50-222-3344',
+        address: 'الشارقة، الإمارات العربية المتحدة',
+        taxNumber: '500000000000000',
+        creditLimit: 750000,
+        paymentTerms: '60 days after invoice',
+      },
+    });
   logger.info('✅ Demo clients created (4 clients)');
 
   // ========== 6. Projects ==========

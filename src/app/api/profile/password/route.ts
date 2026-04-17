@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { validateRequest, changePasswordSchema } from '@/lib/api-validation';
+import { hash, compare } from "bcryptjs";
 
 /**
  * PUT /api/profile/password - Change password
@@ -26,7 +27,7 @@ export async function PUT(request: Request) {
         { status: 400 }
       );
     }
-    const { currentPassword, newPassword, confirmPassword: _confirmPassword } = validation.data;
+    const { currentPassword, newPassword } = validation.data;
 
     const user = await db.user.findUnique({
       where: { email: session.user.email },
@@ -39,14 +40,13 @@ export async function PUT(request: Request) {
       );
     }
 
-    // Verify current password (support both bcrypt hash and plain text)
+    // Verify current password using bcrypt (support both bcrypt hash and legacy plain text)
     let isPasswordValid = false;
     if (user.password.startsWith("$2")) {
       // bcrypt hash
-      const bcrypt = await import("bcryptjs");
-      isPasswordValid = await bcrypt.compare(currentPassword, user.password);
+      isPasswordValid = await compare(currentPassword, user.password);
     } else {
-      // plain text (SQLite demo env)
+      // Legacy plain text (should not happen in production)
       isPasswordValid = user.password === currentPassword;
     }
 
@@ -57,10 +57,11 @@ export async function PUT(request: Request) {
       );
     }
 
-    // Store new password (plain text for SQLite env, same pattern as login)
+    // Always hash the new password with bcrypt before storing
+    const hashedPassword = await hash(newPassword, 12);
     await db.user.update({
       where: { id: user.id },
-      data: { password: newPassword },
+      data: { password: hashedPassword },
     });
 
     return NextResponse.json({ success: true });
