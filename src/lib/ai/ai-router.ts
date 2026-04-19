@@ -138,7 +138,7 @@ export class AIRouter {
   private token: string | null = null;
 
   constructor() {
-    this.apiEndpoint = '/api/ai-chat';
+    this.apiEndpoint = '/api/ai/chat';
   }
 
   /**
@@ -259,13 +259,17 @@ export class AIRouter {
 
       return {
         success: true,
-        content: data.data?.response || data.response || '',
-        model: data.data?.model || model,
-        tokens: data.data?.tokens ? {
+        content: data.message || data.data?.response || data.response || '',
+        model: data.model || data.data?.model || model,
+        tokens: data.usage ? {
+          input: data.usage.input || data.usage.prompt_tokens || 0,
+          output: data.usage.output || data.usage.completion_tokens || 0,
+          total: data.usage.total_tokens || data.usage.total || 0
+        } : (data.data?.tokens ? {
           input: data.data.tokens.input || 0,
           output: data.data.tokens.output || 0,
-          total: data.data.tokens.total || data.data.tokens
-        } : undefined
+          total: data.data.tokens.total || 0
+        } : undefined)
       };
 
     } catch (error) {

@@ -1117,9 +1117,8 @@ class AuthenticationService {
    */
   private verifyTotpCode(secret: string, code: string): boolean {
     try {
-      // Use otplib's verifySync for proper TOTP verification
+      // Use otplib's authenticator.verify for proper TOTP verification
       // It handles time window drift automatically
-      // NOTE: verifySync returns a VerifyResult object { valid, delta, ... }
       const result = verifySync({
         secret: secret,
         token: code,

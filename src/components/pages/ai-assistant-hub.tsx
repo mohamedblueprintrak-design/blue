@@ -199,6 +199,7 @@ export default function AIAssistantHub({ language }: AIAssistantHubProps) {
   const chatEndRef = useRef<HTMLDivElement>(null);
   const [kbSearch, setKbSearch] = useState("");
   const [faqFilter, setFaqFilter] = useState("all");
+  const [hubConversationId] = useState(() => `hub-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`);
 
   // Auto-scroll chat
   useEffect(() => {
@@ -233,7 +234,7 @@ export default function AIAssistantHub({ language }: AIAssistantHubProps) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           message,
-          conversationId: "hub-" + Date.now(),
+          conversationId: hubConversationId,
           language: ar ? "ar" : "en",
         }),
       });
@@ -260,13 +261,12 @@ export default function AIAssistantHub({ language }: AIAssistantHubProps) {
     }
   };
 
-  // Filter knowledge articles
-  const filteredArticles = knowledgeArticles.filter(
-    (a) =>
-      a.title.includes(kbSearch) ||
-      a.content.includes(kbSearch) ||
-      (faqFilter !== "all" && a.category === faqFilter)
-  );
+  // Filter knowledge articles (AND logic: both search text and category must match when both are active)
+  const filteredArticles = knowledgeArticles.filter((a) => {
+    const matchesSearch = !kbSearch || a.title.includes(kbSearch) || a.content.includes(kbSearch);
+    const matchesCategory = faqFilter === "all" || a.category === faqFilter;
+    return matchesSearch && matchesCategory;
+  });
 
   // Filter FAQs
   const filteredFaqs = faqs.filter(

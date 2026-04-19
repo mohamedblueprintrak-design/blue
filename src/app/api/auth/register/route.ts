@@ -14,12 +14,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { authService } from '@/lib/auth/auth-service';
 import { UserRoleValues } from '@/lib/auth/types';
 import { successResponse, errorResponse } from '../../utils/response';
-// @ts-expect-error - cookies import may vary by Next.js version
-import { cookies as nextCookies } from 'next/server';
 import { SignJWT } from 'jose';
 import { hash } from 'bcryptjs';
 import { db } from '@/lib/db';
-import { getJWTSecret } from '../../utils/auth';
+import { getJwtSecretBytes } from '@/lib/auth/jwt-secret';
 
 /**
  * POST - Handle user registration
@@ -151,17 +149,8 @@ async function handleRegister(
       // Continue anyway - user can request resend
     }
 
-    // Set HTTP-only cookie for refresh token
-    const cookieStore = await nextCookies();
-    cookieStore.set('refreshToken', refreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: 60 * 60 * 24 * 7, // 7 days
-      path: '/',
-    });
-
-    return successResponse({
+    // Build the response and set HTTP-only cookies
+    const response = successResponse({
       user: {
         id: user.id,
         email: user.email,
@@ -175,6 +164,26 @@ async function handleRegister(
       emailVerificationSent: true,
       message: 'تم إنشاء الحساب بنجاح. يرجى التحقق من بريدك الإلكتروني.',
     });
+
+    // Set cookies on the response object
+    if (response instanceof NextResponse) {
+      response.cookies.set('refreshToken', refreshToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        maxAge: 60 * 60 * 24 * 7, // 7 days
+        path: '/',
+      });
+      response.cookies.set('blue_token', accessToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        maxAge: 60 * 60 * 2, // 2 hours (matches token expiry)
+        path: '/',
+      });
+    }
+
+    return response;
   } catch (error) {
     console.error('Registration error:', error);
     return errorResponse('حدث خطأ أثناء إنشاء الحساب', 'REGISTRATION_FAILED', 500);
@@ -191,7 +200,7 @@ async function generateAccessToken(payload: {
   role: string;
   organizationId?: string;
 }): Promise<string> {
-  const secret = getJWTSecret();
+  const secret = getJwtSecretBytes();
   
   return new SignJWT(payload as Record<string, unknown>)
     .setProtectedHeader({ alg: 'HS256' })
@@ -206,7 +215,7 @@ async function generateAccessToken(payload: {
  * Generate refresh token
  */
 async function generateRefreshToken(userId: string): Promise<string> {
-  const secret = getJWTSecret();
+  const secret = getJwtSecretBytes();
   
   return new SignJWT({ userId, type: 'refresh' })
     .setProtectedHeader({ alg: 'HS256' })

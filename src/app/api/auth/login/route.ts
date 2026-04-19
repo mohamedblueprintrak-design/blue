@@ -7,16 +7,19 @@ import { validateRequest, loginSchema } from '@/lib/api-validation';
 
 const COOKIE_NAME = 'blue_token';
 
-async function generateJWT(user: { id: string; email: string; name: string; role: string; twoFactorEnabled?: boolean }): Promise<string> {
+async function generateJWT(user: { id: string; email: string; name: string; role: string; twoFactorEnabled?: boolean; organizationId?: string | null }): Promise<string> {
   return new SignJWT({
     userId: user.id,
     email: user.email,
     name: user.name,
     role: user.role,
     twoFactorEnabled: user.twoFactorEnabled || false,
+    organizationId: user.organizationId || undefined,
   })
     .setProtectedHeader({ alg: 'HS256' })
-    .setExpirationTime('7d')
+    .setIssuer('blueprint-saas')
+    .setAudience('blueprint-users')
+    .setExpirationTime('2h')
     .setIssuedAt()
     .sign(getJwtSecretBytes());
 }
@@ -35,6 +38,19 @@ export async function POST(request: Request) {
 
     const user = await db.user.findUnique({
       where: { email },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        role: true,
+        password: true,
+        isActive: true,
+        department: true,
+        position: true,
+        avatar: true,
+        twoFactorEnabled: true,
+        organizationId: true,
+      },
     });
 
     if (!user) {
@@ -69,12 +85,18 @@ export async function POST(request: Request) {
 
     // Check if 2FA is enabled for this user
     if (user.twoFactorEnabled) {
-      // Generate a temporary token for 2FA verification
+      // Generate a temporary token for 2FA verification and store it in the user record
       const tempToken = crypto.randomUUID().replace(/-/g, '');
-      const _tempTokenExpiry = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes
+      const tempTokenExpiry = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes
 
-      // Store the pending 2FA session (you could use Redis in production)
-      // For now, we we'll return a special response indicating 2FA is required
+      // Store the temp token in the user's verifyToken field for later verification
+      await db.user.update({
+        where: { id: user.id },
+        data: {
+          verifyToken: tempToken,
+          verifyTokenExpiry: tempTokenExpiry,
+        },
+      });
       
       return NextResponse.json({
         requires2FA: true,

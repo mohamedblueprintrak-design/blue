@@ -873,7 +873,7 @@ export default function Dashboard({ language }: { language: "ar" | "en" }) {
 
   const handleProjectClick = (projectId: string) => {
     setCurrentProjectId(projectId);
-    setCurrentPage("projects-overview");
+    setCurrentPage("projects");
   };
 
   // Stat cards config

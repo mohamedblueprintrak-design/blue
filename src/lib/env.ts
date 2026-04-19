@@ -12,9 +12,9 @@ const requiredEnvVars = ['DATABASE_URL'] as const;
 // Generate a deterministic dev-only JWT secret so the app works out-of-the-box locally.
 // In production, JWT_SECRET MUST be set via environment (enforced below).
 function generateDevSecret(): string {
-  // Deterministic 48-char base64 string for local development only.
+  // Deterministic dev-only secret — must match jwt-secret.ts fallback exactly.
   // This is NOT secure — it only prevents the app from crashing in dev mode.
-  return 'dev-only-do-not-use-in-prod-blueprint-secret-key-2024!';
+  return 'blueprint-dev-secret-do-not-use-in-production-min32chars!';
 }
 
 // Optional environment variables with defaults

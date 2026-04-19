@@ -24,7 +24,7 @@ function detectTopics(message: string): string[] {
   // HR/employee
   if (/employee|hr|موظف|مندوب|حضور|attendance|leave|إجاز/.test(lower)) topics.push('hr');
   // Site management
-  if (/site|visit|defect|موقع|زيار|عيب|defect/.test(lower)) topics.push('site');
+  if (/site|visit|defect|موقع|زيار|عيب/.test(lower)) topics.push('site');
   // Dashboard/summary/stats
   if (/dashboard|summary|stats|لوحة|ملخص|إحصائي|overview/.test(lower)) topics.push('dashboard');
   // Contract
@@ -250,7 +250,7 @@ async function fetchContextData(topics: string[], userId?: string, projectId?: s
 
       context.hr = {
         totalEmployees: employees.length,
-        activeEmployees: employees.filter(e => e.user.isActive).length,
+        activeEmployees: employees.filter(e => e.user?.isActive).length,
         pendingLeaves: pendingLeaves.map(l => ({
           employeeName: l.employee.name,
           type: l.type,
@@ -292,14 +292,14 @@ async function fetchContextData(topics: string[], userId?: string, projectId?: s
           date: v.date.toISOString(),
           municipality: v.municipality,
           plotNumber: v.plotNumber,
-          projectName: v.project.name,
+          projectName: v.project?.name || '',
           status: v.status,
         })),
         openDefects: openDefects.map(d => ({
           title: d.title,
           severity: d.severity,
           status: d.status,
-          projectName: d.project.name,
+          projectName: d.project?.name || '',
           location: d.location,
         })),
         openDefectCount: openDefects.length,
@@ -322,7 +322,7 @@ async function fetchContextData(topics: string[], userId?: string, projectId?: s
         number: c.number,
         title: c.title,
         clientName: c.client?.name || c.client?.company || '',
-        projectName: c.project.name,
+        projectName: c.project?.name || '',
         value: c.value,
         status: c.status,
         type: c.type,
@@ -384,8 +384,8 @@ async function fetchContextData(topics: string[], userId?: string, projectId?: s
         })),
         pendingGovApprovals: pendingGovApprovals.map(g => ({
           authority: g.authority,
-          projectName: g.project.name,
-          projectNumber: g.project.number,
+          projectName: g.project?.name || '',
+          projectNumber: g.project?.number || '',
           status: g.status,
         })),
         summary: {
@@ -430,8 +430,8 @@ async function fetchContextData(topics: string[], userId?: string, projectId?: s
           contractorCompany: b.contractor?.companyName || '',
           contractorRating: b.contractor?.rating || 0,
           contractorCategory: b.contractor?.category || '',
-          projectName: b.project.name,
-          projectNumber: b.project.number,
+          projectName: b.project?.name || '',
+          projectNumber: b.project?.number || '',
           amount: b.amount,
           technicalScore: b.technicalScore,
           financialScore: b.financialScore,
@@ -696,7 +696,13 @@ export async function POST(request: NextRequest) {
   try {
     const body = await validateBody(request, aiChatSchema);
     if (body instanceof NextResponse) return body;
-    const { message, conversationId, userId, language, projectId } = body;
+    const { message, conversationId: rawConversationId, userId, language, projectId, modelId: bodyModelId, model: bodyModel } = body;
+
+    // Fix: generate a unique conversationId if empty to prevent unique constraint crash
+    const conversationId = rawConversationId || `conv-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+
+    // Fix: prefer modelId over model (frontend sends modelId, schema now accepts both)
+    const resolvedModelId = (bodyModelId && bodyModelId !== 'gpt-4') ? bodyModelId : ((bodyModel && bodyModel !== 'gpt-4') ? bodyModel : 'zai-default');
 
     // Get or create conversation in database
     let conversation = await db.aIChatConversation.findUnique({
@@ -720,7 +726,10 @@ export async function POST(request: NextRequest) {
           messageCount: 0,
         },
         include: {
-          messages: true,
+          messages: {
+            orderBy: { createdAt: 'asc' },
+            take: 20,
+          },
         },
       });
     }
@@ -834,7 +843,7 @@ Guidelines:
     // ============================================
     // Multi-Provider AI Call with ZAI fallback
     // ============================================
-    const modelId = (body as Record<string, unknown>).modelId as string | undefined || 'zai-default';
+    const modelId = resolvedModelId;
     const { provider, model } = providerRegistry.parseModelId(modelId);
 
     let aiMessage = '';
@@ -849,7 +858,7 @@ Guidelines:
         const completion = await zai.chat.completions.create({
           messages: [
             { role: 'system', content: systemPrompt },
-            ...history.slice(0, -1),
+            ...history,
             { role: 'user', content: message },
           ],
           temperature: 0.7,

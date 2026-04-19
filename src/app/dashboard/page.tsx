@@ -1,7 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useSyncExternalStore } from "react";
-import { ThemeProvider } from "next-themes";
+import { useState, useEffect, useSyncExternalStore } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useAuthStore } from "@/store/auth-store";
 import LoginPage from "@/components/auth/login-page";
@@ -28,7 +27,7 @@ function subscribeToLanguage(callback: () => void): () => void {
   };
 }
 
-function setLanguageExternal(lang: "ar" | "en") {
+function _setLanguageExternal(lang: "ar" | "en") {
   localStorage.setItem("blueprint-lang", lang);
   document.documentElement.dir = lang === "ar" ? "rtl" : "ltr";
   document.documentElement.lang = lang;
@@ -40,7 +39,7 @@ function useLanguageExternal(): "ar" | "en" {
 }
 
 function AppContent() {
-  const { isAuthenticated } = useAuthStore();
+  const { isAuthenticated, isInitialized } = useAuthStore();
   const language = useLanguageExternal();
   const [mounted, setMounted] = useState(false);
 
@@ -56,7 +55,7 @@ function AppContent() {
     });
   }, []);
 
-  if (!mounted) {
+  if (!mounted || !isInitialized) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-900">
         <div className="flex flex-col items-center gap-3">
@@ -90,15 +89,8 @@ export default function Home() {
   );
 
   return (
-    <ThemeProvider
-      attribute="class"
-      defaultTheme="light"
-      enableSystem={false}
-      disableTransitionOnChange
-    >
-      <QueryClientProvider client={queryClient}>
-        <AppContent />
-      </QueryClientProvider>
-    </ThemeProvider>
+    <QueryClientProvider client={queryClient}>
+      <AppContent />
+    </QueryClientProvider>
   );
 }

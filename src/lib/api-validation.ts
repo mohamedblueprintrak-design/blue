@@ -368,7 +368,9 @@ export const aiChatSchema = z.object({
   userId: z.string().optional().default(''),
   language: z.enum(['ar', 'en']).optional().default('ar'),
   projectId: z.string().optional().default(''),
-  model: z.string().max(50).optional().default('gpt-4'),
+  model: z.string().max(50).optional().default('zai-default'),
+  modelId: z.string().max(50).optional().default('zai-default'),
+  history: z.array(z.object({ role: z.string(), content: z.string() })).optional().default([]),
 });
 
 export type AiChatData = z.infer<typeof aiChatSchema>;
