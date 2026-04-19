@@ -147,7 +147,7 @@ export default function ProjectsList({ language }: ProjectsListProps) {
   const [mapLocation, setMapLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [showCompare, setShowCompare] = useState(false);
-  const [quickViewProject, setQuickViewProject] = useState<ProjectRow | null>(null);
+  const [_quickViewProject, setQuickViewProject] = useState<ProjectRow | null>(null);
   const [page, setPage] = useState(1);
   const PAGE_SIZE = 10;
   const form = useForm<ProjectFormData>({
@@ -253,7 +253,7 @@ export default function ProjectsList({ language }: ProjectsListProps) {
   // Comparison selection
   const MAX_COMPARE = 3;
 
-  const toggleSelect = useCallback((id: string, e: React.MouseEvent) => {
+  const _toggleSelect = useCallback((id: string, e: React.MouseEvent) => {
     e.stopPropagation();
     setSelectedIds((prev) => {
       const next = new Set(prev);
@@ -1008,7 +1008,7 @@ export default function ProjectsList({ language }: ProjectsListProps) {
 }
 
 // ===== Quick View Panel =====
-function ProjectQuickView({
+function _ProjectQuickView({
   project,
   isAr,
   t,

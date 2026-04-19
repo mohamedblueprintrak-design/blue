@@ -56,7 +56,7 @@ export async function GET() {
     }
 
     // Read .env file content to check for issues (without exposing secrets)
-    let envFileIssues: string[] = [];
+    const envFileIssues: string[] = [];
     if (envExists) {
       try {
         const envContent = readFileSync(envPath, 'utf-8');

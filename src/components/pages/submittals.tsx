@@ -2,13 +2,12 @@
 
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useToastFeedback } from "@/hooks/use-toast-feedback";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { submittalSchema, getErrorMessage, type SubmittalFormData } from "@/lib/validations";
 import { cn } from "@/lib/utils";
+import { useToastFeedback } from "@/hooks/use-toast-feedback";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -154,7 +153,7 @@ export default function Submittals({ language, projectId }: SubmittalsProps) {
   });
 
   const defaultSubForm = { projectId: projectId || "", number: "", title: "", type: "", contractor: "", revisionNumber: "1", status: "under_review" };
-  const [formData, setFormData] = useState(defaultSubForm);
+  const [_formData, setFormData] = useState(defaultSubForm);
 
   const form = useForm<SubmittalFormData>({ resolver: zodResolver(submittalSchema) as any, defaultValues: defaultSubForm });
   const { register, handleSubmit: rhfHandleSubmit, formState: { errors }, reset, setValue, watch } = form;

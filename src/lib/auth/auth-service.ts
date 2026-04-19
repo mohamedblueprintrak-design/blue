@@ -1119,11 +1119,12 @@ class AuthenticationService {
     try {
       // Use otplib's verifySync for proper TOTP verification
       // It handles time window drift automatically
-      // NOTE: verifySync returns a boolean directly, NOT an object
-      return verifySync({
+      // NOTE: verifySync returns a VerifyResult object { valid, delta, ... }
+      const result = verifySync({
         secret: secret,
         token: code,
       });
+      return result.valid;
     } catch (error) {
       log.error('TOTP verification error', error);
       return false;

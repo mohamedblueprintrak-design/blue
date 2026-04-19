@@ -71,7 +71,7 @@ export async function POST(request: Request) {
     if (user.twoFactorEnabled) {
       // Generate a temporary token for 2FA verification
       const tempToken = crypto.randomUUID().replace(/-/g, '');
-      const tempTokenExpiry = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes
+      const _tempTokenExpiry = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes
 
       // Store the pending 2FA session (you could use Redis in production)
       // For now, we we'll return a special response indicating 2FA is required

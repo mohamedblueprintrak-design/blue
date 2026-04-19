@@ -5,8 +5,6 @@ import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
@@ -15,19 +13,17 @@ import {
   PieChart, Pie, Cell,
 } from "recharts";
 import {
-  DollarSign, TrendingUp, TrendingDown, Building2, CheckCircle, Clock, Users,
+  DollarSign, TrendingUp, CheckCircle, Clock, Users,
   AlertTriangle, Briefcase, CalendarDays, BarChart3, ArrowUpRight, ArrowDownRight,
-  Download, FileText, FileSpreadsheet, Loader2, FolderKanban, UserCheck, Target,
-  PieChart as PieChartIcon,
+  FileText, FileSpreadsheet, Loader2, FolderKanban, UserCheck,
 } from "lucide-react";
 import { useLang } from "@/hooks/use-lang";
 import { cn } from "@/lib/utils";
-import { exportToCSV } from "@/lib/export-utils";
 import { useToastFeedback } from "@/hooks/use-toast-feedback";
 import { formatCurrency, formatK } from "@/lib/formatters";
 
 // ===== Helpers =====
-function TrendIndicator({ value, ar }: { value: number; ar: boolean }) {
+function _TrendIndicator({ value, ar }: { value: number; ar: boolean }) {
   const isPositive = value >= 0;
   return (
     <div className={cn("flex items-center gap-0.5 text-[10px] font-medium", isPositive ? "text-emerald-600 dark:text-emerald-400" : "text-red-600 dark:text-red-400")}>
@@ -125,7 +121,7 @@ export default function ReportsPage({ projectId }: ReportsPageProps) {
   };
 
   // Fetch all report data
-  const { data: overview } = useQuery({
+  const { data: _overview } = useQuery({
     queryKey: ["reports-overview", projectId],
     queryFn: async () => { const res = await fetch(buildUrl("/api/reports/overview")); if (!res.ok) throw new Error("Failed"); return res.json(); },
   });

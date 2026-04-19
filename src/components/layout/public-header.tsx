@@ -19,16 +19,21 @@ const NAV_LINKS = [
 export default function PublicHeader() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { lang: language } = useLanguage();
-  const [languageState, setLanguageState] = useState<"ar" | "en">(language);
+  const [languageState, setLanguageState] = useState<"ar" | "en">(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem("blueprint-lang");
+      if (saved === "ar" || saved === "en") return saved;
+    }
+    return language;
+  });
 
   const [scrolled, setScrolled] = useState(false);
-  const currentLang = languageState || language;
+  const currentLang = languageState;
 
   useEffect(() => {
-    setLanguageState(language);
-    document.documentElement.dir = language === "ar" ? "rtl" : "ltr";
-    document.documentElement.lang = language;
-  }, [language]);
+    document.documentElement.dir = currentLang === "ar" ? "rtl" : "ltr";
+    document.documentElement.lang = currentLang;
+  }, [currentLang]);
 
   const toggleLanguage = () => {
     const newLang = currentLang === "ar" ? "en" : "ar";

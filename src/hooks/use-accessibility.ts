@@ -401,6 +401,7 @@ export function useKeyboardNav<T>(
       const id = requestAnimationFrame(() => updateIndex(items.length - 1));
       return () => cancelAnimationFrame(id);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [items.length]);
 
   return [selectedIndex, setSelectedIndex];

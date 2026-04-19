@@ -142,7 +142,7 @@ function cleanupRateLimitStore(): void {
   if (rateLimitStore.size > RATE_LIMIT_MAX_ENTRIES) {
     const entriesToDelete = rateLimitStore.size - RATE_LIMIT_MAX_ENTRIES;
     let deleted = 0;
-    for (const [key, record] of rateLimitStore.entries()) {
+    for (const [key, _record] of rateLimitStore.entries()) {
       if (deleted >= entriesToDelete) break;
       rateLimitStore.delete(key);
       deleted++;

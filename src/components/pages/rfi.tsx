@@ -2,13 +2,11 @@
 
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useToastFeedback } from "@/hooks/use-toast-feedback";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { rfiSchema, getErrorMessage, type RfiFormData } from "@/lib/validations";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -202,7 +200,7 @@ export default function RFI({ language, projectId }: RFIProps) {
   });
 
   const defaultRfiForm = { projectId: projectId || "", number: "", subject: "", description: "", fromId: "", toId: "", priority: "normal", dueDate: "" };
-  const [formData, setFormData] = useState(defaultRfiForm);
+  const [_formData, setFormData] = useState(defaultRfiForm);
 
   const form = useForm<RfiFormData>({ resolver: zodResolver(rfiSchema) as any, defaultValues: defaultRfiForm });
   const { register, handleSubmit: rhfHandleSubmit, formState: { errors }, reset, setValue, watch } = form;

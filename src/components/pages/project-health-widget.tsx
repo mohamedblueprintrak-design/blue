@@ -84,7 +84,7 @@ function getDaysRemaining(endDate: string): { days: number; text: string; textEn
 }
 
 // ===== Mock Data =====
-function getMockProjects(isAr: boolean): HealthProject[] {
+function getMockProjects(_isAr: boolean): HealthProject[] {
   const now = new Date();
   const future = (days: number) => {
     const d = new Date(now);

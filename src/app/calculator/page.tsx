@@ -203,11 +203,13 @@ function ParallaxBackground() {
 }
 
 export default function CalculatorPage() {
-  const [language, setLanguage] = useState<"ar" | "en">("ar");
-  useEffect(() => {
-    const saved = localStorage.getItem("blueprint-lang") as "ar" | "en" | null;
-    if (saved) setLanguage(saved);
-  }, []);
+  const [language, setLanguage] = useState<"ar" | "en">(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem("blueprint-lang") as "ar" | "en" | null;
+      if (saved) return saved;
+    }
+    return "ar";
+  });
 
   // React to language changes from header toggle
   useEffect(() => {

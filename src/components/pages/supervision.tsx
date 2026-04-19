@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -56,15 +56,13 @@ import {
   XCircle,
   Users,
   Sun,
-  Thermometer,
   HardHat,
-  ChevronLeft,
-  ChevronRight,
   ArrowUpDown,
   X,
   FileWarning,
   ShieldCheck,
   ShieldAlert,
+  Thermometer,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 

@@ -31,7 +31,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Dialog,
   DialogContent,
@@ -73,8 +72,6 @@ import {
  Flag,
  Trash,
  CheckCheck,
- Layers,
- ListFilter,
  MessageSquare,
 } from "lucide-react";
 import {
@@ -619,7 +616,7 @@ export default function TasksKanban({ language, projectId }: TasksKanbanProps) {
   });
 
   // Update task priority mutation
-  const updatePriorityMutation = useMutation({
+  const _updatePriorityMutation = useMutation({
     mutationFn: async ({ id, priority }: { id: string; priority: string }) => {
       await fetch(`/api/tasks/${id}`, {
         method: "PUT",
@@ -795,7 +792,7 @@ export default function TasksKanban({ language, projectId }: TasksKanbanProps) {
   );
 
   const handleDragOver = useCallback((event: DragOverEvent) => {
-    const { active, over } = event;
+    const { active: _active, over } = event;
     if (!over) return;
   }, []);
 

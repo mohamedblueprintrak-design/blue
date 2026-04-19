@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -41,11 +41,9 @@ import {
   Eye,
   Trash2,
   Filter,
-  TrendingUp,
   TrendingDown,
   Target,
   BarChart3,
-  Activity,
   CheckCircle2,
 } from "lucide-react";
 import {
@@ -344,7 +342,7 @@ export default function Risks({ language, projectId }: RisksProps) {
   const totalRisks = risks.length;
   const criticalRisks = risks.filter((r) => r.score >= 16).length;
   const highRisks = risks.filter((r) => r.score >= 10 && r.score < 16).length;
-  const openRisks = risks.filter((r) => r.status === "open").length;
+  const _openRisks = risks.filter((r) => r.status === "open").length;
 
   const probLabels = [5, 4, 3, 2, 1];
   const impactLabels = [1, 2, 3, 4, 5];

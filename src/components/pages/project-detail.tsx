@@ -1,12 +1,11 @@
 "use client";
 
-import React, { useState, useCallback, useRef } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import React, { useState, useRef } from "react";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { useNavStore } from "@/store/nav-store";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -26,7 +25,6 @@ import {
   Droplets,
   Landmark,
   Calculator,
-  FileEdit,
   ShieldAlert,
   CheckSquare,
   FileSignature,
@@ -37,36 +35,22 @@ import {
   PiggyBank,
   FileSpreadsheet,
   Gavel,
-  MapPin,
   Users,
   UsersRound,
-  Video,
   ClipboardCheck,
-  Bell,
   Activity,
   Sparkles,
-  BookMarked,
-  Calendar,
-  Search,
-  MessageSquareQuote,
   AlertTriangle,
-  BookOpen,
   Clock,
   TrendingUp,
-  TrendingDown,
   MessageCircle,
   Pencil,
-  Trash2,
   CheckCircle2,
   XCircle,
   Circle,
   ArrowUpRight,
   Plus,
-  Building,
-  UserPlus,
-  Briefcase,
   Star,
-  FolderKanban,
   CalendarRange,
   Timer,
   PenTool,
@@ -92,37 +76,14 @@ import { toast } from "sonner";
 
 // Import page components
 import TasksKanban from "@/components/pages/tasks";
-import ClientsPage from "@/components/pages/clients";
-import ContractsPage from "@/components/pages/contracts";
 import InvoicesPage from "@/components/pages/invoices";
 import PaymentsPage from "@/components/pages/payments";
 import ProposalsPage from "@/components/pages/proposals";
-import BidsPage from "@/components/pages/bids";
 import BudgetsPage from "@/components/pages/budgets";
-import SiteVisitsPage from "@/components/pages/site-visits";
-import DefectsPage from "@/components/pages/defects";
-import SiteDiaryPage from "@/components/pages/site-diary";
-import RFIPage from "@/components/pages/rfi";
-import ChangeOrdersPage from "@/components/pages/change-orders";
-import RisksPage from "@/components/pages/risks";
-import MeetingsPage from "@/components/pages/meetings";
 import DocumentsPage from "@/components/pages/documents";
-import KnowledgePage from "@/components/pages/knowledge";
-import ApprovalsPage from "@/components/pages/approvals";
-import CalendarPage from "@/components/pages/calendar";
-import NotificationsPage from "@/components/pages/notifications";
-import ActivityLog from "@/components/pages/activity-log";
-import AIAssistant from "@/components/pages/ai-assistant";
-import GlobalSearch from "@/components/pages/search";
-import GanttPage from "@/components/pages/gantt";
 import BOQPage from "@/components/pages/boq";
 import MunicipalityCorrespondencePage from "@/components/pages/municipality-correspondence";
-import SubmittalsPage from "@/components/pages/submittals";
-import TransmittalsPage from "@/components/pages/transmittals";
-import EmployeesPage from "@/components/pages/employees";
-import TeamMembers from "@/components/pages/team-members";
 import SupervisionPage from "@/components/pages/supervision";
-import ContractorsPage from "@/components/pages/contractors";
 import InspectionsPage from "@/components/pages/inspections";
 
 // ===== WORKFLOW TYPES =====
@@ -441,9 +402,7 @@ function DepartmentProgress({
 }
 
 // ===== STAGE STEPPER =====
-function StageStepper({ stages, language }: { stages: ProjectStage[]; language: "ar" | "en" }) {
-  const isAr = language === "ar";
-  const t = (ar: string, en: string) => (isAr ? ar : en);
+function StageStepper({ stages }: { stages: ProjectStage[]; language: "ar" | "en" }) {
   const sortedStages = [...stages].sort((a, b) => a.stageOrder - b.stageOrder);
 
   return (
@@ -804,11 +763,6 @@ const MUNICIPALITY_PREREQUISITES = [
   { id: "soil", labelAr: "تقرير التربة", labelEn: "Soil Report", dependsOn: "external" },
 ];
 
-const DESIGN_STEP_STATUS_LABELS: Record<string, Record<string, string>> = {
-  ar: { "not-started": "لم يبدأ", "in-progress": "قيد التنفيذ", submitted: "مقدم", approved: "معتمد" },
-  en: { "not-started": "Not Started", "in-progress": "In Progress", submitted: "Submitted", approved: "Approved" },
-};
-
 const DESIGN_STEP_STATUS_COLORS: Record<string, string> = {
   "not-started": "bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400",
   "in-progress": "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400",
@@ -823,9 +777,6 @@ function OverviewTab({ project, language }: { project: ProjectData; language: "a
 
   const totalInvoiced = project?.invoices?.reduce((s, i) => s + i.total, 0) || 0;
   const totalPaid = project?.invoices?.reduce((s, i) => s + i.paidAmount, 0) || 0;
-  const totalBudgetActual = project?.budgets?.reduce((s, b) => s + b.actual, 0) || 0;
-  const budgetPct = project.budget > 0 ? Math.round((totalBudgetActual / project.budget) * 100) : 0;
-
   return (
     <div className="space-y-6">
       {/* Hero Section */}
@@ -1731,7 +1682,7 @@ function ContractorRFQTab({ projectId, language }: { projectId: string; language
   const quoteInputRef = useRef<HTMLInputElement>(null);
   const contractInputRef = useRef<HTMLInputElement>(null);
 
-  const { data: bids, isLoading, refetch } = useQuery({
+  const { data: bids, refetch } = useQuery({
     queryKey: ["project-bids-rfq", projectId],
     queryFn: async () => {
       const res = await fetch(`/api/bids?projectId=${projectId}`);
@@ -1787,7 +1738,7 @@ function ContractorRFQTab({ projectId, language }: { projectId: string; language
       if (!res.ok) throw new Error("Failed");
       return res.json();
     },
-    onSuccess: (data) => { refetch(); toast.success(t("تم التحليل", "Analysis complete")); },
+    onSuccess: (_data) => { refetch(); toast.success(t("تم التحليل", "Analysis complete")); },
     onError: () => toast.error(t("فشل التحليل", "Analysis failed")),
   });
 
@@ -2152,18 +2103,6 @@ export default function ProjectDetail({ language }: ProjectDetailProps) {
   };
 
   // Get current sub-tabs based on main tab
-  const getCurrentSubTabs = () => {
-    switch (activeTab) {
-      case "design": return designSubTabs;
-      case "municipality": return municipalitySubTabs;
-      case "boq": return boqSubTabs;
-      case "contractor": return contractorSubTabs;
-      case "supervision": return supervisionSubTabs;
-      case "financial": return financialSubTabs;
-      default: return [];
-    }
-  };
-
   if (isLoading) {
     return (
       <div className="space-y-6">
@@ -2190,8 +2129,6 @@ export default function ProjectDetail({ language }: ProjectDetailProps) {
       </div>
     );
   }
-
-  const currentSubTabs = getCurrentSubTabs();
 
   return (
     <div className="space-y-4">

@@ -10,7 +10,6 @@ import { Badge } from "@/components/ui/badge";
 import {
   Shield,
   Smartphone,
-  Key,
   Copy,
   Check,
   Loader2,

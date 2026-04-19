@@ -374,12 +374,13 @@ function ServicesMarquee({ language }: { language: "ar" | "en" }) {
 
 export default function ServicesPage() {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
-  const [language, setLanguage] = useState<"ar" | "en">("ar");
-
-  useEffect(() => {
-    const saved = localStorage.getItem("blueprint-lang");
-    if (saved === "ar" || saved === "en") setLanguage(saved);
-  }, []);
+  const [language, setLanguage] = useState<"ar" | "en">(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem("blueprint-lang");
+      if (saved === "ar" || saved === "en") return saved;
+    }
+    return "ar";
+  });
 
   // React to language changes from header toggle
   useEffect(() => {

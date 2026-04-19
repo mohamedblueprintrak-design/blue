@@ -7,7 +7,7 @@ import {
   Sparkles, Settings,
   CreditCard, FileText, Users, Shield,
   BarChart2, MapPin, Send, BookOpen,
-  Calendar, BellRing, Activity, Search, Bell,
+  Calendar, BellRing, Activity, Search,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useNavStore } from "@/store/nav-store";

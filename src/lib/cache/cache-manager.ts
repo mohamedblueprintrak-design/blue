@@ -28,19 +28,6 @@ interface CacheEntry<T = unknown> {
   tags: string[];
 }
 
-/** Minimal Redis client interface used by CacheManager */
-interface RedisClient {
-  on(event: string, callback: (...args: unknown[]) => void): void;
-  connect(): Promise<void>;
-  get(key: string): Promise<string | null>;
-  set(key: string, value: string, options?: { ex?: number }): Promise<unknown>;
-  sAdd(key: string, ...members: string[]): Promise<unknown>;
-  del(...keys: string[]): Promise<unknown>;
-  keys(pattern: string): Promise<string[]>;
-  sMembers(key: string): Promise<string[]>;
-  exists(key: string): Promise<number>;
-  quit(): Promise<unknown>;
-}
 
 /** Statistics about cache operations */
 export interface CacheStats {

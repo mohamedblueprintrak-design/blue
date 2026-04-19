@@ -164,6 +164,7 @@ export function useWebSocket(options: UseWebSocketOptions): UseWebSocketReturn {
       socket.disconnect();
       socketRef.current = null;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token, url]);
 
   // ============================================

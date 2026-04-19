@@ -62,6 +62,7 @@ async function main() {
   ];
 
   const userHashes: Record<string, string> = {};
+  const createdUsers: Record<string, { id: string; name: string }> = {};
 
   for (const u of additionalUsers) {
     // Generate a unique password hash for each user

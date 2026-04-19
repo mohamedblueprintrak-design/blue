@@ -103,7 +103,7 @@ function getEmptyLineItem(): ProposalItem {
 }
 
 // ===== Probability Bar Component =====
-function ProbabilityBar({ probability, ar }: { probability: number; ar: boolean }) {
+function ProbabilityBar({ probability, ar: _ar }: { probability: number; ar: boolean }) {
   const colorClass = probability >= 80
     ? "bg-gradient-to-r from-emerald-400 to-emerald-500"
     : probability >= 50

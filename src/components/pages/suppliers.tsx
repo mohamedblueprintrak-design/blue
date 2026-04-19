@@ -136,7 +136,7 @@ export default function SuppliersPage({ language }: SuppliersPageProps) {
     name: "", category: "materials", email: "", phone: "",
     address: "", rating: "0", creditLimit: "0",
   };
-  const [formData, setFormData] = useState(emptyForm);
+  const [_formData, setFormData] = useState(emptyForm);
 
   const form = useForm<SupplierFormData>({
     resolver: zodResolver(supplierSchema) as any,

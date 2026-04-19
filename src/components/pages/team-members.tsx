@@ -5,11 +5,9 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToastFeedback } from "@/hooks/use-toast-feedback";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Separator } from "@/components/ui/separator";
 import {
   Dialog,
   DialogContent,
@@ -31,7 +29,6 @@ import {
   Search,
   Trash2,
   Shield,
-  MoreHorizontal,
   Mail,
   Phone,
   Building2,
@@ -127,23 +124,6 @@ function getHashColor(name: string): string {
   return colors[Math.abs(hash) % colors.length];
 }
 
-function getHashRing(name: string): string {
-  const colors = [
-    "ring-teal-200 dark:ring-teal-800",
-    "ring-cyan-200 dark:ring-cyan-800",
-    "ring-emerald-200 dark:ring-emerald-800",
-    "ring-amber-200 dark:ring-amber-800",
-    "ring-violet-200 dark:ring-violet-800",
-    "ring-rose-200 dark:ring-rose-800",
-    "ring-sky-200 dark:ring-sky-800",
-    "ring-lime-200 dark:ring-lime-800",
-    "ring-orange-200 dark:ring-orange-800",
-    "ring-pink-200 dark:ring-pink-800",
-  ];
-  let hash = 0;
-  for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
-  return colors[Math.abs(hash) % colors.length];
-}
 
 function getDepartmentLabel(dept: string, ar: boolean) {
   if (!dept) return ar ? "غير محدد" : "Not specified";
@@ -228,7 +208,7 @@ export default function TeamMembers({ language, projectId }: TeamMembersProps) {
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [selectedUserId, setSelectedUserId] = useState("");
   const [selectedRole, setSelectedRole] = useState("team_member");
-  const [removingId, setRemovingId] = useState<string | null>(null);
+  const [_removingId, _setRemovingId] = useState<string | null>(null);
   const [confirmRemoveId, setConfirmRemoveId] = useState<string | null>(null);
   const [openRoleDropdown, setOpenRoleDropdown] = useState<string | null>(null);
 

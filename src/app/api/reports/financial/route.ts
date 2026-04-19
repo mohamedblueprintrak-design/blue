@@ -9,7 +9,7 @@ export async function GET() {
     });
 
     const collectedInvoices = invoiceStats._sum.paidAmount || 0;
-    const totalRemaining = invoiceStats._sum.remaining || 0;
+    const _totalRemaining = invoiceStats._sum.remaining || 0;
 
     const pendingInvoices = await db.invoice.aggregate({
       _sum: { remaining: true },
