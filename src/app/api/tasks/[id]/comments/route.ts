@@ -1,7 +1,5 @@
 import { db } from "@/lib/db";
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
 
 export async function GET(
   request: NextRequest,
@@ -42,9 +40,12 @@ export async function POST(
 ) {
   try {
     const { id } = await params;
-    const session = await getServerSession(authOptions);
 
-    if (!session?.user?.id) {
+    // Use JWT-based auth via x-user-id header (set by middleware from blue_token cookie)
+    const userId = request.headers.get('x-user-id');
+    const userName = decodeURIComponent(request.headers.get('x-user-name') || '');
+
+    if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -69,7 +70,7 @@ export async function POST(
       data: {
         content: content.trim(),
         taskId: id,
-        userId: session.user.id,
+        userId: userId,
       },
       include: {
         user: {
@@ -100,13 +101,13 @@ export async function POST(
                  u.name.toLowerCase().includes(mentionedName.replace(/\./g, " "))
         );
 
-        if (targetUser && targetUser.id !== session.user.id) {
+        if (targetUser && targetUser.id !== userId) {
           await db.notification.create({
             data: {
               userId: targetUser.id,
               type: "comment_mention",
-              title: session.user.name
-                ? `@${session.user.name} ذكرك في مهمة`
+              title: userName
+                ? `@${userName} ذكرك في مهمة`
                 : "Someone mentioned you in a task",
               message: `"${content.trim().slice(0, 100)}${content.trim().length > 100 ? "..." : ""}"`,
               isRead: false,

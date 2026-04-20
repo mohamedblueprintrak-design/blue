@@ -1,6 +1,4 @@
-import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { writeFile, unlink, mkdir } from "fs/promises";
 import { existsSync } from "fs";
@@ -12,12 +10,14 @@ const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/gif", "image/webp"];
 
 /**
  * POST /api/profile/avatar - Upload avatar image
+ *
+ * Uses JWT-based auth via x-user-id header (set by middleware from blue_token cookie).
+ * Do NOT use getServerSession() — the custom JWT login flow never creates a NextAuth session.
  */
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-
-    if (!session?.user?.email) {
+    const userId = request.headers.get('x-user-id');
+    if (!userId) {
       return NextResponse.json(
         { error: "غير مصرح" },
         { status: 401 }
@@ -25,7 +25,7 @@ export async function POST(request: Request) {
     }
 
     const user = await db.user.findUnique({
-      where: { email: session.user.email },
+      where: { id: userId },
     });
 
     if (!user) {
@@ -100,12 +100,13 @@ export async function POST(request: Request) {
 
 /**
  * DELETE /api/profile/avatar - Remove avatar
+ *
+ * Uses JWT-based auth via x-user-id header (set by middleware from blue_token cookie).
  */
-export async function DELETE() {
+export async function DELETE(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-
-    if (!session?.user?.email) {
+    const userId = request.headers.get('x-user-id');
+    if (!userId) {
       return NextResponse.json(
         { error: "غير مصرح" },
         { status: 401 }
@@ -113,7 +114,7 @@ export async function DELETE() {
     }
 
     const user = await db.user.findUnique({
-      where: { email: session.user.email },
+      where: { id: userId },
     });
 
     if (!user) {

@@ -208,7 +208,7 @@ model CompanySettings {
   taxNumber     String   @default("")
   currency      String   @default("AED")
   timezone      String   @default("Asia/Dubai")
-  workingDays   String   @default("sat,thu") // comma-separated
+  workingDays   String   @default("sat,sun,mon,tue,wed,thu") // comma-separated UAE work week (Saturday-Thursday)
   workingHours  String   @default("08:00-17:00")
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
@@ -667,7 +667,7 @@ model Contractor {
   tradeLicenseExpiry  DateTime?              // Trade license expiry date
   vatNumber           String?   @default("")  // VAT registration number
   category        String   @default("") // civil, electrical, mep, finishing, plumbing, hvac
-   rating          Int      @default(0) // 1-5 stars
+  rating          Int      @default(0) // 1-5 stars
   specialties     String   @default("") // comma-separated specialties
   experience      String   @default("") // years of experience description
   bankName        String   @default("")

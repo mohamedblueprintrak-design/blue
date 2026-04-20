@@ -1,16 +1,16 @@
-import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 
 /**
  * GET /api/profile - Get current user profile
+ *
+ * Uses JWT-based auth via x-user-id header (set by middleware from blue_token cookie).
+ * Do NOT use getServerSession() here — the custom JWT login flow never creates a NextAuth session.
  */
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-
-    if (!session?.user?.email) {
+    const userId = request.headers.get('x-user-id');
+    if (!userId) {
       return NextResponse.json(
         { error: "غير مصرح" },
         { status: 401 }
@@ -18,7 +18,7 @@ export async function GET() {
     }
 
     const user = await db.user.findUnique({
-      where: { email: session.user.email },
+      where: { id: userId },
       select: {
         id: true,
         email: true,
@@ -53,12 +53,13 @@ export async function GET() {
 
 /**
  * PUT /api/profile - Update user profile
+ *
+ * Uses JWT-based auth via x-user-id header (set by middleware from blue_token cookie).
  */
-export async function PUT(request: Request) {
+export async function PUT(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-
-    if (!session?.user?.email) {
+    const userId = request.headers.get('x-user-id');
+    if (!userId) {
       return NextResponse.json(
         { error: "غير مصرح" },
         { status: 401 }
@@ -69,7 +70,7 @@ export async function PUT(request: Request) {
     const { name, email, phone, department, position } = body;
 
     const user = await db.user.findUnique({
-      where: { email: session.user.email },
+      where: { id: userId },
     });
 
     if (!user) {

@@ -222,21 +222,21 @@ async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
  */
 async function handleInvoicePaid(invoice: Stripe.Invoice) {
   const inv = invoice as any;
-  const subscriptionId = inv.subscription as string;
 
   try {
-    // Create payment record
+    // Create payment record using the actual Payment model fields
+    // Payment model: id, voucherNumber, projectId, amount, payMethod, beneficiary,
+    //   referenceNumber, status, approvedById, description, createdAt, updatedAt
     await db.payment.create({
       data: {
-        subscriptionId: subscriptionId,
+        voucherNumber: `INV-${invoice.number || invoice.id}`,
         amount: invoice.amount_paid / 100,
-        currency: invoice.currency.toUpperCase(),
-        status: 'SUCCEEDED',
-        stripePaymentIntentId: inv.payment_intent as string,
-        stripeInvoiceId: invoice.id,
-        receiptUrl: invoice.hosted_invoice_url || undefined,
-        description: `Invoice ${invoice.number}`,
-      } as any,
+        payMethod: 'online',
+        beneficiary: invoice.customer_name || `Stripe Customer ${inv.customer || ''}`,
+        referenceNumber: inv.payment_intent as string || invoice.id,
+        status: 'completed',
+        description: `Stripe Invoice ${invoice.number || invoice.id} - ${invoice.currency?.toUpperCase() || 'USD'} ${(invoice.amount_paid / 100).toFixed(2)}`,
+      },
     });
 
     log.info(`Invoice paid: ${invoice.id}, amount: ${invoice.amount_paid}`);

@@ -1,17 +1,24 @@
 import { db } from "@/lib/db";
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
 
+/**
+ * DELETE /api/tasks/[id]/comments/[commentId] - Delete a task comment
+ *
+ * Uses JWT-based auth via x-user-id and x-user-role headers (set by middleware from blue_token cookie).
+ * Do NOT use getServerSession() — the custom JWT login flow never creates a NextAuth session.
+ */
 export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string; commentId: string }> }
 ) {
   try {
     const { id, commentId } = await params;
-    const session = await getServerSession(authOptions);
 
-    if (!session?.user?.id) {
+    // Use JWT-based auth via headers set by middleware
+    const userId = request.headers.get('x-user-id');
+    const userRole = request.headers.get('x-user-role');
+
+    if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -34,8 +41,8 @@ export async function DELETE(
     }
 
     // Check authorization: only comment author or admin can delete
-    const isAdmin = comment.user.role === "admin" || session.user.role === "admin";
-    const isAuthor = comment.userId === session.user.id;
+    const isAdmin = comment.user.role === "admin" || userRole === "admin";
+    const isAuthor = comment.userId === userId;
 
     if (!isAuthor && !isAdmin) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });

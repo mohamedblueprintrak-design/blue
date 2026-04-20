@@ -521,6 +521,7 @@ export async function middleware(request: NextRequest) {
     response.headers.set('x-user-id', payload.userId);
     response.headers.set('x-user-email', payload.email);
     response.headers.set('x-user-role', payload.role);
+    response.headers.set('x-user-name', encodeURIComponent(payload.name));
     if (payload.organizationId) {
       response.headers.set('x-organization-id', payload.organizationId);
     }

@@ -87,7 +87,7 @@ async function main() {
     create: {
       id: 'default-company', name: 'بلوبرنت للاستشارات الهندسية', nameEn: 'BluePrint Engineering Consultancy',
       email: 'info@blueprint.ae', phone: '+971-7-234-5678', address: 'رأس الخيمة، الإمارات العربية المتحدة',
-      taxNumber: '100000000000000', currency: 'AED', timezone: 'Asia/Dubai', workingDays: 'sun,thu', workingHours: '07:30-16:30',
+      taxNumber: '100000000000000', currency: 'AED', timezone: 'Asia/Dubai', workingDays: 'sat,sun,mon,tue,wed,thu', workingHours: '08:00-17:00',
     },
   });
 

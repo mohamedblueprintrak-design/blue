@@ -1,18 +1,18 @@
-import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { validateRequest, changePasswordSchema } from '@/lib/api-validation';
 import { hash, compare } from "bcryptjs";
 
 /**
  * PUT /api/profile/password - Change password
+ *
+ * Uses JWT-based auth via x-user-id header (set by middleware from blue_token cookie).
+ * Do NOT use getServerSession() — the custom JWT login flow never creates a NextAuth session.
  */
-export async function PUT(request: Request) {
+export async function PUT(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-
-    if (!session?.user?.email) {
+    const userId = request.headers.get('x-user-id');
+    if (!userId) {
       return NextResponse.json(
         { error: "غير مصرح" },
         { status: 401 }
@@ -30,7 +30,7 @@ export async function PUT(request: Request) {
     const { currentPassword, newPassword } = validation.data;
 
     const user = await db.user.findUnique({
-      where: { email: session.user.email },
+      where: { id: userId },
     });
 
     if (!user || !user.password) {
@@ -40,16 +40,17 @@ export async function PUT(request: Request) {
       );
     }
 
-    // Verify current password using bcrypt (support both bcrypt hash and legacy plain text)
-    let isPasswordValid = false;
-    if (user.password.startsWith("$2")) {
-      // bcrypt hash
-      isPasswordValid = await compare(currentPassword, user.password);
-    } else {
-      // Legacy plain text (should not happen in production)
-      isPasswordValid = user.password === currentPassword;
+    // Verify current password using bcrypt only
+    // SECURITY: No plain text fallback — all passwords must be bcrypt-hashed
+    if (!user.password.startsWith("$2")) {
+      // Password is not properly hashed — force reset required
+      return NextResponse.json(
+        { error: "كلمة المرور الحالية غير صحيحة. يرجى طلب إعادة تعيين كلمة المرور." },
+        { status: 400 }
+      );
     }
 
+    const isPasswordValid = await compare(currentPassword, user.password);
     if (!isPasswordValid) {
       return NextResponse.json(
         { error: "كلمة المرور الحالية غير صحيحة" },

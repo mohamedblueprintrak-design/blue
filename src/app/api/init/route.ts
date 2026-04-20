@@ -85,8 +85,8 @@ export async function POST() {
           taxNumber: '100000000000000',
           currency: 'AED',
           timezone: 'Asia/Dubai',
-          workingDays: 'sun,thu',
-          workingHours: '07:30-16:30',
+          workingDays: 'sat,sun,mon,tue,wed,thu',
+          workingHours: '08:00-17:00',
         },
       });
     } catch {
