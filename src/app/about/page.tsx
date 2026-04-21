@@ -20,7 +20,7 @@ import PublicFooter from "@/components/layout/public-footer";
 
 const TEAM_MEMBERS = [
   { name: "م. جراح الطير", nameEn: "Eng. Jurrah Al Tayr", title: "المدير العام ومؤسس المكتب", titleEn: "General Manager & Founder", specialty: "هندسة مدنية - إدارة مشاريع", specialtyEn: "Civil Engineering - Project Management" },
-  { name: "دينا الجاعلي", nameEn: "Dina Al Ja'ali", title: "مديرة قسم التصميم المعماري", titleEn: "Architectural Design Manager", specialty: "تصميم معماري", specialtyEn: "Architectural Design" },
+  { name: "م. دينا الجاعلي", nameEn: "Eng. Dina Al gaaly", title: "مديرة قسم التصميم المعماري", titleEn: "Architectural Design Manager", specialty: "تصميم معماري", specialtyEn: "Architectural Design" },
   { name: "م. شريف صبري", nameEn: "Eng. Sherif Sabry", title: "مدير قسم التصميم الإنشائي", titleEn: "Structural Design Manager", specialty: "هندسة إنشائية", specialtyEn: "Structural Engineering" },
 ];
 
