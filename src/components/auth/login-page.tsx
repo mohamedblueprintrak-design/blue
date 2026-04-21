@@ -172,7 +172,7 @@ export default function LoginPage({ language }: LoginPageProps) {
     setEmail(value);
     // Auto-fill demo password if available (dev/demo mode only)
     const cred = demoCredentials.find((c) => c.email === value);
-    if (cred) {
+    if (cred && cred.password) {
       setPassword(cred.password);
     } else {
       setPassword("");
@@ -413,7 +413,7 @@ export default function LoginPage({ language }: LoginPageProps) {
                       <Input
                         type="email"
                         placeholder={isAr ? "أدخل بريدك الإلكتروني" : "Enter your email"}
-                        value={email}
+                        value={email || ""}
                         onChange={(e) => setEmail(e.target.value)}
                         required
                         className={cn(
@@ -446,7 +446,7 @@ export default function LoginPage({ language }: LoginPageProps) {
                       <Input
                         type={showPassword ? "text" : "password"}
                         placeholder={isAr ? "أدخل كلمة المرور" : "Enter your password"}
-                        value={password}
+                        value={password || ""}
                         onChange={(e) => setPassword(e.target.value)}
                         required
                         className={cn(
