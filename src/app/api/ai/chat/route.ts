@@ -692,6 +692,59 @@ async function fetchProjectContext(projectId: string): Promise<string | null> {
   }
 }
 
+
+// ============================================
+// Demo Mode AI Responses (works without API keys)
+// ============================================
+function getDemoResponse(message: string, language: string, contextData: Record<string, unknown>): string {
+  const isAr = language === 'ar';
+  const lower = message.toLowerCase();
+
+  if (/dashboard|overview|ملخص|لوحة|إحصائ/.test(lower)) {
+    const s = contextData.dashboardStats as Record<string, number> | undefined;
+    if (s) {
+      return isAr
+        ? `📊 **ملخص النظام:**\n\n• إجمالي المشاريع: ${s.totalProjects || 0}\n• النشطة: ${s.activeProjects || 0}\n• المكتملة: ${s.completedProjects || 0}\n• المتأخرة: ${s.delayedProjects || 0}\n• المهام: ${s.totalTasks || 0}\n• العملاء: ${s.totalClients || 0}\n\n💡 *اسألني عن أي مشروع أو مهمة*`
+        : `📊 **System Overview:**\n\n• Total Projects: ${s.totalProjects || 0}\n• Active: ${s.activeProjects || 0}\n• Completed: ${s.completedProjects || 0}\n• Delayed: ${s.delayedProjects || 0}\n• Tasks: ${s.totalTasks || 0}\n• Clients: ${s.totalClients || 0}\n\n💡 *Ask about any project or task*`;
+    }
+  }
+
+  if (/project|مشروع|مشاريع/.test(lower)) {
+    return isAr
+      ? '🏗️ **المشاريع:** يمكنني مساعدتك في تتبع المشاريع والمراحل. حدد مشروع معين للتفاصيل.'
+      : '🏗️ **Projects:** I can help track projects and stages. Specify a project for details.';
+  }
+  if (/task|مهم|مهام/.test(lower)) {
+    return isAr
+      ? '📋 **المهام:** يمكنني مساعدتك في تتبع المهام المتأخرة وتوزيعها. حدد مشروع أو أولوية.'
+      : '📋 **Tasks:** I can help track overdue tasks and assignments. Specify a project or priority.';
+  }
+  if (/invoice|budget|financial|فاتور|ميزاني/.test(lower)) {
+    return isAr
+      ? '💰 **المالية:** يمكنني مراجعة الفواتير والميزانيات. حدد مشروع أو فترة زمنية.'
+      : '💰 **Financial:** I can review invoices and budgets. Specify a project or period.';
+  }
+  if (/client|عميل|عملاء/.test(lower)) {
+    return isAr
+      ? '👥 **العملاء:** يمكنني عرض بيانات العملاء ومشاريعهم. حدد عميل للتفاصيل.'
+      : '👥 **Clients:** I can show client data and their projects. Specify a client for details.';
+  }
+  if (/hello|hi|مرحب|أهلا|السلام/.test(lower)) {
+    return isAr
+      ? '👋 **مرحباً!** أنا المساعد الذكي لبلوبرنت. اسألني عن: المشاريع، المهام، الفواتير، العملاء، الموظفين.'
+      : '👋 **Hello!** I\'m the BluePrint AI Assistant. Ask me about: projects, tasks, invoices, clients, employees.';
+  }
+  if (/help|مساعد|ماذا تستطيع/.test(lower)) {
+    return isAr
+      ? '🤖 **ال أوامر المتاحة:**\n• "ملخص" — ملخص النظام\n• "مشاريع" — حالة المشاريع\n• "مهام" — تتبع المهام\n• "فواتير" — الفواتير\n• "عملاء" — بيانات العملاء\n\n💡 *أضف API Key في .env لإجابات أذكى*'
+      : '🤖 **Available commands:**\n• "dashboard" — system overview\n• "projects" — project status\n• "tasks" — task tracking\n• "invoices" — financial data\n• "clients" — client info\n\n💡 *Add API Key in .env for smarter responses*';
+  }
+
+  return isAr
+    ? '🤖 أنا في وضع العرض التجريبي. اكتب "مساعدة" لعرض الأوامر المتاحة.\n💡 *أضف API Key في .env لإجابات ذكية متقدمة*'
+    : '🤖 I\'m in demo mode. Type "help" for available commands.\n💡 *Add API Key in .env for advanced AI responses*';
+}
+
 export async function POST(request: NextRequest) {
   try {
     const body = await validateBody(request, aiChatSchema);
@@ -897,12 +950,20 @@ Guidelines:
       }
 
       if (!aiMessage) {
-        return NextResponse.json({
-          error: 'AI_SERVICE_UNAVAILABLE',
-          message: language === 'ar'
-            ? 'عذراً، خدمة المساعد الذكي غير متاحة. يرجى إضافة API Key لأحد المزودين في ملف .env'
-            : 'AI assistant unavailable. Please add an API key for one of the providers in your .env file',
-        }, { status: 503 });
+        // Demo mode fallback — provide useful responses without API keys
+        const isDemo = process.env.DEMO_MODE !== 'false' && process.env.NODE_ENV !== 'production';
+        if (isDemo) {
+          aiMessage = getDemoResponse(message, language || 'ar', contextData);
+          usedProvider = 'demo';
+          usedModel = 'demo-fallback';
+        } else {
+          return NextResponse.json({
+            error: 'AI_SERVICE_UNAVAILABLE',
+            message: language === 'ar'
+              ? 'عذراً، خدمة المساعد الذكي غير متاحة. يرجى إضافة API Key لأحد المزودين في ملف .env'
+              : 'AI assistant unavailable. Please add an API key for one of the providers in your .env file',
+          }, { status: 503 });
+        }
       }
     } else {
       // Use external provider (OpenAI, Gemini, DeepSeek, etc.)
