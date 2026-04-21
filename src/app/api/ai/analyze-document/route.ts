@@ -11,6 +11,91 @@ async function getZAI() {
   }
 }
 
+/**
+ * Call ZAI backend directly via HTTP — no .z-ai-config needed.
+ * Reads config from environment variables: ZAI_BASE_URL, ZAI_API_KEY, etc.
+ */
+async function callZaiDirect(
+  messages: Array<{ role: string; content: unknown }>,
+  options: { temperature?: number; maxTokens?: number } = {}
+): Promise<string> {
+  const baseUrl = process.env.ZAI_BASE_URL || 'http://172.25.136.193:8080/v1';
+  const apiKey = process.env.ZAI_API_KEY || 'Z.ai';
+  const chatId = process.env.ZAI_CHAT_ID || '';
+  const userId = process.env.ZAI_USER_ID || '';
+  const token = process.env.ZAI_TOKEN || '';
+
+  const url = `${baseUrl}/chat/completions`;
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${apiKey}`,
+    'X-Z-AI-From': 'Z',
+  };
+  if (chatId) headers['X-Chat-Id'] = chatId;
+  if (userId) headers['X-User-Id'] = userId;
+  if (token) headers['X-Token'] = token;
+
+  const body = {
+    messages,
+    temperature: options.temperature ?? 0.5,
+    max_tokens: options.maxTokens ?? 2000,
+    thinking: { type: 'disabled' },
+  };
+
+  const response = await fetch(url, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify(body),
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`ZAI direct call failed (${response.status}): ${errorText}`);
+  }
+
+  const data = await response.json();
+  return data.choices?.[0]?.message?.content || '';
+}
+
+/**
+ * Call ZAI Vision API directly via HTTP — no .z-ai-config needed.
+ */
+async function callZaiVisionDirect(
+  messages: Array<{ role: string; content: unknown }>,
+): Promise<string> {
+  const baseUrl = process.env.ZAI_BASE_URL || 'http://172.25.136.193:8080/v1';
+  const apiKey = process.env.ZAI_API_KEY || 'Z.ai';
+  const chatId = process.env.ZAI_CHAT_ID || '';
+  const userId = process.env.ZAI_USER_ID || '';
+  const token = process.env.ZAI_TOKEN || '';
+
+  const url = `${baseUrl}/chat/completions/vision`;
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${apiKey}`,
+    'X-Z-AI-From': 'Z',
+  };
+  if (chatId) headers['X-Chat-Id'] = chatId;
+  if (userId) headers['X-User-Id'] = userId;
+  if (token) headers['X-Token'] = token;
+
+  const body = { messages, thinking: { type: 'disabled' } };
+
+  const response = await fetch(url, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify(body),
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`ZAI vision direct call failed (${response.status}): ${errorText}`);
+  }
+
+  const data = await response.json();
+  return data.choices?.[0]?.message?.content || '';
+}
+
 // Rate limiting store
 const rateLimitStore = new Map<string, { count: number; resetTime: number }>();
 const RATE_LIMIT_REQUESTS = 30;
@@ -142,16 +227,6 @@ export async function POST(request: NextRequest) {
     // Get system prompt for task type
     const systemPrompt = SYSTEM_PROMPTS[taskType] || SYSTEM_PROMPTS['document-analysis'];
 
-    // Initialize ZAI SDK
-    const ZAI = await getZAI();
-    if (!ZAI) {
-      return NextResponse.json(
-        { success: false, error: 'خدمة الذكاء الاصطناعي غير متاحة حالياً' },
-        { status: 503 }
-      );
-    }
-    const zai = await ZAI.create();
-
     // Check if the document is base64 (file) or plain text
     let userContent: Array<{ type: string; text?: string; file_url?: { url: string } }>;
 
@@ -170,7 +245,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Build messages
-    const messages = [
+    const aiMessages = [
       { role: 'system' as const, content: systemPrompt },
       {
         role: 'user' as const,
@@ -178,22 +253,51 @@ export async function POST(request: NextRequest) {
       }
     ];
 
-    // Call AI model - use vision API for file uploads, regular for text
-    let completion: any;
-    if (userContent.length > 1 && userContent[1].type === 'file_url') {
-      completion = await (zai.chat.completions as any).createVision({
-        messages,
-        thinking: { type: 'disabled' }
-      });
-    } else {
-      completion = await zai.chat.completions.create({
-        messages,
-        temperature: 0.5,
-      });
+    let analysis = '';
+    let tokens = 0;
+
+    // Tier 1: Try ZAI SDK
+    const ZAI = await getZAI();
+    if (ZAI) {
+      try {
+        const zai = await ZAI.create();
+        // Call AI model - use vision API for file uploads, regular for text
+        let completion: any;
+        if (userContent.length > 1 && userContent[1].type === 'file_url') {
+          completion = await (zai.chat.completions as any).createVision({
+            messages: aiMessages,
+            thinking: { type: 'disabled' }
+          });
+        } else {
+          completion = await zai.chat.completions.create({
+            messages: aiMessages,
+            temperature: 0.5,
+          });
+        }
+        analysis = completion?.choices?.[0]?.message?.content || '';
+        tokens = completion?.usage?.total_tokens || 0;
+      } catch (sdkError) {
+        console.warn('[AI] ZAI Document SDK failed, trying direct HTTP:', sdkError instanceof Error ? sdkError.message : sdkError);
+      }
     }
 
-    const analysis = completion?.choices?.[0]?.message?.content || '';
-    const tokens = completion?.usage?.total_tokens || 0;
+    // Tier 2: Direct HTTP call (no .z-ai-config needed)
+    if (!analysis) {
+      try {
+        const isFileUpload = userContent.length > 1 && userContent[1].type === 'file_url';
+        if (isFileUpload) {
+          analysis = await callZaiVisionDirect(aiMessages as any);
+        } else {
+          analysis = await callZaiDirect(aiMessages as any, { temperature: 0.5 });
+        }
+      } catch (directError) {
+        console.warn('[AI] ZAI Document direct call failed:', directError instanceof Error ? directError.message : directError);
+        return NextResponse.json(
+          { success: false, error: 'خدمة الذكاء الاصطناعي غير متاحة حالياً' },
+          { status: 503 }
+        );
+      }
+    }
 
     return NextResponse.json({
       success: true,

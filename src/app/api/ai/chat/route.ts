@@ -4,7 +4,15 @@ import { validateBody, aiChatSchema } from '@/lib/api-validation';
 import { providerRegistry } from '@/lib/ai/providers/registry';
 import type { ChatMessage } from '@/lib/ai/providers/types';
 
-// Lazy-load ZAI SDK to avoid bundling issues and missing .z-ai-config at import time
+// ============================================
+// ZAI SDK — Lazy-load + Direct HTTP fallback
+// ============================================
+// The ZAI SDK reads from .z-ai-config file, but on local dev machines
+// that file may not exist. So we use a two-tier approach:
+//   1. Try the ZAI SDK (requires .z-ai-config)
+//   2. Fall back to direct HTTP call using env vars (ZAI_BASE_URL, etc.)
+// This way it works BOTH on the hosted server AND on local machines.
+
 let ZAISdk: typeof import('z-ai-web-dev-sdk').default | null = null;
 async function getZAI() {
   if (!ZAISdk) {
@@ -17,6 +25,57 @@ async function getZAI() {
     }
   }
   return ZAISdk;
+}
+
+/**
+ * Call ZAI backend directly via HTTP — no .z-ai-config needed.
+ * Reads config from environment variables:
+ *   ZAI_BASE_URL  (default: http://172.25.136.193:8080/v1)
+ *   ZAI_API_KEY   (default: Z.ai)
+ *   ZAI_CHAT_ID   (optional)
+ *   ZAI_USER_ID   (optional)
+ *   ZAI_TOKEN     (optional)
+ */
+async function callZaiDirect(
+  messages: Array<{ role: string; content: string }>,
+  options: { temperature?: number; maxTokens?: number } = {}
+): Promise<string> {
+  const baseUrl = process.env.ZAI_BASE_URL || 'http://172.25.136.193:8080/v1';
+  const apiKey = process.env.ZAI_API_KEY || 'Z.ai';
+  const chatId = process.env.ZAI_CHAT_ID || '';
+  const userId = process.env.ZAI_USER_ID || '';
+  const token = process.env.ZAI_TOKEN || '';
+
+  const url = `${baseUrl}/chat/completions`;
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${apiKey}`,
+    'X-Z-AI-From': 'Z',
+  };
+  if (chatId) headers['X-Chat-Id'] = chatId;
+  if (userId) headers['X-User-Id'] = userId;
+  if (token) headers['X-Token'] = token;
+
+  const body = {
+    messages,
+    temperature: options.temperature ?? 0.7,
+    max_tokens: options.maxTokens ?? 1500,
+    thinking: { type: 'disabled' },
+  };
+
+  const response = await fetch(url, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify(body),
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`ZAI direct call failed (${response.status}): ${errorText}`);
+  }
+
+  const data = await response.json();
+  return data.choices?.[0]?.message?.content || '';
 }
 
 // Note: We now use database persistence instead of in-memory storage
@@ -918,7 +977,7 @@ Guidelines:
     let usedModel = model;
 
     if (provider === 'zai') {
-      // Try built-in ZAI SDK first, then fall back to external providers
+      // Try built-in ZAI SDK first, then direct HTTP call, then external providers
       let zaiAvailable = false;
       try {
         const ZAIClass = await getZAI();
@@ -936,11 +995,25 @@ Guidelines:
           aiMessage = completion.choices[0]?.message?.content || '';
           usedModel = 'zai-default';
           zaiAvailable = true;
-        } else {
-          console.warn('[AI] Built-in ZAI SDK module could not be loaded');
         }
       } catch (zaiError) {
-        console.warn('[AI] Built-in ZAI SDK unavailable, falling back to external provider:', zaiError instanceof Error ? zaiError.message : zaiError);
+        console.warn('[AI] ZAI SDK failed, trying direct HTTP call:', zaiError instanceof Error ? zaiError.message : zaiError);
+      }
+
+      // Fallback tier 2: Direct HTTP call to ZAI backend (no .z-ai-config needed)
+      if (!zaiAvailable) {
+        try {
+          const zaiMessages = [
+            { role: 'system', content: systemPrompt },
+            ...history,
+            { role: 'user', content: message },
+          ];
+          aiMessage = await callZaiDirect(zaiMessages, { temperature: 0.7, maxTokens: 1500 });
+          usedModel = 'zai-default';
+          zaiAvailable = true;
+        } catch (directError) {
+          console.warn('[AI] ZAI direct HTTP call failed:', directError instanceof Error ? directError.message : directError);
+        }
       }
 
       // Fallback: use first available external provider
