@@ -28,23 +28,68 @@ async function getZAI() {
 }
 
 /**
- * Call ZAI backend directly via HTTP — no .z-ai-config needed.
- * Reads config from environment variables:
- *   ZAI_BASE_URL  (default: http://172.25.136.193:8080/v1)
- *   ZAI_API_KEY   (default: Z.ai)
- *   ZAI_CHAT_ID   (optional)
- *   ZAI_USER_ID   (optional)
- *   ZAI_TOKEN     (optional)
+ * Read ZAI config directly from .z-ai-config file.
+ * This is used as a backup when env vars are not set.
+ * The SDK also reads this file, but we read it manually for the direct HTTP fallback.
+ */
+function readZaiConfigFile(): { baseUrl: string; apiKey: string; chatId?: string; userId?: string; token?: string } | null {
+  try {
+    const fs = require('fs');
+    const path = require('path');
+    const os = require('os');
+
+    const configPaths = [
+      path.join(process.cwd(), '.z-ai-config'),
+      path.join(os.homedir(), '.z-ai-config'),
+      '/etc/.z-ai-config',
+    ];
+
+    for (const configPath of configPaths) {
+      try {
+        if (fs.existsSync(configPath)) {
+          const data = JSON.parse(fs.readFileSync(configPath, 'utf-8'));
+          if (data.baseUrl && data.apiKey) {
+            return data;
+          }
+        }
+      } catch {
+        // Try next path
+      }
+    }
+  } catch {
+    // Module loading failed
+  }
+  return null;
+}
+
+// Cache the file-based config to avoid repeated file reads
+let _cachedFileConfig: ReturnType<typeof readZaiConfigFile> | undefined = undefined;
+function getCachedZaiFileConfig() {
+  if (_cachedFileConfig === undefined) {
+    _cachedFileConfig = readZaiConfigFile();
+  }
+  return _cachedFileConfig;
+}
+
+/**
+ * Call ZAI backend directly via HTTP.
+ * Reads config from (in priority order):
+ *   1. Environment variables (ZAI_BASE_URL, ZAI_API_KEY, ZAI_CHAT_ID, ZAI_USER_ID, ZAI_TOKEN)
+ *   2. .z-ai-config file (in project dir, home dir, or /etc/)
+ *   3. Hardcoded defaults
  */
 async function callZaiDirect(
   messages: Array<{ role: string; content: string }>,
   options: { temperature?: number; maxTokens?: number } = {}
 ): Promise<string> {
-  const baseUrl = process.env.ZAI_BASE_URL || 'http://172.25.136.193:8080/v1';
-  const apiKey = process.env.ZAI_API_KEY || 'Z.ai';
-  const chatId = process.env.ZAI_CHAT_ID || '';
-  const userId = process.env.ZAI_USER_ID || '';
-  const token = process.env.ZAI_TOKEN || '';
+  // Read from .z-ai-config file as a backup source
+  const fileConfig = getCachedZaiFileConfig();
+
+  const baseUrl = process.env.ZAI_BASE_URL || fileConfig?.baseUrl || 'http://172.25.136.193:8080/v1';
+  const apiKey = process.env.ZAI_API_KEY || fileConfig?.apiKey || 'Z.ai';
+  const chatId = process.env.ZAI_CHAT_ID || fileConfig?.chatId || '';
+  const userId = process.env.ZAI_USER_ID || fileConfig?.userId || '';
+  const token = process.env.ZAI_TOKEN || fileConfig?.token || '';
 
   const url = `${baseUrl}/chat/completions`;
   const headers: Record<string, string> = {
@@ -63,19 +108,27 @@ async function callZaiDirect(
     thinking: { type: 'disabled' },
   };
 
-  const response = await fetch(url, {
-    method: 'POST',
-    headers,
-    body: JSON.stringify(body),
-  });
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 30000); // 30s timeout
 
-  if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(`ZAI direct call failed (${response.status}): ${errorText}`);
+  try {
+    const response = await fetch(url, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(body),
+      signal: controller.signal,
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`ZAI direct call failed (${response.status}): ${errorText}`);
+    }
+
+    const data = await response.json();
+    return data.choices?.[0]?.message?.content || '';
+  } finally {
+    clearTimeout(timeout);
   }
-
-  const data = await response.json();
-  return data.choices?.[0]?.message?.content || '';
 }
 
 // Note: We now use database persistence instead of in-memory storage

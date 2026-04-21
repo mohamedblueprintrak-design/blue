@@ -12,18 +12,65 @@ async function getZAI() {
 }
 
 /**
- * Call ZAI backend directly via HTTP — no .z-ai-config needed.
- * Reads config from environment variables: ZAI_BASE_URL, ZAI_API_KEY, etc.
+ * Read ZAI config directly from .z-ai-config file.
+ * Used as a backup when env vars are not set.
+ */
+function readZaiConfigFile(): { baseUrl: string; apiKey: string; chatId?: string; userId?: string; token?: string } | null {
+  try {
+    const fs = require('fs');
+    const path = require('path');
+    const os = require('os');
+
+    const configPaths = [
+      path.join(process.cwd(), '.z-ai-config'),
+      path.join(os.homedir(), '.z-ai-config'),
+      '/etc/.z-ai-config',
+    ];
+
+    for (const configPath of configPaths) {
+      try {
+        if (fs.existsSync(configPath)) {
+          const data = JSON.parse(fs.readFileSync(configPath, 'utf-8'));
+          if (data.baseUrl && data.apiKey) {
+            return data;
+          }
+        }
+      } catch {
+        // Try next path
+      }
+    }
+  } catch {
+    // Module loading failed
+  }
+  return null;
+}
+
+let _cachedFileConfig: ReturnType<typeof readZaiConfigFile> | undefined = undefined;
+function getCachedZaiFileConfig() {
+  if (_cachedFileConfig === undefined) {
+    _cachedFileConfig = readZaiConfigFile();
+  }
+  return _cachedFileConfig;
+}
+
+/**
+ * Call ZAI backend directly via HTTP.
+ * Reads config from (in priority order):
+ *   1. Environment variables (ZAI_BASE_URL, ZAI_API_KEY, etc.)
+ *   2. .z-ai-config file (in project dir, home dir, or /etc/)
+ *   3. Hardcoded defaults
  */
 async function callZaiDirect(
   messages: Array<{ role: string; content: unknown }>,
   options: { temperature?: number; maxTokens?: number } = {}
 ): Promise<string> {
-  const baseUrl = process.env.ZAI_BASE_URL || 'http://172.25.136.193:8080/v1';
-  const apiKey = process.env.ZAI_API_KEY || 'Z.ai';
-  const chatId = process.env.ZAI_CHAT_ID || '';
-  const userId = process.env.ZAI_USER_ID || '';
-  const token = process.env.ZAI_TOKEN || '';
+  const fileConfig = getCachedZaiFileConfig();
+
+  const baseUrl = process.env.ZAI_BASE_URL || fileConfig?.baseUrl || 'http://172.25.136.193:8080/v1';
+  const apiKey = process.env.ZAI_API_KEY || fileConfig?.apiKey || 'Z.ai';
+  const chatId = process.env.ZAI_CHAT_ID || fileConfig?.chatId || '';
+  const userId = process.env.ZAI_USER_ID || fileConfig?.userId || '';
+  const token = process.env.ZAI_TOKEN || fileConfig?.token || '';
 
   const url = `${baseUrl}/chat/completions`;
   const headers: Record<string, string> = {
@@ -42,32 +89,42 @@ async function callZaiDirect(
     thinking: { type: 'disabled' },
   };
 
-  const response = await fetch(url, {
-    method: 'POST',
-    headers,
-    body: JSON.stringify(body),
-  });
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 30000);
 
-  if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(`ZAI direct call failed (${response.status}): ${errorText}`);
+  try {
+    const response = await fetch(url, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(body),
+      signal: controller.signal,
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`ZAI direct call failed (${response.status}): ${errorText}`);
+    }
+
+    const data = await response.json();
+    return data.choices?.[0]?.message?.content || '';
+  } finally {
+    clearTimeout(timeout);
   }
-
-  const data = await response.json();
-  return data.choices?.[0]?.message?.content || '';
 }
 
 /**
- * Call ZAI Vision API directly via HTTP — no .z-ai-config needed.
+ * Call ZAI Vision API directly via HTTP.
  */
 async function callZaiVisionDirect(
   messages: Array<{ role: string; content: unknown }>,
 ): Promise<string> {
-  const baseUrl = process.env.ZAI_BASE_URL || 'http://172.25.136.193:8080/v1';
-  const apiKey = process.env.ZAI_API_KEY || 'Z.ai';
-  const chatId = process.env.ZAI_CHAT_ID || '';
-  const userId = process.env.ZAI_USER_ID || '';
-  const token = process.env.ZAI_TOKEN || '';
+  const fileConfig = getCachedZaiFileConfig();
+
+  const baseUrl = process.env.ZAI_BASE_URL || fileConfig?.baseUrl || 'http://172.25.136.193:8080/v1';
+  const apiKey = process.env.ZAI_API_KEY || fileConfig?.apiKey || 'Z.ai';
+  const chatId = process.env.ZAI_CHAT_ID || fileConfig?.chatId || '';
+  const userId = process.env.ZAI_USER_ID || fileConfig?.userId || '';
+  const token = process.env.ZAI_TOKEN || fileConfig?.token || '';
 
   const url = `${baseUrl}/chat/completions/vision`;
   const headers: Record<string, string> = {
@@ -81,19 +138,27 @@ async function callZaiVisionDirect(
 
   const body = { messages, thinking: { type: 'disabled' } };
 
-  const response = await fetch(url, {
-    method: 'POST',
-    headers,
-    body: JSON.stringify(body),
-  });
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 30000);
 
-  if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(`ZAI vision direct call failed (${response.status}): ${errorText}`);
+  try {
+    const response = await fetch(url, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(body),
+      signal: controller.signal,
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`ZAI vision direct call failed (${response.status}): ${errorText}`);
+    }
+
+    const data = await response.json();
+    return data.choices?.[0]?.message?.content || '';
+  } finally {
+    clearTimeout(timeout);
   }
-
-  const data = await response.json();
-  return data.choices?.[0]?.message?.content || '';
 }
 
 // Rate limiting store

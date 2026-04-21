@@ -131,13 +131,15 @@ class ProviderRegistry {
   /**
    * Check if a provider is configured (has API key)
    */
+  private loggedMissing: Set<string> = new Set();
   isConfigured(providerId: string): boolean {
     if (providerId === "zai") return true;
     const config = PROVIDER_CONFIGS[providerId];
     if (!config) return false;
     const key = process.env[config.apiKeyEnvVar];
-    if (!key && process.env.NODE_ENV !== 'production') {
-      console.log(`[AI] ${config.name}: ${config.apiKeyEnvVar} not found in environment`);
+    if (!key && process.env.NODE_ENV !== 'production' && !this.loggedMissing.has(providerId)) {
+      this.loggedMissing.add(providerId);
+      console.log(`[AI] ${config.name}: ${config.apiKeyEnvVar} not found in environment (only logging once)`);
     }
     return !!key;
   }
