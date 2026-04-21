@@ -20,9 +20,7 @@ export async function GET() {
     // Check which keys are found in process.env
     const envDebug: Record<string, {
       envVar: string;
-      found: boolean;
-      prefix?: string;
-      length?: number;
+      configured: boolean;
     }> = {};
 
     const allProviderVars = [
@@ -41,9 +39,7 @@ export async function GET() {
       const value = process.env[envVar];
       envDebug[envVar] = {
         envVar,
-        found: !!value,
-        prefix: value ? `${value.substring(0, 6)}...` : undefined,
-        length: value ? value.length : 0,
+        configured: !!value,
       };
     }
 

@@ -64,7 +64,7 @@ export default function ForgotPasswordPage() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          {status === "form" && (
+          {(status === "form" || status === "loading") && (
             <form onSubmit={handleSubmit} className="space-y-4">
               <p className="text-slate-600 dark:text-slate-400 text-center mb-4">
                 أدخل بريدك الإلكتروني وسنرسل لك رابط لإعادة تعيين كلمة المرور
@@ -82,6 +82,7 @@ export default function ForgotPasswordPage() {
                     className="ps-10"
                     dir="ltr"
                     required
+                    disabled={status === "loading"}
                   />
                 </div>
               </div>
@@ -90,10 +91,10 @@ export default function ForgotPasswordPage() {
               )}
               <Button
                 type="submit"
-                disabled={!email}
+                disabled={!email || status === "loading"}
                 className="w-full bg-amber-500 hover:bg-amber-600 text-white"
               >
-                {(status as string) === "loading" ? (
+                {status === "loading" ? (
                   <Loader2 className="h-4 w-4 animate-spin me-2" />
                 ) : (
                   <Mail className="h-4 w-4 me-2" />

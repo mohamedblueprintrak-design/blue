@@ -6,6 +6,7 @@ import {
   ListTodo,
   Bell,
 } from "lucide-react";
+import { useLang } from "@/hooks/use-lang";
 import { cn } from "@/lib/utils";
 
 interface SidebarStatsData {
@@ -35,9 +36,8 @@ export default function SidebarStats() {
   // The real notification count is fetched in AppHeader
   const unreadNotifs = 0;
 
-  const isAr = typeof window !== "undefined"
-    ? (localStorage.getItem("blueprint-lang") || "ar") === "ar"
-    : true;
+  const lang = useLang();
+  const isAr = lang === "ar";
 
   const stats = [
     {

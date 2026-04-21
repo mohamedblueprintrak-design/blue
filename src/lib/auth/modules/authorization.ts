@@ -27,7 +27,7 @@ const ROLE_HIERARCHY: Record<string, number> = {
   // Also support lowercase for backward compat
   admin: 100,
   manager: 80,
-  'project-manager': 70,
+  'project_manager': 70,
   engineer: 50,
   draftsman: 45,
   accountant: 50,

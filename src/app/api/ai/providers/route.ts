@@ -19,13 +19,12 @@ export async function GET() {
     const hasExternal = providers.some(p => p.id !== 'zai' && p.configured);
 
     // Debug: show which env vars are found
-    const envDebug: Record<string, { envVar: string; found: boolean; prefix?: string }> = {};
+    const envDebug: Record<string, { envVar: string; configured: boolean }> = {};
     for (const [id, config] of Object.entries(PROVIDER_CONFIGS)) {
       const value = process.env[config.apiKeyEnvVar];
       envDebug[id] = {
         envVar: config.apiKeyEnvVar,
-        found: !!value,
-        prefix: value ? `${value.substring(0, 6)}...` : undefined,
+        configured: !!value,
       };
     }
 

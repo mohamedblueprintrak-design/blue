@@ -65,6 +65,11 @@ export async function PUT(request: NextRequest) {
         return NextResponse.json({ error: 'Notification not found' }, { status: 404 });
       }
 
+      // Verify notification ownership
+      if (notification.userId !== userId) {
+        return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+      }
+
       await db.notification.update({
         where: { id },
         data: { isRead: true },

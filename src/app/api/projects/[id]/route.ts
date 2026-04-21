@@ -115,9 +115,18 @@ export async function PUT(
     const rawBody = await request.json();
     const body = sanitizeObject(rawBody);
 
+    // Whitelist allowed fields to prevent mass assignment
+    const allowedFields = ['name', 'nameEn', 'description', 'descriptionEn', 'status', 'priority', 'startDate', 'endDate', 'budget', 'clientId', 'location', 'locationEn', 'department', 'progress', 'category'];
+    const data: Record<string, unknown> = {};
+    for (const field of allowedFields) {
+      if (body[field] !== undefined) {
+        data[field] = body[field];
+      }
+    }
+
     const project = await db.project.update({
       where: { id },
-      data: body,
+      data,
       include: {
         client: { select: { id: true, name: true, company: true } },
         contractor: { select: { id: true, name: true, companyName: true } },

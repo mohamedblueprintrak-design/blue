@@ -9,6 +9,20 @@ function escapeHtml(str: string): string {
   return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
 
+/**
+ * Validate and sanitize URL for use in href attributes.
+ * Only allows http:// and https:// protocols to prevent javascript: URL injection.
+ * Returns an empty string if the URL is invalid or uses a disallowed protocol.
+ */
+function sanitizeUrl(url: string | undefined): string {
+  if (!url) return '';
+  const trimmed = url.trim();
+  if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
+    return trimmed;
+  }
+  return '';
+}
+
 export interface EmailTemplate {
   subject: string;
   html: string;
@@ -148,7 +162,7 @@ export const emailTemplates = {
         </div>
       </div>
       <p>يمكنك تسجيل الدخول والبدء باستخدام المنصة فوراً.</p>
-      ${loginUrl ? `<a href="${loginUrl}" class="button">تسجيل الدخول</a>` : ''}
+      ${loginUrl ? `<a href="${sanitizeUrl(loginUrl)}" class="button">تسجيل الدخول</a>` : ''}
       <p>إذا كانت لديك أي استفسارات، فلا تتردد في التواصل معنا.</p>
       <p>مع أطيب التحيات،<br>فريق BluePrint</p>
     `;
@@ -195,7 +209,7 @@ export const emailTemplates = {
         </div>
         ` : ''}
       </div>
-      ${invoiceUrl ? `<a href="${invoiceUrl}" class="button">عرض الفاتورة</a>` : ''}
+      ${invoiceUrl ? `<a href="${sanitizeUrl(invoiceUrl)}" class="button">عرض الفاتورة</a>` : ''}
       <p>يرجى مراجعة الفاتورة وإتمام عملية الدفع في الوقت المحدد.</p>
       <p>مع أطيب التحيات،<br>فريق BluePrint</p>
     `;
@@ -258,7 +272,7 @@ export const emailTemplates = {
         </div>
         ` : ''}
       </div>
-      ${taskUrl ? `<a href="${taskUrl}" class="button">عرض المهمة</a>` : ''}
+      ${taskUrl ? `<a href="${sanitizeUrl(taskUrl)}" class="button">عرض المهمة</a>` : ''}
       <p>يرجى مراجعة المهمة والبدء في تنفيذها.</p>
       <p>مع أطيب التحيات،<br>فريق BluePrint</p>
     `;
@@ -282,7 +296,7 @@ export const emailTemplates = {
         <strong>تنبيه:</strong> ستنتهي صلاحية هذا الرابط خلال ${expiresInMinutes} دقيقة.
       </div>
       <p>اضغط على الزر أدناه لإعادة تعيين كلمة المرور:</p>
-      <a href="${resetLink}" class="button">إعادة تعيين كلمة المرور</a>
+      <a href="${sanitizeUrl(resetLink)}" class="button">إعادة تعيين كلمة المرور</a>
       <p>إذا لم تطلب إعادة تعيين كلمة المرور، يمكنك تجاهل هذه الرسالة بأمان.</p>
       <p>مع أطيب التحيات،<br>فريق BluePrint</p>
     `;
@@ -310,9 +324,9 @@ export const emailTemplates = {
         <strong>تنبيه:</strong> ستنتهي صلاحية هذا الرابط خلال ${expiresInHours} ساعة.
       </div>
       <p>اضغط على الزر أدناه للتحقق من بريدك الإلكتروني:</p>
-      <a href="${verificationLink}" class="button">التحقق من البريد الإلكتروني</a>
+      <a href="${sanitizeUrl(verificationLink)}" class="button">التحقق من البريد الإلكتروني</a>
       <p style="color: #6b7280; font-size: 14px;">إذا لم تعمل الزر، يمكنك نسخ هذا الرابط ولصقه في المتصفح:</p>
-      <p style="word-break: break-all; background: #f3f4f6; padding: 10px; border-radius: 4px; font-size: 12px;">${verificationLink}</p>
+      <p style="word-break: break-all; background: #f3f4f6; padding: 10px; border-radius: 4px; font-size: 12px;">${sanitizeUrl(verificationLink)}</p>
       <p>إذا لم تقم بإنشاء حساب، يمكنك تجاهل هذه الرسالة بأمان.</p>
       <p>مع أطيب التحيات،<br>فريق BluePrint</p>
     `;
@@ -338,7 +352,7 @@ export const emailTemplates = {
         <strong>تهانينا!</strong> تم التحقق من بريدك الإلكتروني بنجاح.
       </div>
       <p>يمكنك الآن الوصول الكامل إلى جميع ميزات منصة BluePrint.</p>
-      ${loginUrl ? `<a href="${loginUrl}" class="button">تسجيل الدخول</a>` : ''}
+      ${loginUrl ? `<a href="${sanitizeUrl(loginUrl)}" class="button">تسجيل الدخول</a>` : ''}
       <p>مع أطيب التحيات،<br>فريق BluePrint</p>
     `;
 
@@ -441,7 +455,7 @@ export const emailTemplates = {
       <div class="warning">
         <strong>إذا لم تكن أنت:</strong> قد يكون هناك شخص آخر يستخدم حسابك.
       </div>
-      ${securityUrl ? `<a href="${securityUrl}" class="button" style="background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%);">تأمين حسابي</a>` : ''}
+      ${securityUrl ? `<a href="${sanitizeUrl(securityUrl)}" class="button" style="background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%);">تأمين حسابي</a>` : ''}
       <p>مع أطيب التحيات،<br>فريق BluePrint</p>
     `;
 

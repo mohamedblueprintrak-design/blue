@@ -11,6 +11,13 @@ import { backupService } from '@/lib/backup-service';
  */
 export async function POST(request: NextRequest) {
   try {
+    // Admin authentication check
+    const userId = request.headers.get('x-user-id');
+    const userRole = request.headers.get('x-user-role');
+    if (!userId || userRole !== 'admin') {
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 403 });
+    }
+
     const body = await request.json();
     const { filename } = body;
 

@@ -212,6 +212,7 @@ export default function QuotePage() {
   const [message, setMessage] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [submitError, setSubmitError] = useState("");
 
   const canProceed = () => {
     switch (step) {
@@ -225,8 +226,9 @@ export default function QuotePage() {
 
   const handleSubmit = async () => {
     setSubmitting(true);
+      setSubmitError("");
     try {
-      await fetch("/api/quote-requests", {
+      const res = await fetch("/api/quote-requests", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -241,9 +243,14 @@ export default function QuotePage() {
           message,
         }),
       });
-      setSubmitted(true);
-    } catch {
-      // silent
+      if (res.ok) {
+        setSubmitted(true);
+      } else {
+        const data = await res.json().catch(() => ({}));
+        setSubmitError(data.error || "حدث خطأ أثناء إرسال الطلب. يرجى المحاولة مرة أخرى.");
+      }
+    } catch (_err) {
+      setSubmitError("حدث خطأ أثناء إرسال الطلب. يرجى المحاولة مرة أخرى.");
     } finally {
       setSubmitting(false);
     }
@@ -699,6 +706,16 @@ export default function QuotePage() {
               )}
             </motion.div>
           </AnimatePresence>
+
+          {submitError && (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mt-4 p-4 bg-red-50 border border-red-200 rounded-xl text-center"
+            >
+              <p className="text-sm text-red-600">{submitError}</p>
+            </motion.div>
+          )}
 
           {/* Navigation Buttons */}
           <motion.div

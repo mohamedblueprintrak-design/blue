@@ -442,7 +442,8 @@ export default function ClientsPage({ language, projectId, initialTab }: Clients
   // Delete mutation
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      await fetch(`/api/clients/${id}`, { method: "DELETE" });
+      const res = await fetch(`/api/clients/${id}`, { method: "DELETE" });
+      if (!res.ok) throw new Error('Failed to delete');
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["clients"] });

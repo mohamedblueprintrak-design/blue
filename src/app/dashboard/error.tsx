@@ -1,8 +1,10 @@
 "use client";
+import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { AlertTriangle, RefreshCw } from "lucide-react";
 
 export default function DashboardError({ error, reset }: { error: Error & { digest?: string }; reset: () => void }) {
+  useEffect(() => { console.error(error); }, [error]);
   return (
     <div className="flex items-center justify-center min-h-[400px] p-8">
       <div className="text-center space-y-4">

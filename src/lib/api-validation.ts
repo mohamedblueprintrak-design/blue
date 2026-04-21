@@ -343,6 +343,7 @@ export const userUpdateSchema = z.object({
   position: z.string().max(200).optional(),
   role: z.string().max(50).optional(),
   isActive: z.boolean().optional(),
+  avatar: z.string().max(500).optional(),
 });
 
 export type UserUpdateData = z.infer<typeof userUpdateSchema>;

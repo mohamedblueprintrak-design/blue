@@ -5,9 +5,11 @@
  * POST /api/auth/2fa/verify - Verify 2FA code during login
  */
 
-import { NextRequest } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { authService } from '@/lib/auth/auth-service';
 import { successResponse, errorResponse } from '../../../utils/response';
+import { SignJWT } from 'jose';
+import { getJwtSecretBytes } from '@/lib/auth/jwt-secret';
 
 // SECURITY: In-memory rate limiter for failed 2FA attempts
 const rateLimitStore = new Map<string, { count: number; resetTime: number }>();
@@ -114,20 +116,49 @@ export async function POST(request: NextRequest) {
 
     const refreshToken = await authService.generateRefreshToken(user.id);
 
-    return successResponse({
-      message: 'تم التحقق بنجاح',
-      user: {
-        id: user.id,
-        email: user.email,
-        username: user.name, // Using name as username
-        fullName: user.name,
-        role: user.role,
-        avatar: user.avatar,
-        organizationId: user.organizationId,
+    // Generate JWT for httpOnly cookie (same as login flow)
+    const cookieToken = await new SignJWT({
+      userId: user.id,
+      email: user.email,
+      name: user.name,
+      role: user.role,
+      twoFactorEnabled: true,
+      organizationId: user.organizationId || undefined,
+    })
+      .setProtectedHeader({ alg: 'HS256' })
+      .setIssuer('blueprint-saas')
+      .setAudience('blueprint-users')
+      .setExpirationTime('2h')
+      .setIssuedAt()
+      .sign(getJwtSecretBytes());
+
+    const response = NextResponse.json({
+      success: true,
+      data: {
+        message: 'تم التحقق بنجاح',
+        user: {
+          id: user.id,
+          email: user.email,
+          username: user.name,
+          fullName: user.name,
+          role: user.role,
+          avatar: user.avatar,
+          organizationId: user.organizationId,
+        },
+        token: accessToken,
+        refreshToken,
       },
-      token: accessToken,
-      refreshToken,
     });
+
+    response.cookies.set('blue_token', cookieToken, {
+      path: '/',
+      maxAge: 60 * 60 * 2, // 2 hours (matches JWT expiry)
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+    });
+
+    return response;
   } catch (error) {
     console.error('2FA verify error:', error);
     return errorResponse('حدث خطأ غير متوقع', 'INTERNAL_ERROR', 500);

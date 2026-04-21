@@ -36,12 +36,5 @@ export async function GET() {
     status: process.env.REDIS_URL ? 'configured' : 'not_configured'
   };
 
-  // Check critical environment variables
-  health.config = {
-    jwtSecret: !!process.env.JWT_SECRET && process.env.JWT_SECRET.length >= 32,
-    encryptionKey: !!process.env.ENCRYPTION_KEY,
-    demoMode: process.env.DEMO_MODE === 'true'
-  };
-
   return NextResponse.json(health, { status: health.status === 'ok' ? 200 : 503 });
 }

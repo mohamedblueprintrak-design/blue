@@ -126,6 +126,7 @@ import MobileBottomNav from "@/components/layout/mobile-bottom-nav";
 import NotificationDropdown from "@/components/notification-dropdown";
 import WelcomeNotification from "@/components/welcome-notification";
 import { ThemeToggle } from "@/components/theme-toggle";
+import ErrorBoundary from '@/components/common/error-boundary';
 import { cn } from "@/lib/utils";
 import { AnimatePresence, motion } from "framer-motion";
 import LogoImage from "@/components/ui/logo-image";
@@ -484,17 +485,6 @@ function AppHeader() {
   const { language, toggleLanguage, t, isAr } = useLanguage();
   const [searchFocused, setSearchFocused] = useState(false);
 
-  const { data: notifData } = useQuery({
-    queryKey: ["notification-count"],
-    queryFn: async () => {
-      const res = await fetch("/api/notifications/count");
-      if (!res.ok) return { count: 0 };
-      return res.json();
-    },
-    refetchInterval: 30000,
-  });
-  const notifCount = notifData?.count ?? 0;
-
   const pageTitle = pageTitleMap[currentPage] || { ar: "لوحة التحكم", en: "Dashboard" };
 
   const handleLogout = () => {
@@ -609,16 +599,7 @@ function AppHeader() {
         <ThemeToggle label={t("الوضع الليلي", "Dark Mode")} />
 
         {/* Notifications Dropdown Bell */}
-        <TooltipProvider delayDuration={0}>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <NotificationDropdown />
-            </TooltipTrigger>
-            <TooltipContent side="bottom">
-              <p>{t("الإشعارات", "Notifications")}{notifCount > 0 && ` (${notifCount})`}</p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
+        <NotificationDropdown />
 
         <Separator orientation="vertical" className="h-6 mx-1" />
 
@@ -732,6 +713,7 @@ export default function AppLayout({ language }: AppLayoutProps) {
         <Breadcrumbs language={language} />
 
         <main className="flex-1 p-4 lg:p-6 bg-slate-50 dark:bg-slate-950 dot-pattern-content custom-scrollbar overflow-y-auto" role="main" aria-label={language === "ar" ? "المحتوى الرئيسي" : "Main content"}>
+          <ErrorBoundary locale={language}>
           <AnimatePresence mode="wait">
             <motion.div
               key={currentPage}
@@ -806,6 +788,7 @@ export default function AppLayout({ language }: AppLayoutProps) {
               )}
             </motion.div>
           </AnimatePresence>
+          </ErrorBoundary>
         </main>
       </SidebarInset>
 

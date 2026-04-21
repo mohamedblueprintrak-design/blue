@@ -30,7 +30,6 @@ export async function POST() {
       if (isDemoMode()) {
         response.demoCredentials = DEMO_CREDENTIALS.map(c => ({
           email: c.email,
-          password: c.password,
           role: c.role,
           labelAr: c.labelAr,
           labelEn: c.labelEn,
@@ -218,7 +217,6 @@ export async function POST() {
     if (isDemoMode()) {
       response.demoCredentials = DEMO_CREDENTIALS.map(c => ({
         email: c.email,
-        password: c.password,
         role: c.role,
         labelAr: c.labelAr,
         labelEn: c.labelEn,
@@ -248,7 +246,6 @@ export async function GET() {
     if (isDemoMode()) {
       response.demoCredentials = DEMO_CREDENTIALS.map(c => ({
         email: c.email,
-        password: c.password,
         role: c.role,
         labelAr: c.labelAr,
         labelEn: c.labelEn,

@@ -48,17 +48,18 @@ export async function PUT(
       return NextResponse.json({ error: validation.error, errors: validation.errors }, { status: 400 });
     }
 
+    const validatedData = validation.data;
     const user = await db.user.update({
       where: { id },
       data: {
-        ...(body.name !== undefined && { name: body.name }),
-        ...(body.email !== undefined && { email: body.email }),
-        ...(body.phone !== undefined && { phone: body.phone }),
-        ...(body.role !== undefined && { role: body.role }),
-        ...(body.department !== undefined && { department: body.department }),
-        ...(body.position !== undefined && { position: body.position }),
-        ...(body.isActive !== undefined && { isActive: body.isActive }),
-        ...(body.avatar !== undefined && { avatar: body.avatar }),
+        ...(validatedData.name !== undefined && { name: validatedData.name }),
+        ...(validatedData.email !== undefined && { email: validatedData.email }),
+        ...(validatedData.phone !== undefined && { phone: validatedData.phone }),
+        ...(validatedData.role !== undefined && { role: validatedData.role }),
+        ...(validatedData.department !== undefined && { department: validatedData.department }),
+        ...(validatedData.position !== undefined && { position: validatedData.position }),
+        ...(validatedData.isActive !== undefined && { isActive: validatedData.isActive }),
+        ...(validatedData.avatar !== undefined && { avatar: validatedData.avatar }),
       },
     });
 

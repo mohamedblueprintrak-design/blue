@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
@@ -322,6 +322,8 @@ export default function NotificationDropdown() {
                   return (
                     <motion.div
                       key={notif.id}
+                      role="button"
+                      tabIndex={0}
                       initial={{ opacity: 0, y: -5 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, x: isAr ? 100 : -100 }}
@@ -333,6 +335,7 @@ export default function NotificationDropdown() {
                           : "bg-teal-50/30 dark:bg-teal-950/10 hover:bg-teal-50/50 dark:hover:bg-teal-950/20"
                       )}
                       onClick={() => handleNotificationClick(notif)}
+                      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleNotificationClick(notif); }}
                     >
                       {/* Icon with gradient background */}
                       <div className={cn(

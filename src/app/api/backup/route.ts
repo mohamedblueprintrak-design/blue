@@ -4,14 +4,26 @@
  * POST /api/backup - Create new backup
  */
 
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { backupService } from '@/lib/backup-service';
+
+function requireAdmin(request: NextRequest): NextResponse | null {
+  const userId = request.headers.get('x-user-id');
+  const userRole = request.headers.get('x-user-role');
+  if (!userId || userRole !== 'admin') {
+    return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 403 });
+  }
+  return null;
+}
 
 /**
  * GET - List all backups with stats
  */
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
+    const authError = requireAdmin(request);
+    if (authError) return authError;
+
     const backups = await backupService.listBackups();
     const stats = await backupService.getStats();
 
@@ -31,8 +43,11 @@ export async function GET() {
 /**
  * POST - Create new backup
  */
-export async function POST() {
+export async function POST(request: NextRequest) {
   try {
+    const authError = requireAdmin(request);
+    if (authError) return authError;
+
     const result = await backupService.createBackup();
 
     if (!result.success) {

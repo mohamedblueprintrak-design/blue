@@ -31,7 +31,7 @@
 import { SignJWT, jwtVerify } from 'jose';
 import { hash, compare } from 'bcryptjs';
 import { randomBytes, randomInt } from 'crypto';
-import { authenticator } from 'otplib';
+import { generateSecret, generateURI, verify, NobleCryptoPlugin, ScureBase32Plugin } from 'otplib';
 import { db } from '@/lib/db';
 import { env } from '@/lib/env';
 import { log } from '@/lib/logger';
@@ -1061,7 +1061,7 @@ class AuthenticationService {
    */
   async generateTwoFactorSecret(userId: string): Promise<{ secret: string; qrCodeUrl: string }> {
     // Generate a proper Base32 secret compatible with authenticator apps
-    const secret = authenticator.generateSecret();
+    const secret = generateSecret({ crypto: new NobleCryptoPlugin(), base32: new ScureBase32Plugin() });
     
     const user = await db.user.findUnique({
       where: { id: userId },
@@ -1074,7 +1074,7 @@ class AuthenticationService {
 
     // Create OTPAuth URL for QR code using otplib
     const appName = 'BluePrint';
-    const qrCodeUrl = authenticator.keyuri(user.email, appName, secret);
+    const qrCodeUrl = generateURI({ label: user.email, issuer: appName, secret, strategy: 'totp' });
 
     // Store secret temporarily (will be activated after verification)
     const existingSecret = await db.twoFactorSecret.findUnique({
@@ -1111,11 +1111,12 @@ class AuthenticationService {
    * Verify TOTP code using otplib
    * Compatible with Google Authenticator, Authy, Microsoft Authenticator, etc.
    */
-  private verifyTotpCode(secret: string, code: string): boolean {
+  private async verifyTotpCode(secret: string, code: string): Promise<boolean> {
     try {
-      // Use otplib's authenticator.verify for proper TOTP verification
+      // Use otplib v13 verify function for proper TOTP verification
       // It handles time window drift automatically
-      return authenticator.verify({ token: code, secret });
+      const result = await verify({ token: code, secret, strategy: 'totp', crypto: new NobleCryptoPlugin(), base32: new ScureBase32Plugin() });
+      return result.valid;
     } catch (error) {
       log.error('TOTP verification error', error);
       return false;
@@ -1140,7 +1141,7 @@ class AuthenticationService {
       }
 
       // Verify the code
-      const isValid = this.verifyTotpCode(twoFactorSecret.secret, verificationCode);
+      const isValid = await this.verifyTotpCode(twoFactorSecret.secret, verificationCode);
       if (!isValid) {
         return {
           success: false,
@@ -1285,7 +1286,7 @@ class AuthenticationService {
       }
 
       // Verify TOTP code
-      return this.verifyTotpCode(twoFactorSecret.secret, code);
+      return await this.verifyTotpCode(twoFactorSecret.secret, code);
     } catch (error) {
       log.error('Verify 2FA error', error);
       return false;
