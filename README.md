@@ -183,12 +183,12 @@ npm run dev
 
 | Email | Password | Role | الدور |
 |---|---|---|---|
-| admin@blueprint.ae | admin123 | Admin | المدير العام |
-| pm@blueprint.ae | admin123 | Project Manager | مدير مشاريع |
-| eng@blueprint.ae | admin123 | Engineer | مهندس |
-| acc@blueprint.ae | admin123 | Accountant | محاسب |
-| hr@blueprint.ae | admin123 | HR | موارد بشرية |
-| sec@blueprint.ae | admin123 | Secretary | سكرتير |
+| admin@blueprint.ae | Admin@BP2024! | Admin | المدير العام |
+| pm@blueprint.ae | Admin@BP2024! | Project Manager | مدير مشاريع |
+| eng@blueprint.ae | Admin@BP2024! | Engineer | مهندس |
+| acc@blueprint.ae | Admin@BP2024! | Accountant | محاسب |
+| hr@blueprint.ae | Admin@BP2024! | HR | موارد بشرية |
+| sec@blueprint.ae | Admin@BP2024! | Secretary | سكرتير |
 
 ---
 

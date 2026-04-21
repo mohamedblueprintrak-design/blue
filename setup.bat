@@ -81,7 +81,7 @@ echo ============================================
 echo   Setup Complete!
 echo ============================================
 echo.
-echo   Login: admin@blueprint.ae / admin123
+echo   Login: admin@blueprint.ae / Admin@BP2024!
 echo   URL:   http://localhost:3000
 echo.
 echo   Starting dev server...

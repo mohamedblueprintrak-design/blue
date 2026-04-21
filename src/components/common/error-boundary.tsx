@@ -112,7 +112,7 @@ function DefaultFallback({
   className,
 }: DefaultFallbackProps) {
   const [showDetails, setShowDetails] = React.useState(false);
-  const isRtl = false; // Could be determined from context
+  const isRtl = typeof window !== 'undefined' && (localStorage.getItem('blueprint-lang') || 'ar') === 'ar';
 
   return (
     <div

@@ -131,7 +131,7 @@ export function DashboardWidget({
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-40">
               <DropdownMenuItem
-                onClick={onHide}
+                onClick={onHide || undefined}
                 className="text-red-600 dark:text-red-400 focus:text-red-600 dark:focus:text-red-400 cursor-pointer"
               >
                 <EyeOff className="h-3.5 w-3.5 me-2" />

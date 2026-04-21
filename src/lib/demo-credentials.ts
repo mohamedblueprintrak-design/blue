@@ -165,5 +165,5 @@ export function getDemoCredentialsMap(): Record<string, string> {
  * يتحقق مما إذا كنا نعمل في وضع العرض/التطوير
  */
 export function isDemoMode(): boolean {
-  return process.env.DEMO_MODE !== 'false' && process.env.NODE_ENV !== 'production';
+  return process.env.DEMO_MODE === 'true' || process.env.NODE_ENV === 'development';
 }

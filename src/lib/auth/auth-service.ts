@@ -31,7 +31,7 @@
 import { SignJWT, jwtVerify } from 'jose';
 import { hash, compare } from 'bcryptjs';
 import { randomBytes, randomInt } from 'crypto';
-import { generateSecret, generateURI, verifySync } from 'otplib';
+import { authenticator } from 'otplib';
 import { db } from '@/lib/db';
 import { env } from '@/lib/env';
 import { log } from '@/lib/logger';
@@ -1061,7 +1061,7 @@ class AuthenticationService {
    */
   async generateTwoFactorSecret(userId: string): Promise<{ secret: string; qrCodeUrl: string }> {
     // Generate a proper Base32 secret compatible with authenticator apps
-    const secret = generateSecret();
+    const secret = authenticator.generateSecret();
     
     const user = await db.user.findUnique({
       where: { id: userId },
@@ -1074,11 +1074,7 @@ class AuthenticationService {
 
     // Create OTPAuth URL for QR code using otplib
     const appName = 'BluePrint';
-    const qrCodeUrl = generateURI({
-      issuer: appName,
-      label: user.email,
-      secret: secret,
-    });
+    const qrCodeUrl = authenticator.keyuri(user.email, appName, secret);
 
     // Store secret temporarily (will be activated after verification)
     const existingSecret = await db.twoFactorSecret.findUnique({
@@ -1119,11 +1115,7 @@ class AuthenticationService {
     try {
       // Use otplib's authenticator.verify for proper TOTP verification
       // It handles time window drift automatically
-      const result = verifySync({
-        secret: secret,
-        token: code,
-      });
-      return result.valid;
+      return authenticator.verify({ token: code, secret });
     } catch (error) {
       log.error('TOTP verification error', error);
       return false;

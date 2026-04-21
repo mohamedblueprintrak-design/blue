@@ -55,7 +55,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Always hash the password with bcrypt before storing
-    const hashedPassword = await hash(password || 'default_password', 12);
+    const hashedPassword = await hash(password || crypto.randomUUID(), 12);
 
     const user = await db.user.create({
       data: {

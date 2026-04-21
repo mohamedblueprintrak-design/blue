@@ -119,7 +119,7 @@ function AnimatedCounter({ value, duration = 1500 }: { value: number; duration?:
   const [count, setCount] = useState(0);
   const ref = useRef<HTMLSpanElement>(null);
 
-  useState(() => {
+  useEffect(() => {
     let startTime: number | null = null;
     let animationFrame: number;
 
@@ -135,7 +135,7 @@ function AnimatedCounter({ value, duration = 1500 }: { value: number; duration?:
 
     animationFrame = requestAnimationFrame(animate);
     return () => cancelAnimationFrame(animationFrame);
-  });
+  }, [value, duration]);
 
   return <span ref={ref}>{count.toLocaleString("ar-AE")}</span>;
 }

@@ -436,7 +436,7 @@ export class AuditLogger {
           method: entry.method ?? null,
           requestId: entry.requestId ?? null,
         })),
-        skipDuplicates: true,
+        
       });
     }
   }

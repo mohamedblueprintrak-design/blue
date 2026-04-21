@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTheme } from "next-themes";
 import { Card, CardContent } from "@/components/ui/card";
@@ -99,7 +99,7 @@ export default function SettingsPage({ language: lang }: Props) {
   const [saved, setSaved] = useState(false);
 
   // Sync form data when settings load
-  useState(() => {
+  useEffect(() => {
     if (settings) {
       setFormData({
         name: settings.name || "",
@@ -114,7 +114,7 @@ export default function SettingsPage({ language: lang }: Props) {
       });
       setWorkingDays((settings.workingDays || "").split(",").filter(Boolean));
     }
-  });
+  }, [settings]);
 
   const updateMutation = useMutation({
     mutationFn: (data: Record<string, unknown>) =>

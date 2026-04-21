@@ -22,7 +22,7 @@
 'use client';
 
 import React, { useCallback, useEffect } from 'react';
-import { KeyboardIcon } from 'lucide-react';
+import { Keyboard } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
