@@ -65,6 +65,7 @@ const nextConfig: NextConfig = {
     'jspdf-autotable',
     'jose',
     'otplib',
+    'z-ai-web-dev-sdk',
   ],
 
   // Environment variables exposed to client

@@ -1,5 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
-import ZAI from 'z-ai-web-dev-sdk';
+
+// Lazy-load ZAI SDK to avoid bundling issues and missing .z-ai-config at import time
+async function getZAI() {
+  try {
+    const mod = await import('z-ai-web-dev-sdk');
+    return mod.default;
+  } catch (importError) {
+    console.warn('[AI] Failed to import z-ai-web-dev-sdk:', importError instanceof Error ? importError.message : importError);
+    return null;
+  }
+}
 
 // Rate limiting store
 const rateLimitStore = new Map<string, { count: number; resetTime: number }>();
@@ -133,6 +143,13 @@ export async function POST(request: NextRequest) {
     const systemPrompt = SYSTEM_PROMPTS[taskType] || SYSTEM_PROMPTS['document-analysis'];
 
     // Initialize ZAI SDK
+    const ZAI = await getZAI();
+    if (!ZAI) {
+      return NextResponse.json(
+        { success: false, error: 'خدمة الذكاء الاصطناعي غير متاحة حالياً' },
+        { status: 503 }
+      );
+    }
     const zai = await ZAI.create();
 
     // Check if the document is base64 (file) or plain text

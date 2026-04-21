@@ -1,9 +1,23 @@
 import { NextRequest, NextResponse } from 'next/server';
-import ZAI from 'z-ai-web-dev-sdk';
 import { db } from '@/lib/db';
 import { validateBody, aiChatSchema } from '@/lib/api-validation';
 import { providerRegistry } from '@/lib/ai/providers/registry';
 import type { ChatMessage } from '@/lib/ai/providers/types';
+
+// Lazy-load ZAI SDK to avoid bundling issues and missing .z-ai-config at import time
+let ZAISdk: typeof import('z-ai-web-dev-sdk').default | null = null;
+async function getZAI() {
+  if (!ZAISdk) {
+    try {
+      const mod = await import('z-ai-web-dev-sdk');
+      ZAISdk = mod.default;
+    } catch (importError) {
+      console.warn('[AI] Failed to import z-ai-web-dev-sdk:', importError instanceof Error ? importError.message : importError);
+      return null;
+    }
+  }
+  return ZAISdk;
+}
 
 // Note: We now use database persistence instead of in-memory storage
 // The conversation history is now saved in AIChatConversation and AIChatMessage tables
@@ -907,19 +921,24 @@ Guidelines:
       // Try built-in ZAI SDK first, then fall back to external providers
       let zaiAvailable = false;
       try {
-        const zai = await ZAI.create();
-        const completion = await zai.chat.completions.create({
-          messages: [
-            { role: 'system', content: systemPrompt },
-            ...history,
-            { role: 'user', content: message },
-          ],
-          temperature: 0.7,
-          max_tokens: 1500,
-        });
-        aiMessage = completion.choices[0]?.message?.content || '';
-        usedModel = 'zai-default';
-        zaiAvailable = true;
+        const ZAIClass = await getZAI();
+        if (ZAIClass) {
+          const zai = await ZAIClass.create();
+          const completion = await zai.chat.completions.create({
+            messages: [
+              { role: 'system', content: systemPrompt },
+              ...history,
+              { role: 'user', content: message },
+            ],
+            temperature: 0.7,
+            max_tokens: 1500,
+          });
+          aiMessage = completion.choices[0]?.message?.content || '';
+          usedModel = 'zai-default';
+          zaiAvailable = true;
+        } else {
+          console.warn('[AI] Built-in ZAI SDK module could not be loaded');
+        }
       } catch (zaiError) {
         console.warn('[AI] Built-in ZAI SDK unavailable, falling back to external provider:', zaiError instanceof Error ? zaiError.message : zaiError);
       }
