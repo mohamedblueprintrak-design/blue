@@ -1,0 +1,93 @@
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# dependencies
+node_modules
+/.pnp
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
+
+# testing
+/coverage
+
+# next.js
+/.next/
+/out/
+
+# production
+/build
+
+# misc
+.DS_Store
+*.pem
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# env files
+.env
+.env.local
+.env.production
+.env.staging
+.env.development
+.env.*.local
+
+# vercel
+.vercel
+
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
+local-*
+.claude
+.z-ai-config
+*.log
+dev.log
+dev.out.log
+test
+prompt
+
+server.log
+# Skills directory (AI agent tools - not needed in repo)
+skills/
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Agent context files (development only)
+agent-ctx/
+
+/test-results/
+playwright-report/
+coverage/
+test-results/
+
+# npm cache (should not be committed)
+.npm/
+
+# logs directory
+logs/
+
+# database files
+db/*.db
+db/*.db-journal
+db/*.db-wal
+
+# upload directory (user uploads)
+upload/
+uploads/
+
+# package lock (using bun.lock - pick one)
+package-lock.json
+prisma/db/
+db/custom.db-shm
+db/custom.db-wal
+mini-services/chat-service/node_modules/
